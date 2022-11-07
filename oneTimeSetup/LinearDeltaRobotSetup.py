@@ -51,32 +51,6 @@ def main():
         print("Communication with the DPiRobot board failed.")
         return
 
-    #
-    # At all times the robot has a "Status" value that you can get by calling getRobotStatus().
-    # Two values are return and assigned to the variables "success_flg" and "status".
-    # "success_flg" will be "True" if the command executed successfully or "False" if it
-    # failed while trying to get the status.  "status" can have many values depending on what
-    # the robot is doing.
-    #
-    _success_flg, status = dpiRobot.getRobotStatus()
-
-    if status == dpiRobot.STATE_NOT_READY:
-        print("Status: Robot is not ready.")
-    elif status == dpiRobot.STATE_MOTORS_DISABLED:
-        print("Status: Motors are disabled.")
-    elif status == dpiRobot.STATE_NOT_HOMED:
-        print("Status: Motors enabled but robot not homed.")
-    elif status == dpiRobot.STATE_HOMING:
-        print("Status: Robot is running the homing procedure.")
-    elif status == dpiRobot.STATE_STOPPED:
-        print("Status: Robot is stopped.")
-    elif status == dpiRobot.STATE_PREPARING_TO_MOVE:
-        print("Status: Robot received 1 or more waypoints but hasn't started moving.")
-    elif status == dpiRobot.STATE_MOVING:
-        print("Status: Robot is moving.")
-    else:
-        print("Unknown status.")
-
     #Initalize the Delta Arm
 
     dpiRobot.setType(robotType)
