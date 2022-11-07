@@ -104,11 +104,11 @@ def main():
     # Move in Square
     sleep(2)
     speed = 100.0
-    dpiRobot.addWaypoint(500, 500, Z, speed)
-    dpiRobot.addWaypoint(-500, 500, Z, speed)
-    dpiRobot.addWaypoint(-500, -500, Z, speed)
-    dpiRobot.addWaypoint(500, -500, Z, speed)
-    dpiRobot.addWaypoint(500, 500, Z, speed)
+    dpiRobot.addWaypoint(250, 250, Z, speed)
+    dpiRobot.addWaypoint(-250, 250, Z, speed)
+    dpiRobot.addWaypoint(-250, -250, Z, speed)
+    dpiRobot.addWaypoint(250, -250, Z, speed)
+    dpiRobot.addWaypoint(250, 250, Z, speed)
     dpiRobot.waitWhileRobotIsMoving()
     print("Move to in a square complete")
 
