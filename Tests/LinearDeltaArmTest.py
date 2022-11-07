@@ -104,15 +104,15 @@ def main():
     # Move in Square
     sleep(2)
     speed = 100.0
-    dpiRobot.addWaypoint(250, 250, Z, speed)
-    dpiRobot.addWaypoint(-250, 250, Z, speed)
-    dpiRobot.addWaypoint(-250, -250, Z, speed)
-    dpiRobot.addWaypoint(250, -250, Z, speed)
-    dpiRobot.addWaypoint(250, 250, Z, speed)
-    dpiRobot.waitWhileRobotIsMoving()
+    dpiRobot.addWaypoint(250, 0, Z, speed)
+    # dpiRobot.addWaypoint(-250, 250, Z, speed)
+    # dpiRobot.addWaypoint(-250, -250, Z, speed)
+    # dpiRobot.addWaypoint(250, -250, Z, speed)
+    # dpiRobot.addWaypoint(250, 250, Z, speed)
+    # dpiRobot.waitWhileRobotIsMoving()
     print("Move to in a square complete")
 
-
+    return
     # Move in circle
     sleep(2)
     Z = 100
