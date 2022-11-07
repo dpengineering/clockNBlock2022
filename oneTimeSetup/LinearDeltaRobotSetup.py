@@ -106,4 +106,6 @@ def main():
     dpiRobot.motorDriver_SetReverseStepDirectionFlag(reverseStepDirectionFlag)
 
 
-
+# Run script
+if __name__ == "__main__":
+    main()
