@@ -80,6 +80,7 @@ def main():
     #Initalize the Delta Arm
 
     dpiRobot.setType(robotType)
+    print(robotType)
 
     dpiRobot.setRobotMinMaxX(minX, maxX)
     dpiRobot.setRobotMinMaxY(minY, maxY)
@@ -99,7 +100,9 @@ def main():
     dpiRobot.linDelta_SetMaxJointPos(maxArmPos)
 
     dpiRobot.motorDriver_SetDriverType(motorDriverType)
+    print(motorDriverType)
     dpiRobot.motorDriver_SetDriverMicrostepping(microStepping)
+    print(microStepping)
     dpiRobot.motorDriver_SetReverseStepDirectionFlag(reverseStepDirectionFlag)
 
 
