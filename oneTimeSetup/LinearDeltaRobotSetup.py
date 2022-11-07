@@ -53,7 +53,7 @@ def main():
 
     #Initalize the Delta Arm
 
-    dpiRobot.setType(robotType)
+    dpiRobot.setRobotType(robotType)
     print(robotType)
 
     dpiRobot.setRobotMinMaxX(minX, maxX)
