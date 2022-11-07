@@ -1,8 +1,8 @@
 #      ******************************************************************
 #      *                                                                *
-#      *   This program sets up the Linear Delta Robot for the Clock and Block project  *
+#      *  One time setup of constants for ClockNBlock Linear Delta Arm  *
 #      *                                                                *
-#      *            Stan Reifel, Arnav Wadhwa, Brian Vesper                     8/20/2022           *
+#      *    Stan Reifel, Arnav Wadhwa, Brian Vesper     11/4/2022       *
 #      *                                                                *
 #      ******************************************************************
 
