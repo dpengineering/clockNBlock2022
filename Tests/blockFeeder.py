@@ -44,12 +44,18 @@ upPiston = 1
 overPiston = 0
 
 def initalize():
+    print(dpiComputer.readDigitalIn(display))
+    print(dpiComputer.readDigitalIn(bottom))
+    print(dpiComputer.readDigitalIn(blockExists))
     if (dpiComputer.readDigitalIn(display) == True):
+        print(dpiComputer.readDigitalIn(display))
         return
     if (dpiComputer.readDigitalIn(bottom) == True):
         dpiPowerDrive.switchDriverOnOrOff(upPiston, True)
+        print(dpiComputer.readDigitalIn(bottom))
         return
     if (dpiComputer.readDigitalIn(blockExists) == True):
+        print(dpiComputer.readDigitalIn(blockExists))
         dpiPowerDrive.switchDriverOnOrOff(overPiston, True)
         while (dpiComputer.readDigitalIn(bottom) != True):
             sleep(0.01)
