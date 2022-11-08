@@ -28,16 +28,17 @@ def main():
         print("Communication with the DPiPowerDrive board failed.")
         return
     initalize()
+    print("All done")
 
 
 # We will set all of the block feeders to be displaying a block.
 
 #Constants for the sensors
 ## Task: Rename these variables to actually make sense
-display = dpiComputer.IN_CONNECTOR_IN_3
-bottom = dpiComputer.IN_CONNECTOR_IN_2
-blockExists = dpiComputer.IN_CONNECTOR_IN_1
-isFull = dpiComputer.IN_CONNECTOR_IN_0
+display = dpiComputer.IN_CONNECTOR__IN_3
+bottom = dpiComputer.IN_CONNECTOR__IN_2
+blockExists = dpiComputer.IN_CONNECTOR__IN_1
+isFull = dpiComputer.IN_CONNECTOR__IN_0
 
 upPiston = 1
 overPiston = 0
