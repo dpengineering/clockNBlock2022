@@ -44,27 +44,30 @@ upPiston = 1
 overPiston = 0
 
 def initalize():
-    print(dpiComputer.readDigitalIn(display))
-    print(dpiComputer.readDigitalIn(bottom))
-    print(dpiComputer.readDigitalIn(blockExists))
-    if (dpiComputer.readDigitalIn(display) == True):
-        print(dpiComputer.readDigitalIn(display))
+    if (dpiComputer.readDigitalIn(display) != True):
         return
-    if (dpiComputer.readDigitalIn(bottom) == True):
-        dpiPowerDrive.switchDriverOnOrOff(upPiston, True)
-        print(dpiComputer.readDigitalIn(bottom))
+    dpiPowerDrive.switchDriverOnOrOff(upPiston, True)
+    sleep(2)
+    if (dpiComputer.readDigitalIn(display) != True):
         return
-    if (dpiComputer.readDigitalIn(blockExists) == True):
-        print(dpiComputer.readDigitalIn(blockExists))
-        dpiPowerDrive.switchDriverOnOrOff(overPiston, True)
-        while (dpiComputer.readDigitalIn(bottom) != True):
-            sleep(0.01)
-        dpiPowerDrive.switchDriverOnOrOff(upPiston, True)
+    cycleBlock()
     return
 
-def loop():
+def cycleBlock():
     # check if sensor 3 is on. If it is, do nothing.
+    if (dpiComputer.readDigitalIn(display) == True):
 
+        #Turn Solenoids Off
+        dpiPowerDrive.switchDriverOnOrOff(upPiston, False)
+        dpiPowerDrive.switchDriverOnOrOff(overPiston, False)
+
+        #If block exists, run this
+        if(dpiComputer.readDigitalIn(blockExists) != True):
+            dpiPowerDrive.switchDriverOnOrOff(overPiston, True)
+            while(dpiComputer.readDigitalIn(bottom) == True):
+                sleep(0.01)
+            dpiPowerDrive.switchDriverOnOrOff(upPiston, True)
+        return
     return
 #Run script
 if __name__ == "__main__":
