@@ -96,26 +96,26 @@ def main():
 
     X = 0.0
     Y = 0.0
-    Z = -1300
+    Z = 100
     _success_flg = dpiRobot.addWaypoint(X, Y, Z, speed)
     dpiRobot.waitWhileRobotIsMoving()
-    print("Move to (0, 0, -1300) complete")
+    print("Move to (0, 0, 100) complete")
 
     # Move in Square
     sleep(2)
     speed = 100.0
-    dpiRobot.addWaypoint(500, 500, Z, speed)
-    dpiRobot.addWaypoint(-500, 500, Z, speed)
-    dpiRobot.addWaypoint(-500, -500, Z, speed)
-    dpiRobot.addWaypoint(500, -500, Z, speed)
-    dpiRobot.addWaypoint(500, 500, Z, speed)
-    dpiRobot.waitWhileRobotIsMoving()
+    dpiRobot.addWaypoint(250, 0, Z, speed)
+    # dpiRobot.addWaypoint(-250, 250, Z, speed)
+    # dpiRobot.addWaypoint(-250, -250, Z, speed)
+    # dpiRobot.addWaypoint(250, -250, Z, speed)
+    # dpiRobot.addWaypoint(250, 250, Z, speed)
+    # dpiRobot.waitWhileRobotIsMoving()
     print("Move to in a square complete")
 
-
+    return
     # Move in circle
     sleep(2)
-    Z = -1300
+    Z = 100
     radius = 200.0
     speed = 200
 
