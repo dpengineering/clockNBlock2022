@@ -10,5 +10,5 @@ class deltaArm:
 
     """Constructor for delta arm"""
     def __init__(self, boardNumber: int):
-        dpiRobot.setBoardNumber(boardNumber)
+        self.dpiRobot.setBoardNumber(boardNumber)
         
