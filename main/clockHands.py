@@ -29,7 +29,7 @@ MINUTE_HAND_GEAR_REDUCTION = 204 # Gear reduction is 204:1
 MINUTE_HAND_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * MINUTE_HAND_GEAR_REDUCTION # 326400
 # Regular minute hand speed in steps per second ~ 90.7 steps/sec
 MINUTE_HAND_CLOCK_SPEED = MINUTE_HAND_STEPS_PER_REVOLUTION / 3600
-MINUTE_HAND_MAX_SPEED = MINUTE_HAND_STEPS_PER_REVOLUTION / 204  # 1600, < 1 rev / 5 sec but fat gear reduction
+MINUTE_HAND_MAX_SPEED = 1600  # 1600, < 1 rev / 5 sec but fat gear reduction
 
 
 dpiStepper = DPiStepper.DPiStepper()
@@ -54,14 +54,6 @@ def setupClock():
 # Home clock hands
 def home():
 
-    # Set Speed and Acceleration to max
-
-    dpiStepper.setSpeedInStepsPerSecond(HOUR_HAND, HOUR_HAND_MAX_SPEED)
-    dpiStepper.setAccelerationInStepsPerSecondPerSecond(HOUR_HAND, HOUR_HAND_MAX_SPEED)
-
-    dpiStepper.setSpeedInStepsPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
-    dpiStepper.setAccelerationInStepsPerSecondPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
-
     # Move to limit switches
 
     dpiStepper.moveToHomeInSteps(HOUR_HAND, 1, HOUR_HAND_MAX_SPEED, HOUR_HAND_STEPS_PER_REVOLUTION)
@@ -70,10 +62,18 @@ def home():
     dpiStepper.waitUntilMotorStops(HOUR_HAND)
     dpiStepper.waitUntilMotorStops(MINUTE_HAND)
 
+    # Set Speed and Acceleration to max
+
+    dpiStepper.setSpeedInStepsPerSecond(HOUR_HAND, HOUR_HAND_MAX_SPEED)
+    dpiStepper.setAccelerationInStepsPerSecondPerSecond(HOUR_HAND, HOUR_HAND_MAX_SPEED)
+
+    dpiStepper.setSpeedInStepsPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
+    dpiStepper.setAccelerationInStepsPerSecondPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
+
     # Go to 12:00 Position
 
-    dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, -9000, True)
-    dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, 1368, True)
+    dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, -55825, True)
+    dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, 120, True)
 
     dpiStepper.setCurrentPositionInSteps(HOUR_HAND, 0)
     dpiStepper.setCurrentPositionInSteps(MINUTE_HAND, 0)
@@ -112,6 +112,7 @@ def moveToTime(time):
 
     # Set Speed and Acceleration to max
 
+    dpiStepper.enableMotors(True)
     dpiStepper.setSpeedInStepsPerSecond(HOUR_HAND, HOUR_HAND_MAX_SPEED)
     dpiStepper.setAccelerationInStepsPerSecondPerSecond(HOUR_HAND, HOUR_HAND_MAX_SPEED)
 
@@ -119,12 +120,10 @@ def moveToTime(time):
     dpiStepper.setAccelerationInStepsPerSecondPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
 
     # Move to time
-    # TODO: Ask Stan if absolute position is steps from 0 and if it goes in the positive direction.
-    #  Or should I calculate my own position based on relative values.
-    dpiStepper.moveToAbsolutePositionInSteps(HOUR_HAND, (hours / 12) * HOUR_HAND_STEPS_PER_REVOLUTION, False)
-    dpiStepper.moveToAbsolutePositionInSteps(MINUTE_HAND, (minutes / 60) * MINUTE_HAND_STEPS_PER_REVOLUTION, False)
+    dpiStepper.moveToAbsolutePositionInSteps(HOUR_HAND, int((hours / 12) * HOUR_HAND_STEPS_PER_REVOLUTION), True)
+    dpiStepper.moveToAbsolutePositionInSteps(MINUTE_HAND, int((minutes / 60) * MINUTE_HAND_STEPS_PER_REVOLUTION), True)
 
-
+    dpiStepper.enableMotors(False)
 # TODO: Get position in degrees
 #   Get position in radians
 #   Move to position in degrees / radians (Maybe change time to this one too)
@@ -133,7 +132,9 @@ def moveToTime(time):
 
 
 def main():
-    setupClock()
+    # setupClock()
+    moveToTime(615)
 
 if __name__ == "__main__":
     main()
+
