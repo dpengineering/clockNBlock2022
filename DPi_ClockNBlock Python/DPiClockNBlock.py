@@ -89,7 +89,8 @@ class DPiClockNBlock:
     #   Exit: True if on, else false
     #
     def readEntrance(self):
-        return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_ENTRANCE)
+        self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_ENTRANCE)
+        return dpiNetwork.popUint8()
 
 
     #
