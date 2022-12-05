@@ -104,7 +104,7 @@ def moveToTime(time):
     """
 
     if type(time) is str:
-        time.replace(':', '')
+        time = time.replace(':', '')
         time = int(time)
 
     minutes = (time % 100) % 60
