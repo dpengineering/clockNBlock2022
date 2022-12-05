@@ -31,11 +31,13 @@ MINUTE_HAND_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * MINUTE_HAND_GEAR_REDUCT
 MINUTE_HAND_CLOCK_SPEED = MINUTE_HAND_STEPS_PER_REVOLUTION / 3600
 MINUTE_HAND_MAX_SPEED = MINUTE_HAND_STEPS_PER_REVOLUTION / 204  # 1600, < 1 rev / 5 sec but fat gear reduction
 
-dpiStepper = DPiStepper()
 
+dpiStepper = DPiStepper.DPiStepper()
 
 # Initialize to 12:00 position
 def setupClock():
+
+
 
     dpiStepper.setBoardNumber(0)
     if not dpiStepper.initialize():
@@ -50,7 +52,7 @@ def setupClock():
 
 
 # Home clock hands
-async def home():
+def home():
 
     # Set Speed and Acceleration to max
 
@@ -70,11 +72,14 @@ async def home():
 
     # Go to 12:00 Position
 
-    dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, -9000, False)
-    dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, 1368, False)
+    dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, -9000, True)
+    dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, 1368, True)
+
+    dpiStepper.setCurrentPositionInSteps(HOUR_HAND, 0)
+    dpiStepper.setCurrentPositionInSteps(MINUTE_HAND, 0)
 
 
-async def moveClock(multiplier: int):
+def moveClock(multiplier: int):
 
     dpiStepper.enableMotors(True)
 
@@ -123,8 +128,12 @@ def moveToTime(time):
 # TODO: Get position in degrees
 #   Get position in radians
 #   Move to position in degrees / radians (Maybe change time to this one too)
-#   Figure out interrupt handler for when it goes over the block places. 
+#   Figure out interrupt handler for when it goes over the block places.
 
 
 
+def main():
+    setupClock()
 
+if __name__ == "__main__":
+    main()
