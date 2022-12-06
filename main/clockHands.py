@@ -41,7 +41,7 @@ class Clock:
         pass
 
     # Initialize to 12:00 position
-    def setupClock(self):
+    def setup(self):
 
         dpiStepper.setBoardNumber(0)
         if not dpiStepper.initialize():
@@ -74,7 +74,7 @@ class Clock:
 
         # Go to 12:00 Position
 
-        dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, -55825, False)
+        dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, -54300, False)
         dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, 120, False)
 
         # TODO: replace this with the state function
@@ -151,8 +151,8 @@ class Clock:
         minuteGoalPos = int((minutes / 60) * MINUTE_HAND_STEPS_PER_REVOLUTION)
 
         # Current clock position
-        hourCurrentPos = dpiStepper.getCurrentPositionInSteps(HOUR_HAND)
-        minuteCurrentPos = dpiStepper.getCurrentPositionInSteps(MINUTE_HAND)
+        hourCurrentPos = dpiStepper.getCurrentPositionInSteps(HOUR_HAND)[1]
+        minuteCurrentPos = dpiStepper.getCurrentPositionInSteps(MINUTE_HAND)[1]
 
         # Super messy way to calculate steps
         hourSteps = ((hourGoalPos + HOUR_HAND_STEPS_PER_REVOLUTION) - hourCurrentPos) % HOUR_HAND_STEPS_PER_REVOLUTION
@@ -214,7 +214,7 @@ class Clock:
 
 def main():
     clock = Clock()
-    clock.setupClock()
+    clock.setup()
     clock.moveToTime(615)
 
 
