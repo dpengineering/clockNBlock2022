@@ -9,7 +9,7 @@
 from dpeaDPi.DPiStepper import DPiStepper
 from time import sleep
 
-# Motor Constanta
+# Motor Constants
 
 MICROSTEPPING = 8
 
@@ -17,7 +17,8 @@ MICROSTEPPING = 8
 
 HOUR_HAND = 0
 HOUR_HAND_GEAR_REDUCTION = 5  # Gear reduction is 5:1
-HOUR_HAND_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * HOUR_HAND_GEAR_REDUCTION  # 8000
+# I am not sure why there is 300 extra steps for a full rotation.
+HOUR_HAND_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * HOUR_HAND_GEAR_REDUCTION + 300  # 8300
 # Regular hour hand speed in steps per second ~ 0.19 steps/sec
 HOUR_HAND_CLOCK_SPEED = HOUR_HAND_STEPS_PER_REVOLUTION / 43200
 HOUR_HAND_MAX_SPEED = HOUR_HAND_STEPS_PER_REVOLUTION / 5  # 1600
@@ -66,6 +67,7 @@ class Clock:
 
         dpiStepper.setSpeedInStepsPerSecond(HOUR_HAND, HOUR_HAND_MAX_SPEED)
         dpiStepper.setAccelerationInStepsPerSecondPerSecond(HOUR_HAND, HOUR_HAND_MAX_SPEED)
+        dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, HOUR_HAND_STEPS_PER_REVOLUTION, True)
 
         dpiStepper.setSpeedInStepsPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
         dpiStepper.setAccelerationInStepsPerSecondPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
