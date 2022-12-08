@@ -74,8 +74,8 @@ class Clock:
 
         # Go to 12:00 Position
 
-        dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, -54300, False)
-        dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, 120, False)
+        dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, -52800, False)
+        dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, 170, False)
 
         # TODO: replace this with the state function
         while not dpiStepper.getAllMotorsStopped():
@@ -184,15 +184,6 @@ class Clock:
         dpiStepper.setCurrentPositionInSteps(HOUR_HAND, hourCurrentPos % HOUR_HAND_STEPS_PER_REVOLUTION)
         dpiStepper.setCurrentPositionInSteps(MINUTE_HAND, minuteCurrentPos % MINUTE_HAND_STEPS_PER_REVOLUTION)
 
-
-    # ---------------------------------------------------------------------------------
-    #                                 Private functions
-    # ---------------------------------------------------------------------------------
-
-
-
-
-
     def getPositionDegrees(self, hand: int) -> int:
 
         if hand == HOUR_HAND:
@@ -211,13 +202,10 @@ class Clock:
 
         return f'{hours}:{minutes}'
 
-
 def main():
     clock = Clock()
-    clock.setup()
-    clock.moveToTime(615)
 
+    clock.setup()
 
 if __name__ == "__main__":
     main()
-

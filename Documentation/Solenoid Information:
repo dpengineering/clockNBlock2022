@@ -1,0 +1,11 @@
+Format: array [side, up]
+
+Structure 0: [6, 7]
+Structure 1: [4, 3]
+Structure 2: [9, 8]
+Structure 3: [0, 1]
+
+Structure 0 Pickup point: (208, -273, -65)
+Structure 1 Pickup point: (-276, -205, -60)
+Stricture 2 Pickup Point: (-208, 273, -60)
+Structure 3 Pickup point: (270, 210, -60)
