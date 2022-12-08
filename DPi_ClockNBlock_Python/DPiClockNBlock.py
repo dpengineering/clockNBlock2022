@@ -6,7 +6,9 @@
 #      *                                                                *
 #      ******************************************************************
 
-from dpeaDPi.DPiNetwork import DPiNetwork
+# from dpeaDPi.DPiNetwork import DPiNetwork
+
+from DPiNetwork import DPiNetwork
 
 dpiNetwork = DPiNetwork()
 
@@ -17,10 +19,10 @@ _CMD_DPi_CLOCKNBLOCK__PING                  = 0x00
 _CMD_DPi_CLOCKNBLOCK__INITIALIZE            = 0x01
 _CMD_DPi_CLOCKNBLOCK__READ_ENTRANCE         = 0x02
 _CMD_DPi_CLOCKNBLOCK__READ_FEED_1           = 0x03
-_CMD_DPi_CLOCKNBLOCK__READ_FEED_2           = 0x10
-_CMD_DPi_CLOCKNBLOCK__READ_EXIT             = 0x20
-_CMD_DPi_CLOCKNBLOCK__ARROW_ON              = 0x30
-_CMD_DPi_CLOCKNBLOCK__ARROW_OFF             = 0x40
+_CMD_DPi_CLOCKNBLOCK__READ_FEED_2           = 0x04
+_CMD_DPi_CLOCKNBLOCK__READ_EXIT             = 0x05
+_CMD_DPi_CLOCKNBLOCK__ARROW_ON              = 0x06
+_CMD_DPi_CLOCKNBLOCK__ARROW_OFF             = 0x07
 
 #
 # other constants used by this class
@@ -98,7 +100,8 @@ class DPiClockNBlock:
     #   Exit: True if on, else false
     #
     def readFeed_1(self):
-        return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_FEED_1)
+        self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_FEED_1)
+        return dpiNetwork.popUint8()
 
 
     #
@@ -106,7 +109,8 @@ class DPiClockNBlock:
     #   Exit: True if on, else false
     #
     def readFeed_2(self):
-        return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_FEED_2)
+        self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_FEED_2)
+        return dpiNetwork.popUint8()
 
 
     #
@@ -114,7 +118,8 @@ class DPiClockNBlock:
     #   Exit: True if on, else false
     #
     def readExit(self):
-        return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_EXIT)
+        self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_EXIT)
+        return not dpiNetwork.popUint8()
 
     #
     # Turn arrow on
@@ -130,3 +135,13 @@ class DPiClockNBlock:
     def arrowOff(self):
         return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__ARROW_OFF)
 
+
+    #
+    # Toggle arrow
+    #   Exit: True on success, else False
+    #
+    def arrowToggle(self, onOffValue: bool):
+        if onOffValue:
+            return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__ARROW_ON)
+        else:
+            return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__ARROW_OFF)
