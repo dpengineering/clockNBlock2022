@@ -7,6 +7,7 @@
 #      ******************************************************************
 
 from dpeaDPi.DPiStepper import DPiStepper
+import time
 from time import sleep
 
 # Motor Constants
@@ -44,6 +45,7 @@ class Clock:
     def setup(self):
 
         dpiStepper.setBoardNumber(0)
+
         if not dpiStepper.initialize():
             print("Communication with the DPiStepper board failed.")
             return
@@ -51,6 +53,10 @@ class Clock:
         dpiStepper.enableMotors(True)
 
         self.home()
+
+        # Move to current time
+        self.moveToTime(time.localtime().strftime("%H:%M"))
+
 
     # Home clock hands
     def home(self):
@@ -106,7 +112,7 @@ class Clock:
         @param time: The time to move to
         """
 
-        # To give current time use datetime.now().strftime("%H:%M")
+        # To give current time use time.localtime().strftime("%H:%M")
         if type(time) is str:
             time = time.replace(':', '')
             time = int(time)
@@ -137,7 +143,7 @@ class Clock:
     # TODO: Clean this up its disgusting
     def moveToTimeRelative(self, time, speed: int):
 
-        # To give current time use datetime.now().strftime("%H:%M")
+        # To give current time use time.localtime().strftime("%H:%M")
         if type(time) is str:
             time = time.replace(':', '')
             time = int(time)
