@@ -63,7 +63,6 @@ class RobotArm:
 
     def train(self):
         pos = dpiRobot.getCurrentPosition()
-        print(pos)
         speed = 40
         magnet = False
         rotation = False
@@ -74,6 +73,7 @@ class RobotArm:
         filedescriptors = termios.tcgetattr(sys.stdin)
         tty.setcbreak(sys.stdin)
         while (True):
+            print(pos)
             x = sys.stdin.read(1)[0]
             print(x)
             if x == 'a':
