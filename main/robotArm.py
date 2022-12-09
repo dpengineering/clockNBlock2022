@@ -10,17 +10,12 @@ import math
 from dpeaDPi.DPiRobot import DPiRobot
 from dpeaDPi.DPiSolenoid import DPiSolenoid
 from time import sleep
-import pygame
 from time import gmtime, strftime
-
+import tty, sys, termios
 # Constants go here
 
 dpiRobot = DPiRobot()
 dpiSolenoid = DPiSolenoid()
-
-pygame.init()
-display = pygame.display.set_mode((300, 300))
-
 
 class RobotArm:
 
@@ -64,7 +59,6 @@ class RobotArm:
         return r, theta, z
 
     def train(self):
-        keys = pygame.key.get_pressed()
         pos = dpiRobot.getCurrentPosition()
         speed = 40
         magnet = False
@@ -73,46 +67,50 @@ class RobotArm:
         time = strftime("%Y-%m-%d %H:%M", gmtime())
         locationsFile.write(f'Locations saved at {time} \n')
         locationsFile.close()
-
+        filedescriptors = termios.tcgetattr(sys.stdin)
+        tty.setcbreak(sys.stdin)
         while (True):
-            if keys[pygame.K_LEFT]:
+
+            x = sys.stdin.read(1)[0]
+            print(x)
+            if x == 'a':
                 # Move robot a little to the left
                 print('-x')
                 dpiRobot.addWaypoint(pos[1] - 0.5, pos[2], pos[3], speed)
-            if keys[pygame.K_RIGHT]:
+            if x == 'd':
                 print('+x')
                 dpiRobot.addWaypoint(pos[1] + 0.5, pos[2], pos[3], speed)
-            if keys[pygame.K_UP]:
+            if x == 'w':
                 print('+y')
                 dpiRobot.addWaypoint(pos[1], pos[2] + 0.5, pos[3], speed)
-            if keys[pygame.K_DOWN]:
+            if x == 's':
                 print('-y')
                 dpiRobot.addWaypoint(pos[1], pos[2] - 0.5, pos[3], speed)
-            if keys[pygame.K_SPACE]:
+            if x == 'm':
                 print("magnet")
                 dpiSolenoid.switchDriverOnOrOff(not magnet)
                 magnet = not magnet
-            if keys[pygame.K_r]:
+            if x == 'r':
                 print('rotate')
                 dpiSolenoid.switchDriverOnOrOff(not rotation)
                 rotation = not rotation
-            if keys[pygame.K_s]:
+            if x == 's':
                 print("write")
                 locationsFile = open("locations.txt", "w")
                 name = input("What point is this")
                 pos = self.cartesianToPolar(dpiRobot.getCurrentPosition())
                 locationsFile.write(f'{name}: {pos} \n')
                 locationsFile.close()
-            if keys[pygame.K_ESCAPE]:
+            if x == 'e':
                 print("done")
                 break
 
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, filedescriptors)
 
 def main():
     robotArm = RobotArm(11, 10)
     robotArm.setup()
     robotArm.train()
-    pygame.quit()
 
 
 if __name__ == "__main__":
