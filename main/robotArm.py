@@ -79,7 +79,7 @@ class RobotArm:
             if x == 'a':
                 # Move robot a little to the left
                 print('-x')
-                dpiRobot.addWaypoint(pos[1] - 10, pos[2], pos[3], speed)
+                print(dpiRobot.addWaypoint(pos[1] - 10, pos[2], pos[3], speed))
             if x == 'd':
                 print('+x')
                 dpiRobot.addWaypoint(pos[1] + 0.5, pos[2], pos[3], speed)
