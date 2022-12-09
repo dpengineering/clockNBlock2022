@@ -12,7 +12,7 @@ from dpeaDPi.DPiRobot import DPiRobot
 from dpeaDPi.DPiSolenoid import DPiSolenoid
 from time import sleep
 from time import gmtime, strftime
-import tty, sys, termios
+import tty, termios
 from time import sleep, gmtime, strftime
 
 # Constants go here
@@ -63,6 +63,7 @@ class RobotArm:
 
     def train(self):
         pos = dpiRobot.getCurrentPosition()
+        print(pos)
         speed = 40
         magnet = False
         rotation = False
