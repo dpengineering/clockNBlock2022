@@ -20,22 +20,38 @@ from time import sleep
 clock = Clock()
 robot = RobotArm()
 
+#
+# pin assignments show how the pistons are wired to the DPiSolenoid board
+#
+_BLOCK_FEEDER0__FIRST_PISTON__DRIVER_NUM    = 6
+_BLOCK_FEEDER0__SECOND_PISTON__DRIVER_NUM   = 7
+_BLOCK_FEEDER1__FIRST_PISTON__DRIVER_NUM    = 4
+_BLOCK_FEEDER1__SECOND_PISTON__DRIVER_NUM   = 3
+_BLOCK_FEEDER2__FIRST_PISTON__DRIVER_NUM    = 9
+_BLOCK_FEEDER2__SECOND_PISTON__DRIVER_NUM   = 8
+_BLOCK_FEEDER3__FIRST_PISTON__DRIVER_NUM    = 0
+_BLOCK_FEEDER3__SECOND_PISTON__DRIVER_NUM   = 1
+
+_NUMBER_OF_BLOCK_FEEDERS    = 4
+
 # For the ClockNBlock boards
-structure0 = BlockFeeder(6, 7, 0)
-structure1 = BlockFeeder(4, 3, 1)
-structure2 = BlockFeeder(9, 8, 2)
-structure3 = BlockFeeder(0, 1, 3)
+blockFeeder0 = BlockFeeder(_BLOCK_FEEDER0__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER0__SECOND_PISTON__DRIVER_NUM, 0)
+blockFeeder1 = BlockFeeder(_BLOCK_FEEDER1__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER1__SECOND_PISTON__DRIVER_NUM, 1)
+blockFeeder2 = BlockFeeder(_BLOCK_FEEDER2__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER2__SECOND_PISTON__DRIVER_NUM, 2)
+blockFeeder3 = BlockFeeder(_BLOCK_FEEDER3__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER3__SECOND_PISTON__DRIVER_NUM, 3)
 # Not sure if this array is needed, might come in handy though
-structures = [structure0, structure1, structure2, structure3]
+blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2, blockFeeder3]
 
 
 def setup():
 
     # Call setup functions for each component
-    clock.setup()
     robot.setup()
-    for i in range(0, 3):
-        structures[i].setup()
+    clock.setup()
+
+    blockFeeders[0].setup()
+    # for i in range(0, 3):
+    #     structures[i].setup()
 
 
 def main():
@@ -44,8 +60,9 @@ def main():
 
     while(True):
 
-        for i in range(0,3):
-            structures[i].state()
+        blockFeeders[0].process()
+        # for i in range(0,3):
+        #     structures[i].state()
 
         # TODO: Implement these
 

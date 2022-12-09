@@ -1,0 +1,4 @@
+Each state has a do something and a wait.
+
+Ready State: no blocks exist, i.e theres no block at the feed_1 and no at exit
+

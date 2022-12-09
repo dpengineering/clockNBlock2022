@@ -6,9 +6,7 @@
 #      *                                                                *
 #      ******************************************************************
 
-# from dpeaDPi.DPiNetwork import DPiNetwork
-
-from DPiNetwork import DPiNetwork
+from dpeaDPi.DPiNetwork import DPiNetwork
 
 dpiNetwork = DPiNetwork()
 
@@ -92,7 +90,7 @@ class DPiClockNBlock:
     #
     def readEntrance(self):
         self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_ENTRANCE)
-        return dpiNetwork.popUint8()
+        return not dpiNetwork.popUint8()
 
 
     #
@@ -101,7 +99,7 @@ class DPiClockNBlock:
     #
     def readFeed_1(self):
         self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_FEED_1)
-        return dpiNetwork.popUint8()
+        return not dpiNetwork.popUint8()
 
 
     #
@@ -110,7 +108,7 @@ class DPiClockNBlock:
     #
     def readFeed_2(self):
         self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_FEED_2)
-        return dpiNetwork.popUint8()
+        return not dpiNetwork.popUint8()
 
 
     #
