@@ -94,7 +94,7 @@ class RobotArm:
                 print('rotate')
                 dpiSolenoid.switchDriverOnOrOff(not rotation)
                 rotation = not rotation
-            if x == 's':
+            if x == 'x':
                 print("write")
                 locationsFile = open("locations.txt", "w")
                 name = input("What point is this")
