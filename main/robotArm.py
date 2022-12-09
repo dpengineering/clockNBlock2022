@@ -78,7 +78,7 @@ class RobotArm:
             if x == 'a':
                 # Move robot a little to the left
                 print('-x')
-                dpiRobot.addWaypoint(pos[1] - 0.5, pos[2], pos[3], speed)
+                dpiRobot.addWaypoint(pos[1] - 10, pos[2], pos[3], speed)
             if x == 'd':
                 print('+x')
                 dpiRobot.addWaypoint(pos[1] + 0.5, pos[2], pos[3], speed)
@@ -90,11 +90,11 @@ class RobotArm:
                 dpiRobot.addWaypoint(pos[1], pos[2] - 0.5, pos[3], speed)
             if x == 'm':
                 print("magnet")
-                dpiSolenoid.switchDriverOnOrOff(10, not magnet)
+                dpiSolenoid.switchDriverOnOrOff(11, not magnet)
                 magnet = not magnet
             if x == 'r':
                 print('rotate')
-                dpiSolenoid.switchDriverOnOrOff(11, not rotation)
+                dpiSolenoid.switchDriverOnOrOff(10, not rotation)
                 rotation = not rotation
             if x == 'x':
                 print("write")
