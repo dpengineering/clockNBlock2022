@@ -6,12 +6,12 @@
 #      *                                                                *
 #      ******************************************************************
 import math
+import sys
 
 from dpeaDPi.DPiRobot import DPiRobot
 from dpeaDPi.DPiSolenoid import DPiSolenoid
-from time import sleep
+from time import sleep, gmtime, strftime
 import pygame
-from time import gmtime, strftime
 
 # Constants go here
 
@@ -64,8 +64,6 @@ class RobotArm:
         return r, theta, z
 
     def train(self):
-        keys = pygame.key.get_pressed()
-        pos = dpiRobot.getCurrentPosition()
         speed = 40
         magnet = False
         rotation = False
@@ -75,38 +73,82 @@ class RobotArm:
         locationsFile.close()
 
         while (True):
-            if keys[pygame.K_LEFT]:
-                # Move robot a little to the left
-                print('-x')
-                dpiRobot.addWaypoint(pos[1] - 0.5, pos[2], pos[3], speed)
-            if keys[pygame.K_RIGHT]:
-                print('+x')
-                dpiRobot.addWaypoint(pos[1] + 0.5, pos[2], pos[3], speed)
-            if keys[pygame.K_UP]:
-                print('+y')
-                dpiRobot.addWaypoint(pos[1], pos[2] + 0.5, pos[3], speed)
-            if keys[pygame.K_DOWN]:
-                print('-y')
-                dpiRobot.addWaypoint(pos[1], pos[2] - 0.5, pos[3], speed)
-            if keys[pygame.K_SPACE]:
-                print("magnet")
-                dpiSolenoid.switchDriverOnOrOff(not magnet)
-                magnet = not magnet
-            if keys[pygame.K_r]:
-                print('rotate')
-                dpiSolenoid.switchDriverOnOrOff(not rotation)
-                rotation = not rotation
-            if keys[pygame.K_s]:
-                print("write")
-                locationsFile = open("locations.txt", "w")
-                name = input("What point is this")
-                pos = self.cartesianToPolar(dpiRobot.getCurrentPosition())
-                locationsFile.write(f'{name}: {pos} \n')
-                locationsFile.close()
-            if keys[pygame.K_ESCAPE]:
-                print("done")
-                break
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    pos = dpiRobot.getCurrentPosition()
+                    if event.key == pygame.K_LEFT:
+                        # Move robot a little to the left
+                        print('-x')
+                        dpiRobot.addWaypoint(pos[1] - 0.5, pos[2], pos[3], speed)
+                    if event.key == pygame.K_RIGHT:
+                        print('+x')
+                        dpiRobot.addWaypoint(pos[1] + 0.5, pos[2], pos[3], speed)
+                    if event.key == pygame.K_UP:
+                        print('+y')
+                        dpiRobot.addWaypoint(pos[1], pos[2] + 0.5, pos[3], speed)
+                    if event.key == pygame.K_DOWN:
+                        print('-y')
+                        dpiRobot.addWaypoint(pos[1], pos[2] - 0.5, pos[3], speed)
+                    if event.key == pygame.K_z:
+                        print('-z')
+                        dpiRobot.addWaypoint(pos[1], pos[2], pos[3]-0.5, speed)
+                    if event.key == pygame.K_x:
+                        print('z')
+                        dpiRobot.addWaypoint(pos[1], pos[2], pos[3]+0.5, speed)
+                    if event.key == pygame.K_SPACE:
+                        print("magnet")
+                        dpiSolenoid.switchDriverOnOrOff(not magnet)
+                        magnet = not magnet
+                    if event.key == pygame.K_r:
+                        print('rotate')
+                        dpiSolenoid.switchDriverOnOrOff(not rotation)
+                        rotation = not rotation
+                    if event.key == pygame.K_s:
+                        print("write")
+                        locationsFile = open("locations.txt", "w")
+                        name = input("What point is this")
+                        pos = self.cartesianToPolar(dpiRobot.getCurrentPosition())
+                        locationsFile.write(f'{name}: {pos} \n')
+                        locationsFile.close()
+                    if event.key == pygame.K_ESCAPE:
+                        print("done")
+                        pygame.quit()
+                        return
 
+
+# def testKeys():
+#
+#     while (True):
+#         for event in pygame.event.get():
+#             if event.type == pygame.QUIT:
+#                 pygame.quit()
+#                 sys.exit()
+#             if event.type == pygame.KEYDOWN:
+#                 if event.key == pygame.K_LEFT:
+#                     print('-x')
+#                 if event.key == pygame.K_RIGHT:
+#                     print('+x')
+#                 if event.key == pygame.K_UP:
+#                     print('+y')
+#                 if event.key == pygame.K_DOWN:
+#                     print('-y')
+#                 if event.key == pygame.K_z:
+#                     print('-z')
+#                 if event.key == pygame.K_x:
+#                     print('z')
+#                 if event.key == pygame.K_SPACE:
+#                     print("magnet")
+#                 if event.key == pygame.K_r:
+#                     print('rotate')
+#                 if event.key == pygame.K_s:
+#                     print("write")
+#                 if event.key == pygame.K_ESCAPE:
+#                     print("done")
+#                     pygame.quit()
+#                     return
 
 def main():
     robotArm = RobotArm(11, 10)
