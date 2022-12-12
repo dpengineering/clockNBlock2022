@@ -34,7 +34,7 @@ def train():
     speed = 40
     magnet = False
     rotation = False
-    locationsFile = open("locations.txt", "a")
+    locationsFile = open("locations", "a")
     time = strftime("%Y-%m-%d %H:%M", gmtime())
     locationsFile.write(f'Locations saved at {time} \n')
     locationsFile.close()
@@ -81,7 +81,7 @@ def train():
                     rotation = not rotation
                 if event.key == pygame.K_s:
                     print("write")
-                    locationsFile = open("locations.txt", "a")
+                    locationsFile = open("locations", "a")
                     name = input("What point is this")
                     pos = robotArm.cartesianToPolar()
                     locationsFile.write(f'{name}: {pos} \n')
