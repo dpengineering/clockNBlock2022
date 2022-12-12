@@ -59,4 +59,17 @@ class RobotArm:
 
         return r, theta, z
 
+    def moveToPoint(self, x, y, z, speed):
+        return dpiRobot.addWaypoint(x, y, z, speed)
+
+    def bufferWaypoints(self, flag: bool):
+        return dpiRobot.bufferWaypointsBeforeStartingToMove(flag)
+
+    def getPosition(self):
+        return dpiRobot.getCurrentPosition()
+
+    def waitWhileMoving(self):
+        return dpiRobot.waitWhileRobotIsMoving()
+
+
 

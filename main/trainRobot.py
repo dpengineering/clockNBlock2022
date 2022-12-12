@@ -17,9 +17,6 @@ import sys
 from time import gmtime, strftime
 import pygame
 
-dpiRobot = DPiRobot()
-dpiRobot.setBoardNumber(0)
-dpiRobot.initialize()
 dpiSolenoid = DPiSolenoid()
 dpiSolenoid.setBoardNumber(0)
 dpiSolenoid.initialize()
@@ -41,38 +38,37 @@ def train():
     time = strftime("%Y-%m-%d %H:%M", gmtime())
     locationsFile.write(f'Locations saved at {time} \n')
     locationsFile.close()
-    dpiRobot.bufferWaypointsBeforeStartingToMove(True)
-    while (True):
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                pos = dpiRobot.getCurrentPosition()
+                pos = robotArm.getPosition()
                 if event.key == pygame.K_LEFT:
                     # Move robot a little to the left
                     print('-x')
-                    dpiRobot.addWaypoint(pos[1] - 0.5, pos[2], pos[3], speed)
+                    print(robotArm.moveToPoint(pos[1] - 0.5, pos[2], pos[3], speed))
                     print(f"x: {pos[1] - 0.5}, y: {pos[2]}, z: {pos[3]}, speed: {speed}")
                 if event.key == pygame.K_RIGHT:
                     print('+x')
-                    dpiRobot.addWaypoint(pos[1] + 0.5, pos[2], pos[3], speed)
+                    print(robotArm.moveToPoint(pos[1] + 0.5, pos[2], pos[3], speed))
                     print(f"x: {pos[1] + 0.5}, y: {pos[2]}, z: {pos[3]}, speed: {speed}")
                 if event.key == pygame.K_UP:
                     print('+y')
-                    dpiRobot.addWaypoint(pos[1], pos[2] + 0.5, pos[3], speed)
+                    print(robotArm.moveToPoint(pos[1], pos[2] + 0.5, pos[3], speed))
                     print(f"x: {pos[1]}, y: {pos[2] + 0.5}, z: {pos[3]}, speed: {speed}")
                 if event.key == pygame.K_DOWN:
                     print('-y')
-                    dpiRobot.addWaypoint(pos[1], pos[2] - 0.5, pos[3], speed)
+                    print(robotArm.moveToPoint(pos[1], pos[2] - 0.5, pos[3], speed))
                     print(f"x: {pos[1]}, y: {pos[2] - 0.5 }, z: {pos[3]}, speed: {speed}")
                 if event.key == pygame.K_z:
                     print('-z')
-                    dpiRobot.addWaypoint(pos[1], pos[2], pos[3] - 0.5, speed)
-                    print(f"x: {pos[1]}, y: {pos[2]}, z: {pos[3] - 0.5}, speed: {speed}")
+                    print(robotArm.moveToPoint(pos[1], pos[2], 100, speed))
+                    print(f"x: {pos[1]}, y: {pos[2]}, z: {100}, speed: {speed}")
                 if event.key == pygame.K_x:
                     print('z')
-                    dpiRobot.addWaypoint(pos[1], pos[2], pos[3] + 0.5, speed)
+                    print(robotArm.moveToPoint(pos[1], pos[2], pos[3] + 0.5, speed))
                     print(f"x: {pos[1] - 0.5}, y: {pos[2]}, z: {pos[3] + 0.5}, speed: {speed}")
                 if event.key == pygame.K_SPACE:
                     print("magnet")
@@ -92,7 +88,6 @@ def train():
                 if event.key == pygame.K_ESCAPE:
                     print("done")
                     pygame.quit()
-                    dpiRobot.bufferWaypointsBeforeStartingToMove(False)
                     return
 
 
