@@ -7,6 +7,7 @@
 #      ******************************************************************
 
 from dpeaDPi.DPiStepper import DPiStepper
+import time
 from time import sleep
 
 # Motor Constants
@@ -44,6 +45,7 @@ class Clock:
     def setup(self):
 
         dpiStepper.setBoardNumber(0)
+
         if not dpiStepper.initialize():
             print("Communication with the DPiStepper board failed.")
             return
@@ -51,6 +53,10 @@ class Clock:
         dpiStepper.enableMotors(True)
 
         self.home()
+
+        # Move to current time
+        self.moveToTime(time.localtime().strftime("%H:%M"))
+
 
     # Home clock hands
     def home(self):
@@ -74,8 +80,8 @@ class Clock:
 
         # Go to 12:00 Position
 
-        dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, -54300, False)
-        dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, 120, False)
+        dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, -52800, False)
+        dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, 170, False)
 
         # TODO: replace this with the state function
         while not dpiStepper.getAllMotorsStopped():
@@ -106,7 +112,7 @@ class Clock:
         @param time: The time to move to
         """
 
-        # To give current time use datetime.now().strftime("%H:%M")
+        # To give current time use time.localtime().strftime("%H:%M")
         if type(time) is str:
             time = time.replace(':', '')
             time = int(time)
@@ -137,7 +143,7 @@ class Clock:
     # TODO: Clean this up its disgusting
     def moveToTimeRelative(self, time, speed: int):
 
-        # To give current time use datetime.now().strftime("%H:%M")
+        # To give current time use time.localtime().strftime("%H:%M")
         if type(time) is str:
             time = time.replace(':', '')
             time = int(time)
@@ -184,15 +190,6 @@ class Clock:
         dpiStepper.setCurrentPositionInSteps(HOUR_HAND, hourCurrentPos % HOUR_HAND_STEPS_PER_REVOLUTION)
         dpiStepper.setCurrentPositionInSteps(MINUTE_HAND, minuteCurrentPos % MINUTE_HAND_STEPS_PER_REVOLUTION)
 
-
-    # ---------------------------------------------------------------------------------
-    #                                 Private functions
-    # ---------------------------------------------------------------------------------
-
-
-
-
-
     def getPositionDegrees(self, hand: int) -> int:
 
         if hand == HOUR_HAND:
@@ -211,13 +208,10 @@ class Clock:
 
         return f'{hours}:{minutes}'
 
-
 def main():
     clock = Clock()
-    clock.setup()
-    clock.moveToTime(615)
 
+    clock.setup()
 
 if __name__ == "__main__":
     main()
-

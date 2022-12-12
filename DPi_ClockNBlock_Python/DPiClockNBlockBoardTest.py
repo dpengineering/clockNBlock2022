@@ -1,6 +1,6 @@
 # Rough test for functionality of the DPi ClockNBlock board
 
-from DPiClockNBlock import DPiClockNBlock
+from main.DPiClockNBlock import DPiClockNBlock
 from time import sleep
 
 
