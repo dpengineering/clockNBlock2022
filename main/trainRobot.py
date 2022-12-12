@@ -81,7 +81,7 @@ def train():
                     rotation = not rotation
                 if event.key == pygame.K_s:
                     print("write")
-                    locationsFile = open("locations.txt", "w")
+                    locationsFile = open("locations.txt", "a")
                     name = input("What point is this")
                     pos = robotArm.cartesianToPolar()
                     locationsFile.write(f'{name}: {pos} \n')

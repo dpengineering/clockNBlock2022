@@ -59,6 +59,7 @@ class RobotArm:
 
         return r, theta, z
 
+
     def moveToPoint(self, x, y, z, speed):
         return dpiRobot.addWaypoint(x, y, z, speed)
 
