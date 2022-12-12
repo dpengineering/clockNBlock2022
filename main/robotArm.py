@@ -9,6 +9,8 @@
 from dpeaDPi.DPiRobot import DPiRobot
 from dpeaDPi.DPiSolenoid import DPiSolenoid
 
+import math
+
 # Constants go here
 
 dpiRobot = DPiRobot()
@@ -56,7 +58,5 @@ class RobotArm:
         theta = math.atan2(y, x) - math.pi / 2
 
         return r, theta, z
-
-
 
 
