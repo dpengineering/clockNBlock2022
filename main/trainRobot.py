@@ -34,7 +34,7 @@ def train():
     speed = 40
     magnet = False
     rotation = False
-    locationsFile = open("locations.txt", "w")
+    locationsFile = open("locations.txt", "a")
     time = strftime("%Y-%m-%d %H:%M", gmtime())
     locationsFile.write(f'Locations saved at {time} \n')
     locationsFile.close()
