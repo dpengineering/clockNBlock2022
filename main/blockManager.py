@@ -48,6 +48,8 @@ class blockManager:
     def setup(self):
         pass
 
+    #State machine for manager. Basically just queues actions for picking up block and where to put it down.
+    #Always has a planned next build position saved as a queue of actions called build. If build is empty generates a new one.
     def process(self):
         # Gets the next feed location(still need to write function and logic
         # but should return the coords for the feed where the next block should be picked up).
