@@ -24,7 +24,7 @@ class RobotArm:
     state = 0
     newState = False
 
-    _STATE_IDLE = 0
+    _STATE_READY = 0
     _STATE_MOVE = 1
     _STATE_GRAB = 2
     _STATE_RELEASE = 3
@@ -54,21 +54,23 @@ class RobotArm:
 
         return True
 
+    #State machine for arm. Goes back to ready between each state both to get new action but also to show block manager it has completed its own action.
     def process(self):
-        #Checks if block manager has an block ready. If it does changes state to excute action.
-        if self.state == self._STATE_IDLE:
-            if blockManager.blockAvailable:
-                self.setState(blockManager.nextState)
+        #Checks if block manager has an action ready. If it does changes state to excute action.
+        if self.state == self._STATE_READY:
+            if blockManager.actionAvailable:
+                self.setState(blockManager.getNextState())
+                blockManager.cycleAction()
             return
 
         #Gets next position from block manager and then moves there. Changes state once move is complete
         if self.state == self._STATE_MOVE:
             if self.newState:
-                x,y,z = blockManager.nextPos
+                x,y,z = blockManager.getNextPos()
                 dpiRobot.addWaypoint(x,y,z, self.speed)
                 self.newState = False
             elif dpiRobot.getRobotStatus == dpiRobot.STATE_STOPPED:
-                self.setState(blockManager.nextState)
+                self.setState(self._STATE_READY)
             return
 
         #Turns magnet on to pick up block and then rotates it. Changes state after solenoid turns on.
@@ -78,7 +80,7 @@ class RobotArm:
                 dpiSolenoid.switchDriverOnOrOff(self.ROTATING_SOLENOID, True)
                 self.newState = False
             else:
-                self.setState(blockManager.nextState)
+                self.setState(self._STATE_READY)
             return
 
         #Turns magnet off to drop block. Changes state after solenoid turns off.
@@ -87,7 +89,7 @@ class RobotArm:
                 dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
                 self.newState = False
             else:
-                self.setState(blockManager.nextState)
+                self.setState(self._STATE_READY)
             return
 
 
