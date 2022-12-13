@@ -25,15 +25,15 @@ class BlockFeeder:
     BOARD_NUMBER = 0
 
     # For state function
-    state = 0x00
+    state = 0
     newState = False
 
     # Constants
-    _STATE_READY = 0x00
-    _STATE_FEED1 = 0x01
-    _STATE_PRESENT_BLOCK = 0x02
-    _STATE_DISPLAYING_BLOCK = 0x03
-    _STATE_IDLE = 0x04
+    _STATE_READY =           0
+    _STATE_BLOCK_REMOVED =   1
+    _STATE_FEED1 =           2
+    _STATE_FEED2 =           3
+    _STATE_IDLE =            4
 
     def __init__(self, solenoid_side: int, solenoid_up: int, board_number: int):
         self._SOLENOID_SIDE = solenoid_side
@@ -61,7 +61,7 @@ class BlockFeeder:
     def initializeBlockFeeders(self) -> bool:
 
         # Check if block already at the bottom position
-        if dpiClockNBlock.readFeed_2():
+        if dpiClockNBlock.readExit():
             return True
 
         # Otherwise, cycle the blocks
@@ -73,7 +73,10 @@ class BlockFeeder:
             dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, True)
             while not dpiClockNBlock.readFeed_2():
                 sleep(0.1)
-            self.state = 0x00
+            dpiSolenoid.switchDriverOnOrOff((self._SOLENOID_UP, True))
+            while not dpiClockNBlock.readExit():
+                sleep(0.1)
+            self.state = 0
             return True
         return False
 
@@ -86,67 +89,69 @@ class BlockFeeder:
 
         if self.state == self._STATE_READY:
             # Check if it is actually ready, if not switch state to Feed 1
-            if not dpiClockNBlock.readFeed_2():
-                self.setState(self._STATE_FEED1)
+            if not dpiClockNBlock.readExit():
+                self.setState(self._STATE_BLOCK_REMOVED)
             return
 
-        if self.state == self._STATE_FEED1:
-            # Check if we have a block to push over, if not set state to idle
-            if not dpiClockNBlock.readFeed_1():
-                self.state = self._STATE_IDLE
+        elif self.state == self._STATE_BLOCK_REMOVED:
+            # To be in this state, we need to have no block at the exit and no block at feed 2 sensor
+            if dpiClockNBlock.readExit():
+                self.setState(self._STATE_READY)
                 return
+            if dpiClockNBlock.readFeed_2():
+                self.setState(self._STATE_FEED1)
+                return
+            # Now, retract the up piston
+            start = timer()
+            if self.newState:
+                dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
+                return
+            elif start - timer() > 2:
+                self.setState(self._STATE_FEED2)
+                return
+
+        elif self.state == self._STATE_FEED1:
+            # Check if we have a block to push up, otherwise send to Feed 2
+            if not dpiClockNBlock.readFeed_2():
+                self.setState(self._STATE_FEED2)
+                return
+
             # If we haven't pushed over the side piston, do it now
             if self.newState:
-                dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, True)
+                dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, True)
                 newState = False
                 return
             # Wait for side piston to be fully over, then change state to ready
-            if dpiClockNBlock.readFeed_2():
+            elif dpiClockNBlock.readExit():
                 self.setState(self._STATE_READY)
-                return
-            return
-
-        if self.state == self._STATE_PRESENT_BLOCK:
-            # Check if we have a block at Feed 2, if not set state to _FEED_1
-            if not dpiClockNBlock.readFeed_2():
-                self.setState(self._STATE_FEED1)
-                return
-            # Push the block up
-            if self.newState:
-                dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, True)
-                return
-            # Wait for block to arrive at the top, then switch state and retract side piston
-            if dpiClockNBlock.readExit():
-                self.setState(self._STATE_DISPLAYING_BLOCK)
                 dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, False)
                 return
             return
 
-        if self.state == self._STATE_DISPLAYING_BLOCK:
-            # Start a timer, doesn't really matter that its before we retract the piston
-            start = timer()
-            # Nothing to do in this state, so we check if it is over
-            if not dpiClockNBlock.readExit() and self.newState:
-                # Retract piston
-                dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
-                self.newState = False
+        elif self.state == self._STATE_FEED2:
+            # Check if we have a block at Feed 1, if not set state to idle
+            if not dpiClockNBlock.readFeed_2():
+                self.setState(self._STATE_IDLE)
                 return
-            else:
-                # Check if timer is elapsed then go to FEED_1 state
-                if timer() - start >= 2:
-                    self.setState(self._STATE_FEED1)
-                    return
+            # Push the block over
+            if self.newState:
+                dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, True)
+                return
+            # Wait for block to arrive at the top, then switch state and retract side piston
+            if dpiClockNBlock.readFeed_2():
+                self.setState(self._STATE_FEED1)
+                return
+            return
+
+        elif self.state == self._STATE_IDLE:
+            # Wait for a block to be inserted then switch to feed 2
+            if dpiClockNBlock.readFeed_1():
+                self.setState(self._STATE_FEED2)
+                return
+            return
 
     def isBLockAvailable(self) -> bool:
         return self.state == self._STATE_READY
-
-    def presentBlock(self) -> bool:
-
-        if not self.isBLockAvailable():
-            return False
-        else:
-            self.setState(self._STATE_PRESENT_BLOCK)
-            return True
 
     def setState(self, nextState: int):
         self.state = nextState

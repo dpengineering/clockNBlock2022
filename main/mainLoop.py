@@ -14,12 +14,6 @@ from main.robotArm import RobotArm
 import time
 from time import sleep
 
-# TODO: Maybe make this an object. I don't think it is necessary though
-
-# Setup all of our components
-clock = Clock()
-robot = RobotArm()
-
 #
 # pin assignments show how the pistons are wired to the DPiSolenoid board
 #
@@ -42,6 +36,12 @@ blockFeeder3 = BlockFeeder(_BLOCK_FEEDER3__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEED
 # Not sure if this array is needed, might come in handy though
 blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2, blockFeeder3]
 
+robotMagnetSolenoid = 11
+robotRotationSolenoid = 10
+
+clock = Clock()
+robot = RobotArm(robotMagnetSolenoid, robotRotationSolenoid)
+
 
 def setup():
 
@@ -58,9 +58,10 @@ def main():
 
     setup()
 
-    while(True):
+    while True:
 
         blockFeeders[0].process()
+        clock.process(2)
         # for i in range(0,3):
         #     structures[i].state()
 
