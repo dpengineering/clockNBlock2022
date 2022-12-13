@@ -58,7 +58,7 @@ class RobotArm:
     def process(self):
         #Checks if block manager has an action ready. If it does changes state to excute action.
         if self.state == self._STATE_READY:
-            if blockManager.actionAvailable:
+            if blockManager.actionAvailable():
                 self.setState(blockManager.getNextState())
                 blockManager.cycleAction()
             return

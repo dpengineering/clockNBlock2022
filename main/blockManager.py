@@ -36,7 +36,6 @@ class blockManager:
     nextAction = []
 
     state = 4
-    newState = False
 
     #Lists of actions are queues which are FIFO but they could be something else this is just all I could think of.
     actions = queue.Queue()
@@ -83,6 +82,9 @@ class blockManager:
 
     def getNextPos(self):
         return self.nextAction[1]
+
+    def actionAvailable(self):
+        return not self.actions.empty()
 
     def cycleAction(self):
         self.currentAction = self.nextAction
