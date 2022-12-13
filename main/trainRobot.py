@@ -38,7 +38,9 @@ def train():
     time = strftime("%Y-%m-%d %H:%M", gmtime())
     locationsFile.write(f'Locations saved at {time} \n')
     locationsFile.close()
-    step = 1
+
+    # Step sizes for all our moves, order is radius, theta, Z
+    steps = [1, 1, 1]
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -46,31 +48,30 @@ def train():
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 pos = robotArm.getPosition()
+                polarPos = robotArm.cartesianToPolar(pos[1], pos[2])
                 if event.key == pygame.K_LEFT:
-                    # Move robot a little to the left
-                    print('-x')
-                    print(robotArm.moveToPoint(pos[1] - step, pos[2], pos[3], speed))
-                    print(f"x: {pos[1] - step}, y: {pos[2]}, z: {pos[3]}, speed: {speed}")
+                    # Change Theta
+                    print('-theta')
+                    cartesian = robotArm.polarToCartesian(polarPos[0], polarPos[1] - steps[1])
+                    print(robotArm.moveToPoint(cartesian[0], cartesian[1], pos[3], speed))
                 if event.key == pygame.K_RIGHT:
-                    print('+x')
-                    print(robotArm.moveToPoint(pos[1] + step, pos[2], pos[3], speed))
-                    print(f"x: {pos[1] + step}, y: {pos[2]}, z: {pos[3]}, speed: {speed}")
+                    print('+theta')
+                    cartesian = robotArm.polarToCartesian(polarPos[0], polarPos[1] + steps[1])
+                    print(robotArm.moveToPoint(cartesian[0], cartesian[1], pos[3], speed))
                 if event.key == pygame.K_UP:
-                    print('+y')
-                    print(robotArm.moveToPoint(pos[1], pos[2] + step, pos[3], speed))
-                    print(f"x: {pos[1]}, y: {pos[2] + step}, z: {pos[3]}, speed: {speed}")
+                    print('+radius')
+                    cartesian = robotArm.polarToCartesian(polarPos[0] + steps[0], polarPos[1])
+                    print(robotArm.moveToPoint(cartesian[0], cartesian[1], pos[3], speed))
                 if event.key == pygame.K_DOWN:
-                    print('-y')
-                    print(robotArm.moveToPoint(pos[1], pos[2] - step, pos[3], speed))
-                    print(f"x: {pos[1]}, y: {pos[2] - step }, z: {pos[3]}, speed: {speed}")
+                    print('-radius')
+                    cartesian = robotArm.polarToCartesian(polarPos[0] - steps[0], polarPos[1])
+                    print(robotArm.moveToPoint(cartesian[0], cartesian[1], pos[3], speed))
                 if event.key == pygame.K_z:
                     print('-z')
-                    print(robotArm.moveToPoint(pos[1], pos[2], 100, speed))
-                    print(f"x: {pos[1]}, y: {pos[2]}, z: {100}, speed: {speed}")
+                    print(robotArm.moveToPoint(pos[1], pos[2], pos[3] - steps[2], speed))
                 if event.key == pygame.K_x:
-                    print('z')
-                    print(robotArm.moveToPoint(pos[1], pos[2], pos[3] + step, speed))
-                    print(f"x: {pos[1] - step}, y: {pos[2]}, z: {pos[3] + step}, speed: {speed}")
+                    print('+z')
+                    print(robotArm.moveToPoint(pos[1], pos[2], pos[3] + steps[2], speed))
                 if event.key == pygame.K_SPACE:
                     print("magnet")
                     dpiSolenoid.switchDriverOnOrOff(robotArm.MAGNET_SOLENOID, not magnet)
@@ -79,52 +80,31 @@ def train():
                     print('rotate')
                     dpiSolenoid.switchDriverOnOrOff(robotArm.ROTATING_SOLENOID, not rotation)
                     rotation = not rotation
+                if event.key == pygame.K_g:
+                    print("Changing steps")
+                    stepToChange = input("Which step are you changing? (0: radius, 1: theta, 2: Z, 3: all) ")
+                    if int(stepToChange) in range(0, 2):
+                        value = input("step value: ")
+                        steps[stepToChange] = value
+                    elif stepToChange == 3:
+                        rStep = input("Value for r: ")
+                        tStep = input("Value for theta:")
+                        zStep = input("Value for Z: ")
+                        steps = [rStep, tStep, zStep]
+                    else:
+                        print("you entered an incorrect value, try again please")
                 if event.key == pygame.K_s:
                     print("write")
                     locationsFile = open("locations", "a")
                     name = input("What point is this")
-                    pos = robotArm.cartesianToPolar()
-                    locationsFile.write(f'{name}: {pos} \n')
+                    savePos = robotArm.cartesianToPolar(pos[1], pos[2])
+                    locationsFile.write(f'{name}: {savePos}, {pos[3]} \n')
                     locationsFile.close()
-                if event.key == pygame.K_g:
-                    newStep = input("Enter new step size: ")
-                    step = int(newStep)
                 if event.key == pygame.K_ESCAPE:
                     print("done")
                     pygame.quit()
                     return
 
-
-# def testKeys():
-#
-#     while (True):
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 pygame.quit()
-#                 sys.exit()
-#             if event.type == pygame.KEYDOWN:
-#                 if event.key == pygame.K_LEFT:
-#                     print('-x')
-#                 if event.key == pygame.K_RIGHT:
-#                     print('+x')
-#                 if event.key == pygame.K_UP:
-#                     print('+y')
-#                 if event.key == pygame.K_DOWN:
-#                     print('-y')
-#                 if event.key == pygame.K_z:
-#                     print('-z')
-#                 if event.key == pygame.K_x:
-#                     print('z')
-#                 if event.key == pygame.K_SPACE:
-#                     print("magnet")
-#                 if event.key == pygame.K_r:
-#                     print('rotate')
-#                 if event.key == pygame.K_s:
-#                     print("write")
-#                 if event.key == pygame.K_ESCAPE:
-#                     print("done")
-#                     pygame.quit()
-#                     return
 
 def main():
     train()

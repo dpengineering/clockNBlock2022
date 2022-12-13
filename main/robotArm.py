@@ -93,18 +93,17 @@ class RobotArm:
 
 
 
-    def cartesianToPolar(self, x:float, y:float):
+    def cartesianToPolar(self, x: float, y: float):
+
         # Convert to Polar Coords and rotate plane
         r = math.sqrt(x ** 2 + y ** 2)
         theta = math.atan2(y, x)
-
         return r, theta
 
-    def polarToCartesian(self, r:float, theta:float):
+    def polarToCartesian(self, r: float, theta: float):
         x = r*math.cos(theta)
         y = r*math.sin(theta)
-
-        return x,y
+        return x, y
 
     def moveToPoint(self, x, y, z, speed):
         return dpiRobot.addWaypoint(x, y, z, speed)
