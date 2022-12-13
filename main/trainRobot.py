@@ -83,7 +83,8 @@ def train():
                 if event.key == pygame.K_g:
                     print("Changing steps")
                     stepToChange = input("Which step are you changing? (0: radius, 1: theta, 2: Z, 3: all) ")
-                    if int(stepToChange) in range(0, 2):
+                    stepToChange = int(stepToChange)
+                    if stepToChange in range(0, 2):
                         value = input("step value: ")
                         steps[stepToChange] = value
                     elif stepToChange == 3:
