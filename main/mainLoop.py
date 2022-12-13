@@ -7,11 +7,10 @@
 #      ******************************************************************
 
 
-from main.clockHands import Clock
-from main.blockFeeder import BlockFeeder
-from main.robotArm import RobotArm
+from clockHands import Clock
+from blockFeeder import BlockFeeder
+from robotArm import RobotArm
 
-import time
 from time import sleep
 
 #
@@ -47,9 +46,10 @@ def setup():
 
     # Call setup functions for each component
     robot.setup()
-    clock.setup()
+    # clock.setup()
 
     blockFeeders[0].setup()
+    print("done with setup")
     # for i in range(0, 3):
     #     structures[i].setup()
 
@@ -58,19 +58,12 @@ def main():
 
     setup()
 
+    print("moving on to loop")
     while True:
 
         blockFeeders[0].process()
-        clock.process(2)
-        # for i in range(0,3):
-        #     structures[i].state()
-
-        # TODO: Implement these
-
-        # clock.state()
-
-        # Note: I will probably put the "tool pathing" function inside the robot class rather than here
-        # robot.state()
+        print(blockFeeders[0].state)
+        sleep(0.5)
 
 
 if __name__ == "__main__":

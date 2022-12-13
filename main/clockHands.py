@@ -7,8 +7,8 @@
 #      ******************************************************************
 from docutils.nodes import math
 from dpeaDPi.DPiStepper import DPiStepper
-import time as clocktime
 from time import sleep
+from datetime import datetime
 
 # Motor Constants
 
@@ -57,7 +57,7 @@ class Clock:
         self.home()
 
         # Move to current time
-        self.moveToTime(clocktime.localtime().strftime("%H:%M"))
+        # self.moveToTime(int(datetime.now().strftime("%H%M")))
 
     # Home clock hands
     def home(self):
@@ -65,7 +65,7 @@ class Clock:
         # Move to limit switches
         print("Home hour hand")
         dpiStepper.moveToHomeInSteps(HOUR_HAND, 1, HOUR_HAND_MAX_SPEED, HOUR_HAND_STEPS_PER_REVOLUTION)
-        print("home minute hand")
+        print("Home minute hand")
         dpiStepper.moveToHomeInSteps(MINUTE_HAND, 1, MINUTE_HAND_MAX_SPEED, MINUTE_HAND_STEPS_PER_REVOLUTION)
 
         dpiStepper.waitUntilMotorStops(HOUR_HAND)
@@ -98,7 +98,6 @@ class Clock:
         @param time: The time to move to
         """
 
-        # To give current time use time.localtime().strftime("%H:%M")
         if type(time) is str:
             time = time.replace(':', '')
             time = int(time)

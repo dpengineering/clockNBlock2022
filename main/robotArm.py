@@ -16,11 +16,20 @@ import math
 dpiRobot = DPiRobot()
 dpiSolenoid = DPiSolenoid()
 
-
 class RobotArm:
 
     MAGNET_SOLENOID = 0
     ROTATING_SOLENOID = 0
+
+    state = 0
+    newState = False
+
+    STATE_READY = 0
+    STATE_FEED_MOVE = 1
+    STATE_GRAB = 2
+    STATE_BUILD_MOVE = 3
+    STATE_RELEASE = 4
+    STATE_IDLE = 5
 
     def __init__(self, magnetSolenoid: int, rotatingSolenoid: int):
         self.MAGNET_SOLENOID = magnetSolenoid
@@ -45,20 +54,21 @@ class RobotArm:
 
         return True
 
-    def cartesianToPolar(self):
+    def process(self):
+        pass
 
-        robotCords = dpiRobot.getCurrentPosition()
-        # Get x, y, z from our tuple
-        x = robotCords[1]
-        y = robotCords[2]
-        z = robotCords[3] / 31
-
+    def cartesianToPolar(self, x:float, y:float):
         # Convert to Polar Coords and rotate plane
-        r = math.sqrt(x ** 2 + y ** 2) / 31
-        theta = math.atan2(y, x) - math.pi / 2
+        r = math.sqrt(x ** 2 + y ** 2)
+        theta = math.atan2(y, x)
 
-        return r, theta, z
+        return r, theta
 
+    def polarToCartesian(self, r:float, theta:float):
+        x = r*math.cos(theta)
+        y = r*math.sin(theta)
+
+        return x,y
 
     def moveToPoint(self, x, y, z, speed):
         return dpiRobot.addWaypoint(x, y, z, speed)
