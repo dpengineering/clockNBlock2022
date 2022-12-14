@@ -1,0 +1,6 @@
+Format: array: [solenoid side, solenoid up]
+
+Feeder 0: [6, 7]
+Feeder 1: [4, 3]
+Feeder 2: [9, 8]
+Feeder 3: [0, 1]

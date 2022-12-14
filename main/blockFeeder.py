@@ -6,7 +6,7 @@
 #      *                                                                *
 #      ******************************************************************
 
-from DPiClockNBlock import DPiClockNBlock
+from DPi_ClockNBlock_Python.DPiClockNBlock import DPiClockNBlock
 from dpeaDPi.DPiSolenoid import DPiSolenoid
 from time import sleep
 
@@ -37,6 +37,8 @@ class BlockFeeder:
     _STATE_FEED1 =           2
     _STATE_FEED2 =           3
     _STATE_IDLE =            4
+
+    position = 0, 0, 0
 
     def __init__(self, solenoid_side: int, solenoid_up: int, board_number: int):
         self._SOLENOID_SIDE = solenoid_side
@@ -167,4 +169,21 @@ class BlockFeeder:
             dpiClockNBlock.arrowOn()
         else:
             dpiClockNBlock.arrowOff()
+
+    def isReady(self):
+        if self._STATE_READY:
+            return True
+        else:
+            return False
+
+    def setPosition(self, r, theta, Z):
+        self.position = r, theta, Z
+
+    def getPosition(self):
+        return self.position
+
+
+
+
+
 

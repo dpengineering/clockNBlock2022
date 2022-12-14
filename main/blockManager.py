@@ -5,87 +5,87 @@
 #      *            Brian Vesper                   12/03/2022           *
 #      *                                                                *
 #      ******************************************************************
+from blockFeeder import BlockFeeder
+from clockHands import Clock
 
-from dpeaDPi.DPiRobot import DPiRobot
-from dpeaDPi.DPiSolenoid import DPiSolenoid
-from DPiClockNBlock import DPiClockNBlock
-from dpeaDPi.DPiStepper import DPiStepper
+class BlockManager:
 
-import queue
+    # TODO: Figure out how to not repeat this code
+    #
+    # pin assignments show how the pistons are wired to the DPiSolenoid board
+    #
+    _BLOCK_FEEDER0__FIRST_PISTON__DRIVER_NUM = 6
+    _BLOCK_FEEDER0__SECOND_PISTON__DRIVER_NUM = 7
+    _BLOCK_FEEDER1__FIRST_PISTON__DRIVER_NUM = 4
+    _BLOCK_FEEDER1__SECOND_PISTON__DRIVER_NUM = 3
+    _BLOCK_FEEDER2__FIRST_PISTON__DRIVER_NUM = 9
+    _BLOCK_FEEDER2__SECOND_PISTON__DRIVER_NUM = 8
+    _BLOCK_FEEDER3__FIRST_PISTON__DRIVER_NUM = 0
+    _BLOCK_FEEDER3__SECOND_PISTON__DRIVER_NUM = 1
 
-dpiRobot = DPiRobot()
-dpiSolenoid = DPiSolenoid()
-dpiClockNBlock = DPiClockNBlock()
-dpiStepper = DPiStepper()
+    _NUMBER_OF_BLOCK_FEEDERS = 4
+
+    # For the ClockNBlock boards
+    blockFeeder0 = BlockFeeder(_BLOCK_FEEDER0__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER0__SECOND_PISTON__DRIVER_NUM, 0)
+    blockFeeder1 = BlockFeeder(_BLOCK_FEEDER1__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER1__SECOND_PISTON__DRIVER_NUM, 1)
+    blockFeeder2 = BlockFeeder(_BLOCK_FEEDER2__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER2__SECOND_PISTON__DRIVER_NUM, 2)
+    blockFeeder3 = BlockFeeder(_BLOCK_FEEDER3__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER3__SECOND_PISTON__DRIVER_NUM, 3)
+
+    blockFeeder0.setPosition(345, -0.906, -62)
+
+    # TODO: Change these to the actual values once we train them
+    blockFeeder1.setPosition(345, -0.906, -62)
+    blockFeeder2.setPosition(345, -0.906, -62)
+
+    blockFeeder3.setPosition(340, 0.661, -63)
+    blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2, blockFeeder3]
+
+    # Middle of build positions arranged in r, theta, Z
+    Build0 = (422, -0.134, -44)
+    Build1 = (419, -1.696, -45)
+    Build2 = (426, 2.998, -42)
+    Build3 = (420, 1.437, -42)
+    _BUILD_POS = [Build0, Build1, Build2, Build3]
+
+    # Block Feeder positions
+    Feed0 = (345, -0.906, -62)
+
+    # TODO: Change these to the actual values once we train them
+    Feed1 = (345, -0.906, -62)
+    Feed2 = (345, -0.906, -62)
+
+    Feed3 = (340, 0.661, -63)
+
+    feederPos = [Feed0, Feed1, Feed2, Feed3]
+
+    # Constants
+    _BLOCK_SIZE = 31 #Block size in mm
+
+    # Objects we need to talk to
 
 
-class blockManager:
-    _STATE_READY = 0
-    _STATE_MOVE = 1
-    _STATE_GRAB = 2
-    _STATE_RELEASE = 3
+    # TODO: Implement these functions
+    #  getNextFeeder() returns list feeder coordinates we want to go to
+    #  placeBlock() returns list the build site coordinates we want to go to
+    #  goToReady() returns path to go to ready position
 
-    _STATE_NO_BLOCK = 4
-    _STATE_HAS_BLOCK = 5
-    _STATE_GENERATE_BUILD = 6
+    previousFeeder = 3
+    def getNextFeeder(self):
+        nextFeeder = self.nextFeeder()
+        if not self.blockFeeders[nextFeeder].isReady():
+            nextFeeder = self.nextFeeder()
+        else:
 
-    # Actions stored as arrays because I couldnt think of anything better. First element is what action(arm state)
-    # and second element is position. Some actions dont need positions so just give them the postion from the last
-    # action(or 0,0 or something arbitrary i dont think it matters much)
-    currentAction = []
-    nextAction = []
 
-    state = 4
+    # Private helper functions
+    def nextFeeder(self):
+        nextFeeder = (self.previousFeeder + 1) % 4
+        self.previousFeeder = nextFeeder
+        return nextFeeder
 
-    #Lists of actions are queues which are FIFO but they could be something else this is just all I could think of.
-    actions = queue.Queue()
-    build = queue.Queue()
+    def isClockTooClose(self, position: float):
+        _MINUTE_HAND = 1
+        distanceFromPosition = 
+        if
 
-    def __int__(self):
-        pass
 
-    def setup(self):
-        pass
-
-    #State machine for manager. Basically just queues actions for picking up block and where to put it down.
-    #Always has a planned next build position saved as a queue of actions called build. If build is empty generates a new one.
-    def process(self):
-        # Gets the next feed location(still need to write function and logic
-        # but should return the coords for the feed where the next block should be picked up).
-        # Then sets an action to move to the feed and then one more to grab the block before changing states.
-        if self.state == self._STATE_NO_BLOCK:
-            pos = self.getFeed()
-            action = [self._STATE_MOVE, pos]
-            self.actions.put(action)
-            action[0] = self._STATE_GRAB
-            self.actions.put(action)
-            self.state = self._STATE_HAS_BLOCK
-
-        # Should probably que one action per state so it doesnt que a bazillion actions. Could change tho they both kinda seem fine.
-        if self.state == self._STATE_HAS_BLOCK:
-            if not self.build.empty():
-                self.actions.put(self.build.get())
-            else:
-                self.state = self._STATE_GENERATE_BUILD
-
-        #Generates next build path. Changes to no block because all build path should end with no block left.
-        if self.state == self._STATE_GENERATE_BUILD:
-            self.genBuild()
-            self.state = self._STATE_NO_BLOCK
-
-    # TODO: Write genBuild(). This should generate a list of actions to place a single block and then add them to the build queue.
-
-    # TODO: Write getFeed(). Should return coords of a feeder with a block. IDK what logic to use to choose which feed yet.
-
-    def getNextState(self):
-        return self.nextAction[0]
-
-    def getNextPos(self):
-        return self.nextAction[1]
-
-    def actionAvailable(self):
-        return not self.actions.empty()
-
-    def cycleAction(self):
-        self.currentAction = self.nextAction
-        self.nextAction = self.actions.get()

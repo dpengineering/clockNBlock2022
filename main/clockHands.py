@@ -39,6 +39,8 @@ dpiStepper = DPiStepper()
 class Clock:
 
     stoppedFlg = False
+    # Multiplier for clock speed
+    multiplier = 1
 
     def __init__(self):
         pass
@@ -57,7 +59,22 @@ class Clock:
         self.home()
 
         # Move to current time
-        # self.moveToTime(int(datetime.now().strftime("%H%M")))
+        self.moveToTime(int(datetime.now().strftime("%H%M")))
+
+    # There isn't much to do for the clock, just make it go
+    def process(self,):
+        if not self.stoppedFlg:
+            if self.getPositionSteps(HOUR_HAND) >= HOUR_HAND_STEPS_PER_REVOLUTION or self.getPositionSteps(MINUTE_HAND) >= MINUTE_HAND_STEPS_PER_REVOLUTION:
+                self.updatePosition()
+
+            # if hands aren't moving, move them a full rotation
+            if not self.isStepperMoving(HOUR_HAND):
+                self.moveHand(HOUR_HAND, HOUR_HAND_STEPS_PER_REVOLUTION)
+
+            if not self.isStepperMoving(MINUTE_HAND):
+                self.moveHand(MINUTE_HAND, MINUTE_HAND_STEPS_PER_REVOLUTION)
+        else:
+            return
 
     # Home clock hands
     def home(self):
@@ -148,15 +165,15 @@ class Clock:
     def getPositionSteps(self, hand: int):
         return dpiStepper.getCurrentPositionInSteps(hand)
 
-    def moveHand(self, hand: int, steps: int, multiplier: int):
+    def moveHand(self, hand: int, steps: int):
         if hand == HOUR_HAND:
             speed = HOUR_HAND_CLOCK_SPEED
         elif hand == MINUTE_HAND:
             speed = MINUTE_HAND_CLOCK_SPEED
         else:
             return False
-        dpiStepper.setSpeedInStepsPerSecond(hand, speed * multiplier)
-        dpiStepper.setAccelerationInStepsPerSecondPerSecond(hand, speed * multiplier)
+        dpiStepper.setSpeedInStepsPerSecond(hand, speed * self.multiplier)
+        dpiStepper.setAccelerationInStepsPerSecondPerSecond(hand, speed * self.multiplier)
 
         dpiStepper.moveToRelativePositionInSteps(hand, steps, False)
 
@@ -181,18 +198,10 @@ class Clock:
     def resume(self):
         self.stoppedFlg = False
 
-    # There isn't much to do for the clock, just make it go
-    def process(self, multiplier: int):
-        if not self.stoppedFlg:
-            if self.getPositionSteps(HOUR_HAND) >= HOUR_HAND_STEPS_PER_REVOLUTION or self.getPositionSteps(MINUTE_HAND) >= MINUTE_HAND_STEPS_PER_REVOLUTION:
-                self.updatePosition()
+    def setMultiplier(self, Multiplier: int):
+        self.multiplier = Multiplier
 
-            # if hands aren't moving, move them a full rotation
-            if not self.isStepperMoving(HOUR_HAND):
-                self.moveHand(HOUR_HAND, HOUR_HAND_STEPS_PER_REVOLUTION, multiplier)
+    def getMultiplier(self):
+        return self.multiplier
 
-            if not self.isStepperMoving(MINUTE_HAND):
-                self.moveHand(MINUTE_HAND, MINUTE_HAND_STEPS_PER_REVOLUTION, multiplier)
-        else:
-            return
 
