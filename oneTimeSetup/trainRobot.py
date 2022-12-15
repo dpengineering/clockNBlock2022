@@ -8,11 +8,9 @@
 
 # This can really be optimized, but it is fine for our purposes at the moment.
 
-from robotArm import RobotArm
-from dpeaDPi.DPiRobot import DPiRobot
+from main.robotArm import RobotArm
 from dpeaDPi.DPiSolenoid import DPiSolenoid
 
-import math
 import sys
 from time import gmtime, strftime
 import pygame
@@ -34,7 +32,7 @@ def train():
     speed = 40
     magnet = False
     rotation = False
-    locationsFile = open("locations", "a")
+    locationsFile = open("../Documentation/locations", "a")
     time = strftime("%Y-%m-%d %H:%M", gmtime())
     locationsFile.write(f'Locations saved at {time} \n')
     locationsFile.close()
@@ -96,7 +94,7 @@ def train():
                         print("you entered an incorrect value, try again please")
                 if event.key == pygame.K_s:
                     print("write")
-                    locationsFile = open("locations", "a")
+                    locationsFile = open("../Documentation/locations", "a")
                     name = input("What point is this")
                     savePos = robotArm.cartesianToPolar(pos[1], pos[2])
                     locationsFile.write(f'{name}: {savePos}, {pos[3]} \n')

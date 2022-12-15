@@ -2,7 +2,7 @@
 #      *                                                                *
 #      *                      Main ClockNBlock Loop                     *
 #      *                                                                *
-#      *            Arnav Wadhwa                   12/0382022           *
+#      *            Arnav Wadhwa                   12/08/2022           *
 #      *                                                                *
 #      ******************************************************************
 
@@ -10,7 +10,6 @@
 from clockHands import Clock
 from blockFeeder import BlockFeeder
 from robotArm import RobotArm
-from blockManager import BlockManager
 
 from time import sleep
 
@@ -20,12 +19,10 @@ robotRotationSolenoid = 10
 
 clock = Clock()
 robot = RobotArm(robotMagnetSolenoid, robotRotationSolenoid)
-blockManager = BlockManager()
 
-# Grab blockFeeder array from blockManager
-blockFeeders = blockManager.blockFeeders
-_NUM_BLOCK_FEEDERS = len(blockFeeders)
+blockFeeders = robot.blockFeeders
 
+NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
 
 def setup():
 
@@ -33,10 +30,8 @@ def setup():
     robot.setup()
     clock.setup()
 
-    blockFeeders[0].setup()
-    print("done with setup")
-    # for i in range(_NUM_BLOCK_FEEDERS):
-    #     structures[i].setup()
+    for i in range(NUM_BLOCK_FEEDERS):
+        blockFeeders[i].setup()
 
 
 def main():
@@ -46,8 +41,10 @@ def main():
     print("moving on to loop")
     while True:
 
-        blockFeeders[0].process()
-        print(blockFeeders[0].state)
+        for i in range(NUM_BLOCK_FEEDERS):
+            blockFeeders[i].process()
+        clock.process()
+
         sleep(0.5)
 
 

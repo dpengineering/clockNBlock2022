@@ -64,7 +64,8 @@ class Clock:
     # There isn't much to do for the clock, just make it go
     def process(self,):
         if not self.stoppedFlg:
-            if self.getPositionSteps(HOUR_HAND) >= HOUR_HAND_STEPS_PER_REVOLUTION or self.getPositionSteps(MINUTE_HAND) >= MINUTE_HAND_STEPS_PER_REVOLUTION:
+            if self.getPositionSteps(HOUR_HAND) >= HOUR_HAND_STEPS_PER_REVOLUTION or \
+                    self.getPositionSteps(MINUTE_HAND) >= MINUTE_HAND_STEPS_PER_REVOLUTION:
                 self.updatePosition()
 
             # if hands aren't moving, move them a full rotation
@@ -163,7 +164,7 @@ class Clock:
         return f'{hours}:{minutes}'
 
     def getPositionSteps(self, hand: int):
-        return dpiStepper.getCurrentPositionInSteps(hand)
+        return dpiStepper.getCurrentPositionInSteps(hand)[1]
 
     def moveHand(self, hand: int, steps: int):
         if hand == HOUR_HAND:

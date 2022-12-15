@@ -1,91 +1,104 @@
 #      ******************************************************************
 #      *                                                                *
-#      *                        Robot Arm Object                        *
+#      *                        Block Manager                           *
 #      *                                                                *
-#      *            Brian Vesper                   12/03/2022           *
+#      *     Brian Vesper, Arnav Wadhwa            12/15/2022           *
 #      *                                                                *
 #      ******************************************************************
 from blockFeeder import BlockFeeder
-from clockHands import Clock
+
 
 class BlockManager:
 
-    # TODO: Figure out how to not repeat this code
-    #
-    # pin assignments show how the pistons are wired to the DPiSolenoid board
-    #
-    _BLOCK_FEEDER0__FIRST_PISTON__DRIVER_NUM = 6
-    _BLOCK_FEEDER0__SECOND_PISTON__DRIVER_NUM = 7
-    _BLOCK_FEEDER1__FIRST_PISTON__DRIVER_NUM = 4
-    _BLOCK_FEEDER1__SECOND_PISTON__DRIVER_NUM = 3
-    _BLOCK_FEEDER2__FIRST_PISTON__DRIVER_NUM = 9
-    _BLOCK_FEEDER2__SECOND_PISTON__DRIVER_NUM = 8
-    _BLOCK_FEEDER3__FIRST_PISTON__DRIVER_NUM = 0
-    _BLOCK_FEEDER3__SECOND_PISTON__DRIVER_NUM = 1
-
-    _NUMBER_OF_BLOCK_FEEDERS = 4
-
-    # For the ClockNBlock boards
-    blockFeeder0 = BlockFeeder(_BLOCK_FEEDER0__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER0__SECOND_PISTON__DRIVER_NUM, 0)
-    blockFeeder1 = BlockFeeder(_BLOCK_FEEDER1__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER1__SECOND_PISTON__DRIVER_NUM, 1)
-    blockFeeder2 = BlockFeeder(_BLOCK_FEEDER2__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER2__SECOND_PISTON__DRIVER_NUM, 2)
-    blockFeeder3 = BlockFeeder(_BLOCK_FEEDER3__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER3__SECOND_PISTON__DRIVER_NUM, 3)
-
-    blockFeeder0.setPosition(345, -0.906, -62)
-
-    # TODO: Change these to the actual values once we train them
-    blockFeeder1.setPosition(345, -0.906, -62)
-    blockFeeder2.setPosition(345, -0.906, -62)
-
-    blockFeeder3.setPosition(340, 0.661, -63)
-    blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2, blockFeeder3]
-
-    # Middle of build positions arranged in r, theta, Z
-    Build0 = (422, -0.134, -44)
-    Build1 = (419, -1.696, -45)
-    Build2 = (426, 2.998, -42)
-    Build3 = (420, 1.437, -42)
-    _BUILD_POS = [Build0, Build1, Build2, Build3]
-
-    # Block Feeder positions
-    Feed0 = (345, -0.906, -62)
-
-    # TODO: Change these to the actual values once we train them
-    Feed1 = (345, -0.906, -62)
-    Feed2 = (345, -0.906, -62)
-
-    Feed3 = (340, 0.661, -63)
-
-    feederPos = [Feed0, Feed1, Feed2, Feed3]
-
     # Constants
-    _BLOCK_SIZE = 31 #Block size in mm
+    _BLOCK_SIZE = 31  # Block size in mm
+    _ROBOT_HEAD_WIDTH = 150  # Baseplate of robot head in mm
 
-    # Objects we need to talk to
+    def __init__(self,  blockFeeder: BlockFeeder, feederPos: tuple, buildPos: tuple, stackSize = 5):
+        self.feederPos = feederPos
+        self.buildPos = buildPos
+        self.MINIMUM_MOVING_HEIGHT = feederPos[3] + self._BLOCK_SIZE * 6
+        self.blockFeeder = blockFeeder
+        self.blockPositions = self.generateBlockPlacements(buildPos, stackSize)
+        self.blockToPlace = 0
 
+    def getNextBlock(self, currentPos: tuple):
+        return self.pathToTarget(currentPos, self.feederPos)
 
-    # TODO: Implement these functions
-    #  getNextFeeder() returns list feeder coordinates we want to go to
-    #  placeBlock() returns list the build site coordinates we want to go to
-    #  goToReady() returns path to go to ready position
+    def placeBlock(self):
+        if self.blockToPlace == len(self.blockPositions):
+            return False
 
-    previousFeeder = 3
-    def getNextFeeder(self):
-        nextFeeder = self.nextFeeder()
-        if not self.blockFeeders[nextFeeder].isReady():
-            nextFeeder = self.nextFeeder()
-        else:
+    # location of target must be a tuple in the form (r, theta, z)
+    def pathToTarget(self, currentPos: tuple, location: tuple) -> list:
+        movingPath = []
 
+        # If we are too low, bring the robot up to over the working height.
+        if currentPos[2] < self.MINIMUM_MOVING_HEIGHT:
+            waypoint = currentPos[0], currentPos[1], self.MINIMUM_MOVING_HEIGHT
+            currentPos = waypoint
+            movingPath.append(waypoint)
 
-    # Private helper functions
-    def nextFeeder(self):
-        nextFeeder = (self.previousFeeder + 1) % 4
-        self.previousFeeder = nextFeeder
-        return nextFeeder
+        # Add actual moving points:
+        # Go next to point and hover above
+        waypoint = location[0] - self._ROBOT_HEAD_WIDTH / 2, location[1], currentPos[2]
+        movingPath.append(waypoint)
+        currentPos = waypoint
 
-    def isClockTooClose(self, position: float):
-        _MINUTE_HAND = 1
-        distanceFromPosition = 
-        if
+        # Go down to right next to point
+        waypoint = currentPos[0], currentPos[1], location[2] + 5
+        currentPos = waypoint
+        movingPath.append(waypoint)
+
+        # slide over to point
+        movingPath.append(location)
+
+        return movingPath
+
+        # Generates the list of positions that we want to place blocks at
+        # Enter base location as a tuple of (r, theta, z)
+
+    def generateBlockPlacements(self, baseLocation: tuple, stackSize: int):
+
+        placements = []
+
+        r, theta, z = baseLocation
+
+        # Our r, theta, z will be the middle block on the first layer.
+        # This location will be where the first block we place is. Gets updated per layer we insert
+        initialPos = (r + 2 * self._BLOCK_SIZE, theta, z)
+
+        # Build our list:
+        for layer in range(1, stackSize + 1):
+            for block in range(stackSize - layer + 1):
+                pos = initialPos[0] - self._BLOCK_SIZE * block, initialPos[1], initialPos[2]
+                placements.append(pos)
+
+            # Find first block on next row:
+            r, theta, z = initialPos[0] - self._BLOCK_SIZE / 2, initialPos[1], initialPos[2] + self._BLOCK_SIZE
+            initialPos = (r, theta, z)
+
+        return placements
+
+    def isReady(self, clockPos: float) -> bool:
+
+        # TODO: Please fix this name, also figure out how to do this as a float and not just ints
+        noGoZone = range(self.feederPos[1] + 0.18, self.buildPos[1] - 0.18)
+        if clockPos in noGoZone:
+            self.resetStack()
+            return False
+
+        # Block feeder is not in ready state
+        if not self.blockFeeder.state == 0:
+            return False
+
+        # Check if stack is complete
+        if self.blockToPlace == len(self.blockPositions):
+            return False
+
+        return True
+
+    def resetStack(self):
+        self.blockToPlace = 0
 
 
