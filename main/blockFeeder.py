@@ -72,7 +72,7 @@ class BlockFeeder:
         # Otherwise, cycle the blocks
         dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
         dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, False)
-        sleep(1)
+        sleep(2)
         # If there is a block send it to ready position
         if dpiClockNBlock.readFeed_1() and not dpiClockNBlock.readFeed_2():
             dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, True)

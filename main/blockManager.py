@@ -17,20 +17,23 @@ class BlockManager:
     def __init__(self,  blockFeeder: BlockFeeder, feederPos: tuple, buildPos: tuple, stackSize = 5):
         self.feederPos = feederPos
         self.buildPos = buildPos
-        self.MINIMUM_MOVING_HEIGHT = feederPos[3] + self._BLOCK_SIZE * 6
+        self.MINIMUM_MOVING_HEIGHT = feederPos[2] + self._BLOCK_SIZE * 6
         self.blockFeeder = blockFeeder
         self.blockPositions = self.generateBlockPlacements(buildPos, stackSize)
         self.blockToPlace = 0
 
     def getNextBlock(self, currentPos: tuple):
-        return self.pathToTarget(currentPos, self.feederPos)
+        return self.pathToTarget(currentPos, self.feederPos),
 
-    def placeBlock(self):
+    def placeBlock(self, currentPos: tuple):
         if self.blockToPlace == len(self.blockPositions):
             return False
+        path = self.pathToTarget(currentPos, self.blockPositions[self.blockToPlace])
+        self.blockToPlace += 1
+        return path
 
     # location of target must be a tuple in the form (r, theta, z)
-    def pathToTarget(self, currentPos: tuple, location: tuple) -> list:
+    def pathToTarget(self, currentPos: tuple, location: tuple):
         movingPath = []
 
         # If we are too low, bring the robot up to over the working height.
@@ -52,8 +55,9 @@ class BlockManager:
 
         # slide over to point
         movingPath.append(location)
+        lastPos = location
 
-        return movingPath
+        return movingPath, lastPos
 
         # Generates the list of positions that we want to place blocks at
         # Enter base location as a tuple of (r, theta, z)
@@ -82,9 +86,9 @@ class BlockManager:
 
     def isReady(self, clockPos: float) -> bool:
 
-        # TODO: Please fix this name, also figure out how to do this as a float and not just ints
-        noGoZone = range(self.feederPos[1] + 0.18, self.buildPos[1] - 0.18)
-        if clockPos in noGoZone:
+        minPos = self.feederPos[1] + 0.18
+        maxPos = self.buildPos[1] - 0.18
+        if minPos < clockPos < maxPos:
             self.resetStack()
             return False
 

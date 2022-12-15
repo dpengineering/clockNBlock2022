@@ -8,7 +8,6 @@
 
 
 from clockHands import Clock
-from blockFeeder import BlockFeeder
 from robotArm import RobotArm
 
 from time import sleep
@@ -44,6 +43,7 @@ def main():
         for i in range(NUM_BLOCK_FEEDERS):
             blockFeeders[i].process()
         clock.process()
+        robot.process(clock.getPositionRadians(1))  # Minute hand
 
         sleep(0.5)
 

@@ -8,7 +8,7 @@
 
 # This can really be optimized, but it is fine for our purposes at the moment.
 
-from main.robotArm import RobotArm
+from robotArm import RobotArm
 from dpeaDPi.DPiSolenoid import DPiSolenoid
 
 import sys
@@ -32,7 +32,7 @@ def train():
     speed = 40
     magnet = False
     rotation = False
-    locationsFile = open("../Documentation/locations", "a")
+    locationsFile = open("locations", "a")
     time = strftime("%Y-%m-%d %H:%M", gmtime())
     locationsFile.write(f'Locations saved at {time} \n')
     locationsFile.close()
@@ -84,17 +84,17 @@ def train():
                     stepToChange = int(stepToChange)
                     if stepToChange in range(0, 2):
                         value = input("step value: ")
-                        steps[stepToChange] = value
+                        steps[stepToChange] = float(value)
                     elif stepToChange == 3:
                         rStep = input("Value for r: ")
                         tStep = input("Value for theta:")
                         zStep = input("Value for Z: ")
-                        steps = [rStep, tStep, zStep]
+                        steps = [float(rStep), float(tStep), float(zStep)]
                     else:
                         print("you entered an incorrect value, try again please")
                 if event.key == pygame.K_s:
                     print("write")
-                    locationsFile = open("../Documentation/locations", "a")
+                    locationsFile = open("locations", "a")
                     name = input("What point is this")
                     savePos = robotArm.cartesianToPolar(pos[1], pos[2])
                     locationsFile.write(f'{name}: {savePos}, {pos[3]} \n')
