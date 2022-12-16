@@ -196,7 +196,8 @@ class RobotArm:
         while not self.blockManagers[nextManager].isReady(clockPos):
             nextManager = nextManager + 1 % 4
 
-        self.currentManager = nextManager
+        # self.currentManager = nextManager
+
 
     # In radians
     def moveOutOfWay(self, location: tuple):

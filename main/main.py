@@ -27,10 +27,14 @@ def setup():
 
     # Call setup functions for each component
     robot.setup()
-    clock.setup()
+    # clock.setup()
 
-    for i in range(NUM_BLOCK_FEEDERS):
-        blockFeeders[i].setup()
+    # for i in range(NUM_BLOCK_FEEDERS):
+    #     blockFeeders[i].setup()
+    blockFeeders[0].setup()
+    # blockFeeders[2].setup()
+    blockFeeders[3].setup()
+
 
 
 def main():
@@ -40,10 +44,13 @@ def main():
     print("moving on to loop")
     while True:
 
-        for i in range(NUM_BLOCK_FEEDERS):
-            blockFeeders[i].process()
+        # for i in range(NUM_BLOCK_FEEDERS):
+            # blockFeeders[i].process()
+        blockFeeders[0].process()
+        # blockFeeders[2].process()
+        blockFeeders[3].process()
         clock.process()
-        robot.process(clock.getPositionRadians(1))  # Minute hand
+        # robot.process(clock.getPositionRadians(1))  # Minute hand
 
         sleep(0.5)
 
