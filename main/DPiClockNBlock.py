@@ -54,7 +54,7 @@ class DPiClockNBlock:
     #
     def __sendCommand(self, command: int):
         (results, failedCount) = dpiNetwork.sendCommand(self._slaveAddress, command, _DPiNETWORK_TIMEOUT_PERIOD_MS)
-        self._commErrorCount += failedCount;
+        self._commErrorCount += failedCount
         return results
 
     # ---------------------------------------------------------------------------------
@@ -90,7 +90,9 @@ class DPiClockNBlock:
     #
     def readEntrance(self):
         self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_ENTRANCE)
-        return not dpiNetwork.popUint8()
+        value = dpiNetwork.popUint8()
+        print(value)
+        return value
 
 
     #
