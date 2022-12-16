@@ -17,7 +17,7 @@ _CMD_DPi_CLOCKNBLOCK__PING                  = 0x00
 _CMD_DPi_CLOCKNBLOCK__INITIALIZE            = 0x01
 _CMD_DPi_CLOCKNBLOCK__READ_ENTRANCE         = 0x02
 _CMD_DPi_CLOCKNBLOCK__READ_FEED_1           = 0x03
-_CMD_DPi_CLOCKNBLOCK__READ_FEED_2           = 0x04
+cd           = 0x04
 _CMD_DPi_CLOCKNBLOCK__READ_EXIT             = 0x05
 _CMD_DPi_CLOCKNBLOCK__ARROW_ON              = 0x06
 _CMD_DPi_CLOCKNBLOCK__ARROW_OFF             = 0x07
@@ -90,9 +90,7 @@ class DPiClockNBlock:
     #
     def readEntrance(self):
         self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_ENTRANCE)
-        value = dpiNetwork.popUint8()
-        print(value)
-        return value
+        return not dpiNetwork.popUint8()
 
 
     #

@@ -12,9 +12,9 @@ def main(boardNum):
 
     while True:
         print(f'Entrance: {dpiClockNBlock.readEntrance()}')
-        # print(f'Feed_1: {dpiClockNBlock.readFeed_1()}')
-        # print(f'Feed_2: {dpiClockNBlock.readFeed_2()}')
-        # print(f'Exit: {dpiClockNBlock.readExit()} \n')
+        print(f'Feed_1: {dpiClockNBlock.readFeed_1()}')
+        print(f'Feed_2: {dpiClockNBlock.readFeed_2()}')
+        print(f'Exit: {dpiClockNBlock.readExit()} \n')
         sleep(1)
 
 
