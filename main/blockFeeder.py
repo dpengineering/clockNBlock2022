@@ -6,21 +6,22 @@
 #      *                                                                *
 #      ******************************************************************
 
-from DPiClockNBlock import DPiClockNBlock
+from DPi_ClockNBlock_Python.DPiClockNBlock import DPiClockNBlock
 from dpeaDPi.DPiSolenoid import DPiSolenoid
 from time import sleep
 
 # More accurate timer
 from timeit import default_timer as timer
 
-# Constants
-dpiClockNBlock = DPiClockNBlock()
-dpiSolenoid = DPiSolenoid()
 
 BLOCK_SIZE = 31  # block side length in mm
 
 
 class BlockFeeder:
+
+    # Constants
+    dpiClockNBlock = DPiClockNBlock()
+    dpiSolenoid = DPiSolenoid()
 
     _SOLENOID_UP = 0
     _SOLENOID_SIDE = 0
@@ -47,14 +48,14 @@ class BlockFeeder:
 
     def setup(self) -> bool:
 
-        dpiClockNBlock.setBoardNumber(self.BOARD_NUMBER)
-        dpiSolenoid.setBoardNumber(0)
+        self.dpiClockNBlock.setBoardNumber(self.BOARD_NUMBER)
+        self.dpiSolenoid.setBoardNumber(0)
 
-        if not dpiClockNBlock.initialize():
+        if not self.dpiClockNBlock.initialize():
             print("Communication with DPiClockNBlock board failed")
             return False
 
-        if not dpiSolenoid.initialize():
+        if not self.dpiSolenoid.initialize():
             print("Communication with DPiSolenoid board failed")
             return False
 
@@ -66,37 +67,37 @@ class BlockFeeder:
     def initializeBlockFeeders(self) -> bool:
         print("initalizing")
         # Check if block already at the top position
-        if dpiClockNBlock.readExit():
+        if self.dpiClockNBlock.readExit():
             return True
 
         # Otherwise, cycle the blocks
-        dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
-        dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, False)
+        self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
+        self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, False)
         sleep(2)
         # If there is a block send it to ready position
-        if dpiClockNBlock.readFeed_1() and not dpiClockNBlock.readFeed_2():
-            dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, True)
-            while not dpiClockNBlock.readFeed_2():
+        if self.dpiClockNBlock.readFeed_1() and not self.dpiClockNBlock.readFeed_2():
+            self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, True)
+            while not self.dpiClockNBlock.readFeed_2():
                 sleep(0.1)
-        if dpiClockNBlock.readFeed_2():
-            dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, True)
-            while not dpiClockNBlock.readExit():
+        if self.dpiClockNBlock.readFeed_2():
+            self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, True)
+            while not self.dpiClockNBlock.readExit():
                 sleep(0.1)
-            dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, False)
+            self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, False)
             self.setState(self._STATE_READY)
             return True
         return False
 
     def process(self):
         # Check if arrow needs to be turned on
-        if dpiClockNBlock.readEntrance():
+        if self.dpiClockNBlock.readEntrance():
             self.toggleArrow(False)
         else:
             self.toggleArrow(True)
 
         if self.state == self._STATE_READY:
             # Check if it is actually ready, if not switch state to block removed
-            if not dpiClockNBlock.readExit():
+            if not self.dpiClockNBlock.readExit():
                 self.setState(self._STATE_BLOCK_REMOVED)
             return
 
@@ -105,7 +106,7 @@ class BlockFeeder:
             # Retract the up piston
             print(f"Newstate: {self.newState}")
             if self.newState:
-                dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
+                self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
                 self.start = timer()
                 print(f"start: {self.start}")
                 print("Started timer")
@@ -120,36 +121,36 @@ class BlockFeeder:
         elif self.state == self._STATE_FEED1:
 
             if self.newState:
-                dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, True)
+                self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, True)
                 self.newState = False
                 return
-            elif dpiClockNBlock.readExit():
+            elif self.dpiClockNBlock.readExit():
                 self.setState(self._STATE_READY)
-                dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, False)
+                self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, False)
                 return
             return
 
         elif self.state == self._STATE_FEED2:
             # Check if we have a block at Feed 1, if not set state to idle
-            if not dpiClockNBlock.readFeed_1():
+            if not self.dpiClockNBlock.readFeed_1():
                 self.setState(self._STATE_IDLE)
                 print(f"going to idle, newState: {self.newState}")
                 return
             # Push the block over
             print(f"newState: {self.newState}")
             if self.newState:
-                dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, True)
+                self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, True)
                 self.newState = False
                 return
             # Wait for block to arrive at the side
-            if dpiClockNBlock.readFeed_2():
+            if self.dpiClockNBlock.readFeed_2():
                 self.setState(self._STATE_FEED1)
                 return
             return
 
         elif self.state == self._STATE_IDLE:
             # Wait for a block to be inserted then switch to feed 2
-            if dpiClockNBlock.readFeed_1():
+            if self.dpiClockNBlock.readFeed_1():
                 self.setState(self._STATE_FEED2)
                 return
             return
@@ -166,9 +167,9 @@ class BlockFeeder:
     def toggleArrow(self, onOffValue: bool):
 
         if onOffValue:
-            dpiClockNBlock.arrowOn()
+            self.dpiClockNBlock.arrowOn()
         else:
-            dpiClockNBlock.arrowOff()
+            self.dpiClockNBlock.arrowOff()
 
     def isReady(self):
         if self._STATE_READY:

@@ -1,24 +1,28 @@
-# Rough test for functionality of the DPi ClockNBlock board
+# Crude test for DPi_ClockNBlock Board, just reads all sensors then turns light on and off
 
-from main.DPiClockNBlock import DPiClockNBlock
+from DPiClockNBlock import DPiClockNBlock
 from time import sleep
 
+dpiClockNBlock = DPiClockNBlock()
 
-def main():
-    dpiClockNBlock = DPiClockNBlock()
 
-    dpiClockNBlock.setBoardNumber(0)
-
+def main(boardNum):
+    dpiClockNBlock.setBoardNumber(boardNum)
     if not dpiClockNBlock.initialize():
-        print("Communication with board failed")
+        print("Initialize failed")
         return
 
-    dpiClockNBlock.arrowOn()
-
     while True:
-        print(dpiClockNBlock.readEntrance())
-        sleep(0.1)
+        print(f'Entrance: {dpiClockNBlock.readEntrance()}')
+        print(f'Feed_1: {dpiClockNBlock.readFeed_1()}')
+        print(f'Feed_2: {dpiClockNBlock.readFeed_2()}')
+        print(f'Exit: {dpiClockNBlock.readExit()} \n')
+        print(f'Arrow On: {dpiClockNBlock.arrowOn()}')
+        sleep(0.5)
+        print(f'Arrow Off: {dpiClockNBlock.arrowOff()}')
+        sleep(0.5)
 
 
 if __name__ == "__main__":
-    main()
+    main(1)
+

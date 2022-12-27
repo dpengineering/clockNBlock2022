@@ -23,7 +23,7 @@ class BlockManager:
         self.blockToPlace = 0
 
     def getNextBlock(self, currentPos: tuple):
-        return self.pathToTarget(currentPos, self.feederPos),
+        return self.pathToTarget(currentPos, self.feederPos, self._ROBOT_HEAD_WIDTH / 2)
 
     def placeBlock(self, currentPos: tuple):
         if self.blockToPlace == len(self.blockPositions):
@@ -32,10 +32,14 @@ class BlockManager:
         self.blockToPlace += 1
         return path
 
-    # location of target must be a tuple in the form (r, theta, z)
-    def pathToTarget(self, currentPos: tuple, location: tuple):
+    # Enter:
+    #   Current position of robot, (r, theta, z)
+    #   Target position of robot, (r, theta, z)
+    #   Offset of how far to slide over (radius)
+    # returns list of waypoints to go to
+    def pathToTarget(self, currentPos: tuple, target: tuple, offset: float):
         movingPath = []
-
+        targetR, targetTheta, targetZ = target
         # If we are too low, bring the robot up to over the working height.
         if currentPos[2] < self.MINIMUM_MOVING_HEIGHT:
             waypoint = currentPos[0], currentPos[1], self.MINIMUM_MOVING_HEIGHT
@@ -44,20 +48,19 @@ class BlockManager:
 
         # Add actual moving points:
         # Go next to point and hover above
-        waypoint = location[0] - self._ROBOT_HEAD_WIDTH / 2, location[1], currentPos[2]
+        waypoint = targetR - offset, targetTheta, currentPos[2]
         movingPath.append(waypoint)
         currentPos = waypoint
 
         # Go down to right next to point
-        waypoint = currentPos[0], currentPos[1], location[2] + 5
-        currentPos = waypoint
+        waypoint = currentPos[0], currentPos[1], targetZ
         movingPath.append(waypoint)
+        currentPos = waypoint
 
         # slide over to point
-        movingPath.append(location)
-        lastPos = location
+        movingPath.append(target)
 
-        return movingPath, lastPos
+        return movingPath
 
         # Generates the list of positions that we want to place blocks at
         # Enter base location as a tuple of (r, theta, z)
