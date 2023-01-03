@@ -32,7 +32,7 @@ class RobotArm:
     _STATE_PICKUP_BLOCK = 1
     _STATE_PLACE_BLOCK =  2
 
-    MINIMUM_Z = 140
+    MINIMUM_Z = 100
     speed = 40
     # pin assignments show how the pistons are wired to the DPiSolenoid board
     #
@@ -46,10 +46,10 @@ class RobotArm:
     _BLOCK_FEEDER3__SECOND_PISTON__DRIVER_NUM = 1
 
     # For the ClockNBlock boards
-    blockFeeder0 = BlockFeeder(_BLOCK_FEEDER0__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER0__SECOND_PISTON__DRIVER_NUM, 0)
-    blockFeeder1 = BlockFeeder(_BLOCK_FEEDER1__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER1__SECOND_PISTON__DRIVER_NUM, 1)
-    blockFeeder2 = BlockFeeder(_BLOCK_FEEDER2__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER2__SECOND_PISTON__DRIVER_NUM, 2)
-    blockFeeder3 = BlockFeeder(_BLOCK_FEEDER3__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER3__SECOND_PISTON__DRIVER_NUM, 3)
+    blockFeeder0 = BlockFeeder(_BLOCK_FEEDER0__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER0__SECOND_PISTON__DRIVER_NUM, 0, dpiSolenoid)
+    blockFeeder1 = BlockFeeder(_BLOCK_FEEDER1__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER1__SECOND_PISTON__DRIVER_NUM, 1, dpiSolenoid)
+    blockFeeder2 = BlockFeeder(_BLOCK_FEEDER2__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER2__SECOND_PISTON__DRIVER_NUM, 2, dpiSolenoid)
+    blockFeeder3 = BlockFeeder(_BLOCK_FEEDER3__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER3__SECOND_PISTON__DRIVER_NUM, 3, dpiSolenoid)
 
     blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2, blockFeeder3]
 
@@ -87,11 +87,17 @@ class RobotArm:
             print("Homing failed.")
             return False
 
+        if not self.dpiSolenoid.initialize():
+            print("Communication with DPiSolenoid board failed")
+            return False
+
         self.setState(self._STATE_GET_BLOCK)
 
         return True
 
     def process(self, clockPos: float):
+
+        test = self.dpiRobot.getRobotStatus()
 
         currentPos = self.getPositionRadians()
 
@@ -175,10 +181,10 @@ class RobotArm:
         self.newState = True
 
     def queueWaypoints(self, waypoints: list, speed: int):
-        self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
+        # self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
         for point in range(len(waypoints)):
             self.moveToPosRadians(waypoints[point], speed)
-        self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
+        # self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
 
     def chooseNextManager(self, clockPos):
         nextManager = (self.currentManager + 1) % 4
@@ -187,7 +193,7 @@ class RobotArm:
 
         self.currentManager = nextManager
 
-    # In radians
+    # Go home
     def moveOutOfWay(self, location: tuple):
         r, theta, z = location
         if z < self.MINIMUM_Z:

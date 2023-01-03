@@ -28,7 +28,7 @@ class BlockManager:
     def placeBlock(self, currentPos: tuple):
         if self.blockToPlace == len(self.blockPositions):
             return False
-        path = self.pathToTarget(currentPos, self.blockPositions[self.blockToPlace])
+        path = self.pathToTarget(currentPos, self.blockPositions[self.blockToPlace], self._BLOCK_SIZE)
         self.blockToPlace += 1
         return path
 
@@ -89,7 +89,7 @@ class BlockManager:
 
     def isReady(self, clockPos: float) -> bool:
 
-        minPos = self.feederPos[1] + 0.18
+        minPos = self.feederPos[1] + 0.6
         maxPos = self.buildPos[1] - 0.18
         if minPos < clockPos < maxPos:
             self.resetStack()

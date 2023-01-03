@@ -6,8 +6,7 @@
 #      *                                                                *
 #      ******************************************************************
 
-from DPi_ClockNBlock_Python.DPiClockNBlock import DPiClockNBlock
-from dpeaDPi.DPiSolenoid import DPiSolenoid
+from DPiClockNBlock import DPiClockNBlock
 from time import sleep
 
 # More accurate timer
@@ -21,7 +20,6 @@ class BlockFeeder:
 
     # Constants
     dpiClockNBlock = DPiClockNBlock()
-    dpiSolenoid = DPiSolenoid()
 
     _SOLENOID_UP = 0
     _SOLENOID_SIDE = 0
@@ -41,10 +39,11 @@ class BlockFeeder:
     _STATE_FEED2 =           3
     _STATE_IDLE =            4
 
-    def __init__(self, solenoid_side: int, solenoid_up: int, board_number: int):
+    def __init__(self, solenoid_side: int, solenoid_up: int, board_number: int, solenoidBoard):
         self._SOLENOID_SIDE = solenoid_side
         self._SOLENOID_UP = solenoid_up
         self.BOARD_NUMBER = board_number
+        self.dpiSolenoid = solenoidBoard
 
     def setup(self) -> bool:
 
@@ -55,17 +54,13 @@ class BlockFeeder:
             print("Communication with DPiClockNBlock board failed")
             return False
 
-        if not self.dpiSolenoid.initialize():
-            print("Communication with DPiSolenoid board failed")
-            return False
-
         self.initializeBlockFeeders()
 
         return True
 
     # To be run while everything is homing
     def initializeBlockFeeders(self) -> bool:
-        print("initalizing")
+        # print("initalizing")
         # Check if block already at the top position
         if self.dpiClockNBlock.readExit():
             return True
@@ -104,19 +99,14 @@ class BlockFeeder:
         elif self.state == self._STATE_BLOCK_REMOVED:
 
             # Retract the up piston
-            print(f"Newstate: {self.newState}")
             if self.newState:
                 self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
                 self.start = timer()
-                print(f"start: {self.start}")
-                print("Started timer")
                 self.newState = False
                 return
             elif timer() - self.start > 2:
                 self.setState(self._STATE_FEED2)
                 return
-            else:
-                print(f"start - timer: {self.start - timer()}")
 
         elif self.state == self._STATE_FEED1:
 
@@ -134,10 +124,8 @@ class BlockFeeder:
             # Check if we have a block at Feed 1, if not set state to idle
             if not self.dpiClockNBlock.readFeed_1():
                 self.setState(self._STATE_IDLE)
-                print(f"going to idle, newState: {self.newState}")
                 return
             # Push the block over
-            print(f"newState: {self.newState}")
             if self.newState:
                 self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, True)
                 self.newState = False
@@ -154,8 +142,6 @@ class BlockFeeder:
                 self.setState(self._STATE_FEED2)
                 return
             return
-        else:
-            print("nothing happening")
 
     def isBLockAvailable(self) -> bool:
         return self.state == self._STATE_READY

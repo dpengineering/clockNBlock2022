@@ -23,14 +23,15 @@ blockFeeders = robot.blockFeeders
 
 NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
 
+
 def setup():
 
     # Call setup functions for each component
     robot.setup()
-    clock.setup()
 
     for i in range(NUM_BLOCK_FEEDERS):
         blockFeeders[i].setup()
+    clock.setup()
 
 
 def main():
@@ -42,7 +43,6 @@ def main():
 
         for i in range(NUM_BLOCK_FEEDERS):
             blockFeeders[i].process()
-        blockFeeders[0].process()
         clock.process()
         robot.process(clock.getPositionRadians(1))  # Minute hand
         sleep(0.01)
