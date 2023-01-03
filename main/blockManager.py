@@ -17,20 +17,21 @@ class BlockManager:
     def __init__(self,  blockFeeder: BlockFeeder, feederPos: tuple, buildPos: tuple, stackSize = 5):
         self.feederPos = feederPos
         self.buildPos = buildPos
-        self.MINIMUM_MOVING_HEIGHT = feederPos[2] + self._BLOCK_SIZE * 6
+        self.MINIMUM_MOVING_HEIGHT = 100  # feederPos[2] + self._BLOCK_SIZE * 6
         self.blockFeeder = blockFeeder
         self.blockPositions = self.generateBlockPlacements(buildPos, stackSize)
         self.blockToPlace = 0
 
     def getNextBlock(self, currentPos: tuple):
-        return self.pathToTarget(currentPos, self.feederPos, self._ROBOT_HEAD_WIDTH / 2)
+        list, target = self.pathToTarget(currentPos, self.feederPos, self._ROBOT_HEAD_WIDTH / 2)
+        return list, target
 
     def placeBlock(self, currentPos: tuple):
         if self.blockToPlace == len(self.blockPositions):
             return False
-        path = self.pathToTarget(currentPos, self.blockPositions[self.blockToPlace], self._BLOCK_SIZE)
+        path, target = self.pathToTarget(currentPos, self.blockPositions[self.blockToPlace], self._BLOCK_SIZE)
         self.blockToPlace += 1
-        return path
+        return path, target
 
     # Enter:
     #   Current position of robot, (r, theta, z)
@@ -53,14 +54,18 @@ class BlockManager:
         currentPos = waypoint
 
         # Go down to right next to point
-        waypoint = currentPos[0], currentPos[1], targetZ
+        waypoint = currentPos[0], currentPos[1], targetZ + 10
         movingPath.append(waypoint)
         currentPos = waypoint
 
         # slide over to point
+        waypoint = targetR, targetTheta, currentPos[2]
+        movingPath.append(waypoint)
+
+
         movingPath.append(target)
 
-        return movingPath
+        return movingPath, target
 
         # Generates the list of positions that we want to place blocks at
         # Enter base location as a tuple of (r, theta, z)
@@ -90,7 +95,7 @@ class BlockManager:
     def isReady(self, clockPos: float) -> bool:
 
         minPos = self.feederPos[1] + 0.6
-        maxPos = self.buildPos[1] - 0.18
+        maxPos = self.buildPos[1] - 0.6
         if minPos < clockPos < maxPos:
             self.resetStack()
             return False

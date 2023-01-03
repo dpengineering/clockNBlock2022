@@ -27,10 +27,13 @@ NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
 def setup():
 
     # Call setup functions for each component
+    print("setup robo")
     robot.setup()
 
     for i in range(NUM_BLOCK_FEEDERS):
+        print(f"setup blockfeeder {i}")
         blockFeeders[i].setup()
+    print("setup clock")
     clock.setup()
 
 

@@ -13,6 +13,9 @@ from blockFeeder import BlockFeeder
 
 import math
 
+# More accurate timer
+from timeit import default_timer as timer
+
 
 class RobotArm:
 
@@ -57,7 +60,7 @@ class RobotArm:
 
     # For now, I have just put the locations as an array
     # eventually we would like to just grab this from the locations file
-    feederLocations = [(345, -0.906, -65), (342, -2.5, -65), (342.5, 2.196, -65), (340, 0.661, -65)]
+    feederLocations = [(345, -0.906, -63), (342, -2.5, -63), (343, 2.196, -63), (340, 0.661, -63)]
 
     buildLocations = [(422, -0.134, -42), (419, -1.696, -42), (426, 2.998, -42), (420, 1.437, -42)]
     stackSize = 5
@@ -66,6 +69,8 @@ class RobotArm:
         blockManagers.append(BlockManager(blockFeeders[i], feederLocations[i], buildLocations[i], stackSize))
 
     def __init__(self, magnetSolenoid: int, rotatingSolenoid: int):
+        self.target = None
+        self.start = None
         self.MAGNET_SOLENOID = magnetSolenoid
         self.ROTATING_SOLENOID = rotatingSolenoid
         self.rotationPosition = True
@@ -92,42 +97,47 @@ class RobotArm:
             return False
 
         self.setState(self._STATE_GET_BLOCK)
+        self.dpiSolenoid.switchDriverOnOrOff(self.ROTATING_SOLENOID, self.rotationPosition)
+
 
         return True
 
     def process(self, clockPos: float):
 
-        test = self.dpiRobot.getRobotStatus()
-
         currentPos = self.getPositionRadians()
-
+        print(currentPos)
+        print(f"Clock: {clockPos}, Robot theta: {currentPos[1]}")
+        print(self.state, self.newState)
         if self.state == self._STATE_GET_BLOCK:
             if self.newState:
                 self.chooseNextManager(clockPos)
-                positionList = self.blockManagers[self.currentManager].getNextBlock(currentPos)
+                positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
                 self.queueWaypoints(positionList, self.speed)
                 self.newState = False
                 return
             # If our current position is at the block feeder, we should grab this block:
-            elif currentPos == self.blockManagers[self.currentManager].feederPos:
+            elif self.isAtLocation(self.target):
                 self.setState(self._STATE_PICKUP_BLOCK)
                 return
 
         elif self.state == self._STATE_PICKUP_BLOCK:
             if self.newState:
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, True)
-                self.moveToPosRadians(self.moveOutOfWay(currentPos), self.speed)
+                self.start = timer()
                 self.newState = False
+                print("move up")
                 return
             # Wait for robot arm to get out of way
-            elif self.dpiRobot.getRobotStatus() == self.dpiRobot.STATE_STOPPED:
-                self.rotateBlock()
+            elif timer() - self.start > 1:
+                print("ROTATE")
+                self.moveToPosRadians(self.moveOutOfWay(currentPos), self.speed)
                 self.setState(self._STATE_PLACE_BLOCK)
                 return
 
         elif self.state == self._STATE_PLACE_BLOCK:
             if self.newState:
-                positionList = self.blockManagers[self.currentManager].placeBlock(currentPos)
+                self.rotateBlock()
+                positionList, self.target = self.blockManagers[self.currentManager].placeBlock(currentPos)
                 # Make sure stack isn't full, if it is just drop the block
                 if type(positionList) == bool and not positionList:
                     self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
@@ -137,7 +147,7 @@ class RobotArm:
                 return
 
             # Check if we are stopped, then drop the block
-            elif self.dpiRobot.getRobotStatus() == self.dpiRobot.STATE_STOPPED:
+            elif self.isAtLocation(self.target):
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
                 self.setState(self._STATE_GET_BLOCK)
                 return
@@ -181,10 +191,10 @@ class RobotArm:
         self.newState = True
 
     def queueWaypoints(self, waypoints: list, speed: int):
-        # self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
+        self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
         for point in range(len(waypoints)):
             self.moveToPosRadians(waypoints[point], speed)
-        # self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
+        self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
 
     def chooseNextManager(self, clockPos):
         nextManager = (self.currentManager + 1) % 4
@@ -195,14 +205,19 @@ class RobotArm:
 
     # Go home
     def moveOutOfWay(self, location: tuple):
-        r, theta, z = location
-        if z < self.MINIMUM_Z:
-            return location[0], location[1], self.MINIMUM_Z
-        else:
-            return location
+        return location[0], location[1], self.MINIMUM_Z
+
 
     def rotateBlock(self):
+        print("rotate")
         self.rotationPosition = not self.rotationPosition
         self.dpiSolenoid.switchDriverOnOrOff(self.ROTATING_SOLENOID, self.rotationPosition)
+
+    def isAtLocation(self, target: tuple):
+        pos = self.getPositionRadians()
+        r, theta, z = pos
+        pos = round(r), round(theta, 3), round(z)
+
+        return pos == target
 
 

@@ -140,14 +140,14 @@ class Clock:
     def getPositionDegrees(self, hand: int) -> int:
 
         if hand == HOUR_HAND:
-            return round(360 / HOUR_HAND_STEPS_PER_REVOLUTION * self.getPositionSteps(HOUR_HAND))
+            return round(360 / HOUR_HAND_STEPS_PER_REVOLUTION * self.getPositionSteps(HOUR_HAND)) - 90
         else:
-            return round(360 / MINUTE_HAND_STEPS_PER_REVOLUTION * self.getPositionSteps(MINUTE_HAND))
+            return round(360 / MINUTE_HAND_STEPS_PER_REVOLUTION * self.getPositionSteps(MINUTE_HAND)) - 90
 
     # We will shift this by pi/4 rad to have it return on the same "0" as the robot
     def getPositionRadians(self, hand: int) -> float:
         degreesToRadians = math.pi / 180
-        pos = self.getPositionDegrees(hand) * degreesToRadians - math.pi / 4
+        pos = self.getPositionDegrees(hand) * degreesToRadians
         return pos
 
     def getPositionTime(self) -> str:
