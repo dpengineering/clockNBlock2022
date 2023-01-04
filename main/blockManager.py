@@ -139,20 +139,22 @@ class BlockManager:
 
     def isReady(self, clockPos: float) -> bool:
 
+        print(f"Feed: {self.feederPos[1]}, Build: {self.buildPos[1]}, Clock: {clockPos}")
+
         #shift range from 0-2pi cuz easier
-        feedPos = self.feederPos[1] + math.pi
-        buildPos = self.buildPos[1] + math.pi
-        clockPos = clockPos + math.pi
+        feedPos = (self.feederPos[1] + 2*math.pi) % 2*math.pi
+        buildPos = (self.buildPos[1] + 2*math.pi) % 2*math.pi
+        clockPos = (clockPos + 2*math.pi) % 2*math.pi
 
         #find angle between
         distFeed = abs(feedPos - clockPos)
         distBuild = abs(buildPos - clockPos)
 
         #if its the bigger angle change to the smaller one
-        if distFeed < math.pi:
+        if distFeed > math.pi:
             distFeed = 2*math.pi - distFeed
 
-        if distBuild < math.pi:
+        if distBuild > math.pi:
             distBuild = 2*math.pi - distBuild
 
         if distFeed < 0.6 or distBuild < 0.6:
@@ -174,12 +176,23 @@ class BlockManager:
 
     def hourBlocking(self, hourPos):
 
-        feedPos = abs(self.feederPos[1])
-        buildPos = abs(self.buildPos[1])
-        hourPos = abs(hourPos)
+        #shift range from 0-2pi cuz easier
+        feedPos = (self.feederPos[1] + 2*math.pi) % 2*math.pi
+        buildPos = (self.buildPos[1] + 2*math.pi) % 2*math.pi
+        hourPos = (hourPos + 2*math.pi) % 2*math.pi
 
-        if abs(hourPos - feedPos) < 0.6 or abs(hourPos - buildPos) < 0.6:
-            self.resetStack()
+        #find angle between
+        distFeed = abs(feedPos - hourPos)
+        distBuild = abs(buildPos - hourPos)
+
+        #if its the bigger angle change to the smaller one
+        if distFeed > math.pi:
+            distFeed = 2*math.pi - distFeed
+
+        if distBuild > math.pi:
+            distBuild = 2*math.pi - distBuild
+
+        if distFeed < 0.6 or distBuild < 0.6:
             return True
 
         return False
