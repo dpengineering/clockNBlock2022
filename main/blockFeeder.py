@@ -6,7 +6,11 @@
 #      *                                                                *
 #      ******************************************************************
 
-from DPiClockNBlock import DPiClockNBlock
+# To import the DPiClockNBlock library
+import sys
+sys.path.insert(0, "..")
+
+from DPi_ClockNBlock_Python.DPiClockNBlock import DPiClockNBlock
 from time import sleep
 
 # More accurate timer
@@ -20,10 +24,6 @@ class BlockFeeder:
 
     # Constants
     dpiClockNBlock = DPiClockNBlock()
-
-    _SOLENOID_UP = 0
-    _SOLENOID_SIDE = 0
-    BOARD_NUMBER = 0
 
     # For state function
     state = 0
@@ -60,7 +60,7 @@ class BlockFeeder:
 
     # To be run while everything is homing
     def initializeBlockFeeders(self) -> bool:
-        # print("initalizing")
+        print("initializing")
         # Check if block already at the top position
         if self.dpiClockNBlock.readExit():
             return True
@@ -84,11 +84,11 @@ class BlockFeeder:
         return False
 
     def process(self):
+
+        print(f"State: {self.state}, NewState: {self.newState}, Board: {self.BOARD_NUMBER}")
+
         # Check if arrow needs to be turned on
-        if self.dpiClockNBlock.readEntrance():
-            self.toggleArrow(False)
-        else:
-            self.toggleArrow(True)
+        self.dpiClockNBlock.arrowToggle(self.dpiClockNBlock.readEntrance())
 
         if self.state == self._STATE_READY:
             # Check if it is actually ready, if not switch state to block removed
@@ -149,13 +149,6 @@ class BlockFeeder:
     def setState(self, nextState: int):
         self.state = nextState
         self.newState = True
-
-    def toggleArrow(self, onOffValue: bool):
-
-        if onOffValue:
-            self.dpiClockNBlock.arrowOn()
-        else:
-            self.dpiClockNBlock.arrowOff()
 
     def isReady(self):
         if self._STATE_READY:

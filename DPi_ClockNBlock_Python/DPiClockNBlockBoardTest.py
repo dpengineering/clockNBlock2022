@@ -1,6 +1,6 @@
 # Crude test for DPi_ClockNBlock Board, just reads all sensors then turns light on and off
 
-from main.DPiClockNBlock import DPiClockNBlock
+from DPi_ClockNBlock_Python.DPiClockNBlock import DPiClockNBlock
 from time import sleep
 
 dpiClockNBlock = DPiClockNBlock()

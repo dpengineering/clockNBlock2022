@@ -37,16 +37,13 @@ MINUTE_HAND_MAX_SPEED = 20000
 class Clock:
 
     dpiStepper = DPiStepper()
-    stoppedFlg = False
-    # Multiplier for clock speed
-    multiplier = 1
 
     def __init__(self):
         pass
 
     # Initialize to 12:00 position
     def setup(self):
-
+        print("setup")
         self.dpiStepper.setBoardNumber(0)
 
         if not self.dpiStepper.initialize():
@@ -54,37 +51,41 @@ class Clock:
             return
 
         self.dpiStepper.enableMotors(True)
-
+        print("homing")
         self.home()
 
         # Move to current time
-        self.moveToTime(int(datetime.now().strftime("%H%M")))
+        time = datetime.now().strftime("%H:%M")
+        print(f"moving to current time which is {time}")
+        self.moveToTime(int(time))
 
     # There isn't much to do for the clock, just make it go
     def process(self):
-        if not self.stoppedFlg:
-            self.updatePosition()
-            # if hands aren't moving, move them a full rotation
-            if not self.isStepperMoving(HOUR_HAND):
-                self.moveHand(HOUR_HAND, HOUR_HAND_STEPS_PER_REVOLUTION)
+        print(f"Hour Position (max {HOUR_HAND_STEPS_PER_REVOLUTION}): {self.getPositionSteps(HOUR_HAND)}")
+        print(f"Minute Position (max {MINUTE_HAND_STEPS_PER_REVOLUTION}): {self.getPositionSteps(MINUTE_HAND)}")
+        self.updatePosition()
+        # if hands aren't moving, move them a full rotation
 
-            if not self.isStepperMoving(MINUTE_HAND):
-                self.moveHand(MINUTE_HAND, MINUTE_HAND_STEPS_PER_REVOLUTION)
-        else:
-            return
+        if not self.isStepperMoving(HOUR_HAND):
+            print("moving hour hand")
+            self.moveHand(HOUR_HAND, HOUR_HAND_STEPS_PER_REVOLUTION)
+
+        if not self.isStepperMoving(MINUTE_HAND):
+            print("moving minute hand")
+            self.moveHand(MINUTE_HAND, MINUTE_HAND_STEPS_PER_REVOLUTION)
 
     # Home clock hands
     def home(self):
 
         # Move to limit switches
-        # print("Home hour hand")
+        print("Home hour hand")
         self.dpiStepper.moveToHomeInSteps(HOUR_HAND, 1, HOUR_HAND_MAX_SPEED, HOUR_HAND_STEPS_PER_REVOLUTION)
-        # print("Home minute hand")
+        print("Home minute hand")
         self.dpiStepper.moveToHomeInSteps(MINUTE_HAND, 1, MINUTE_HAND_MAX_SPEED, MINUTE_HAND_STEPS_PER_REVOLUTION)
 
         self.dpiStepper.waitUntilMotorStops(HOUR_HAND)
         self.dpiStepper.waitUntilMotorStops(MINUTE_HAND)
-        # print("done homing")
+        print("done homing")
 
         # Set Speed and Acceleration to max
 
@@ -95,7 +96,7 @@ class Clock:
         self.dpiStepper.setAccelerationInStepsPerSecondPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
 
         # Go to 12:00 Position
-        # print("moving to 12")
+        print("moving to 12")
         self.dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, 110400, False)
         self.dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, 4320, False)
 
@@ -104,13 +105,9 @@ class Clock:
 
         self.dpiStepper.setCurrentPositionInSteps(HOUR_HAND, 0)
         self.dpiStepper.setCurrentPositionInSteps(MINUTE_HAND, 0)
-        # print("done")
+        print("done")
 
     def moveToTime(self, time):
-
-        """ Move to specified time
-        @param time: The time to move to
-        """
 
         if type(time) is str:
             time = time.replace(':', '')
@@ -148,7 +145,7 @@ class Clock:
     def getPositionRadians(self, hand: int) -> float:
         degreesToRadians = math.pi / 180
         pos = self.getPositionDegrees(hand) * degreesToRadians - math.pi / 4
-        return pos
+        return round(pos, 3)
 
     def getPositionTime(self) -> str:
 

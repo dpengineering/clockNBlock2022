@@ -7,8 +7,11 @@
 #      ******************************************************************
 
 # This can really be optimized, but it is fine for our purposes at the moment.
+import sys
 
-from robotArm import RobotArm
+sys.path.insert(0, '..')
+
+from main.robotArm import RobotArm
 from dpeaDPi.DPiSolenoid import DPiSolenoid
 
 import sys
