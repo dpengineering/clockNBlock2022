@@ -89,8 +89,8 @@ class BlockManager:
 
     def isReady(self, clockPos: float) -> bool:
 
-        minPos = self.buildPos[1] - 0.6
-        maxPos = self.feederPos[1] + 0.6
+        minPos = self.buildPos[1] + 0.6
+        maxPos = self.feederPos[1] - 0.6
         if minPos < clockPos < maxPos:
             self.resetStack()
             return False
