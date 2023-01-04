@@ -129,14 +129,12 @@ class RobotArm:
                 return
             # Wait for robot arm to get out of way
             elif timer() - self.start > 1:
-                print("ROTATE")
                 self.moveToPosRadians(self.moveOutOfWay(currentPos), self.speed)
                 self.setState(self._STATE_PLACE_BLOCK)
                 return
 
         elif self.state == self._STATE_PLACE_BLOCK:
             if self.newState:
-                self.rotateBlock()
                 positionList, self.target = self.blockManagers[self.currentManager].placeBlock(currentPos)
                 # Make sure stack isn't full, if it is just drop the block
                 if type(positionList) == bool and not positionList:
@@ -148,6 +146,7 @@ class RobotArm:
 
             # Check if we are stopped, then drop the block
             elif self.isAtLocation(self.target):
+                self.rotateBlock()
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
                 self.setState(self._STATE_GET_BLOCK)
                 return
@@ -199,6 +198,7 @@ class RobotArm:
     def chooseNextManager(self, clockPos):
         nextManager = (self.currentManager + 1) % 4
         while not self.blockManagers[nextManager].isReady(clockPos):
+            print("new manager")
             nextManager = nextManager + 1 % 4
 
         self.currentManager = nextManager
