@@ -5,11 +5,12 @@
 #      *      Arnav Wadhwa, Brian Vesper           12/03/2022           *
 #      *                                                                *
 #      ******************************************************************
-
+import sys
+sys.path.insert(0, '..')
 from dpeaDPi.DPiRobot import DPiRobot
 from dpeaDPi.DPiSolenoid import DPiSolenoid
-from blockManager import BlockManager
-from blockFeeder import BlockFeeder
+from main.blockManager import BlockManager
+from main.blockFeeder import BlockFeeder
 
 import math
 
@@ -27,7 +28,7 @@ class RobotArm:
     ROTATING_SOLENOID = 0
 
     state = 0
-    newState = False
+    newState = True
 
     currentManager = -1
 
@@ -37,7 +38,8 @@ class RobotArm:
     _STATE_PLACE_BLOCK =  3
 
     MINIMUM_Z = 100
-    speed = 40
+    speed = 60
+
     # pin assignments show how the pistons are wired to the DPiSolenoid board
     #
     _BLOCK_FEEDER0__FIRST_PISTON__DRIVER_NUM = 6
@@ -70,7 +72,7 @@ class RobotArm:
         blockManagers.append(BlockManager(blockFeeders[i], feederLocations[i], buildLocations[i], stackSize))
 
     def __init__(self, magnetSolenoid: int, rotatingSolenoid: int):
-        self.target = None
+        self.target = -1, -1, -1
         self.start = None
         self.MAGNET_SOLENOID = magnetSolenoid
         self.ROTATING_SOLENOID = rotatingSolenoid
@@ -99,20 +101,19 @@ class RobotArm:
 
         self.setState(self._STATE_GET_BLOCK)
         self.dpiSolenoid.switchDriverOnOrOff(self.ROTATING_SOLENOID, self.rotationPosition)
-
-
+        print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
         return True
 
-    def process(self, clockPos: float):
+    def process(self, minutePos: float, hourPos: float):
 
         currentPos = self.getPositionRadians()
-        print(currentPos)
-        print(f"Clock: {clockPos}, Robot theta: {currentPos[1]}")
-        print(self.state, self.newState)
+        print(f'robot pos: {currentPos}')
+        print(f"Clock: {minutePos}, Robot theta: {currentPos[1]}")
+        print(f'Robot state: {self.state}, {self.newState}')
         if self.state == self._STATE_GET_BLOCK:
             if self.newState:
-                self.chooseNextManager(clockPos)
-                positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
+                self.chooseNextManager(minutePos)
+                positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos, hourPos)
                 self.queueWaypoints(positionList, self.speed)
                 self.newState = False
                 return
@@ -150,7 +151,7 @@ class RobotArm:
         elif self.state == self._STATE_PLACE_BLOCK:
             if self.newState:
                 print("moving to place block position")
-                positionList, self.target = self.blockManagers[self.currentManager].placeBlock(currentPos)
+                positionList, self.target = self.blockManagers[self.currentManager].placeBlock(currentPos, hourPos)
                 # Make sure stack isn't full, if it is just drop the block
                 if type(positionList) == bool and not positionList:
                     self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
@@ -224,8 +225,13 @@ class RobotArm:
 
     def isAtLocation(self, target: tuple):
         pos = self.getPositionRadians()
-        r, theta, z = pos
-        pos = round(r), round(theta, 3), round(z)
+        if abs(pos[0] - target[0]) > 1:
+            return False
+        elif abs(pos[1] - target[1]) > 0.05:  # Arbitrary value should probably change
+            return False
+        elif abs(pos[2] - target[2]) > 1:
+            return False
 
-        return pos == target
+        return True
+
 

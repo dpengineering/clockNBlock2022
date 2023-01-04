@@ -22,8 +22,7 @@ BLOCK_SIZE = 31  # block side length in mm
 
 class BlockFeeder:
 
-    # Constants
-    dpiClockNBlock = DPiClockNBlock()
+
 
     # For state function
     state = 0
@@ -44,6 +43,8 @@ class BlockFeeder:
         self._SOLENOID_UP = solenoid_up
         self.BOARD_NUMBER = board_number
         self.dpiSolenoid = solenoidBoard
+        # Constants
+        self.dpiClockNBlock = DPiClockNBlock()
 
     def setup(self) -> bool:
 
@@ -85,10 +86,10 @@ class BlockFeeder:
 
     def process(self):
 
-        print(f"State: {self.state}, NewState: {self.newState}, Board: {self.BOARD_NUMBER}")
+        print(f"Feeder State: {self.state}, NewState: {self.newState}, Board: {self.BOARD_NUMBER}")
 
         # Check if arrow needs to be turned on
-        self.dpiClockNBlock.arrowToggle(self.dpiClockNBlock.readEntrance())
+        self.dpiClockNBlock.arrowToggle(not self.dpiClockNBlock.readEntrance())
 
         if self.state == self._STATE_READY:
             # Check if it is actually ready, if not switch state to block removed
@@ -104,7 +105,7 @@ class BlockFeeder:
                 self.start = timer()
                 self.newState = False
                 return
-            elif timer() - self.start > 2:
+            elif timer() - self.start > 2.5:
                 self.setState(self._STATE_FEED2)
                 return
 

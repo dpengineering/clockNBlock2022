@@ -8,7 +8,7 @@
 import math
 from dpeaDPi.DPiStepper import DPiStepper
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Motor Constants
 
@@ -53,11 +53,6 @@ class Clock:
         self.dpiStepper.enableMotors(True)
         print("homing")
         self.home()
-
-        # Move to current time
-        time = datetime.now().strftime("%H:%M")
-        print(f"moving to current time which is {time}")
-        self.moveToTime(int(time))
 
     # There isn't much to do for the clock, just make it go
     def process(self):
@@ -144,8 +139,8 @@ class Clock:
     # We will shift this by pi/4 rad to have it return on the same "0" as the robot
     def getPositionRadians(self, hand: int) -> float:
         degreesToRadians = math.pi / 180
-        pos = self.getPositionDegrees(hand) * degreesToRadians - math.pi / 4
-        return round(pos, 3)
+        pos = self.getPositionDegrees(hand) * degreesToRadians - math.pi / 2
+        return round(-pos, 3)
 
     def getPositionTime(self) -> str:
 
@@ -155,6 +150,8 @@ class Clock:
 
         # Same logic as above but there's 5 degrees per minute
         minutes = int(self.getPositionDegrees(MINUTE_HAND) / 5)
+        if hours == 0:
+            hours = 12
 
         return f'{hours}:{minutes}'
 
@@ -168,8 +165,8 @@ class Clock:
             speed = MINUTE_HAND_CLOCK_SPEED
         else:
             return False
-        self.dpiStepper.setSpeedInStepsPerSecond(hand, speed * self.multiplier)
-        self.dpiStepper.setAccelerationInStepsPerSecondPerSecond(hand, speed * self.multiplier)
+        self.dpiStepper.setSpeedInStepsPerSecond(hand, speed)
+        self.dpiStepper.setAccelerationInStepsPerSecondPerSecond(hand, speed)
 
         self.dpiStepper.moveToRelativePositionInSteps(hand, steps, False)
 

@@ -6,8 +6,10 @@ import sys
 sys.path.insert(0, "..")
 
 from main.clockHands import Clock
+from main.robotArm import RobotArm
 
 clock = Clock()
+robot = RobotArm(11, 10)
 
 # Motor Constants
 
@@ -39,43 +41,57 @@ def setup():
 
 # Testing different points as well as the accuracy of getDegrees, radians, and steps
 def main():
-
+    setup()
     clock.dpiStepper.setSpeedInStepsPerSecond(HOUR_HAND, HOUR_HAND_MAX_SPEED)
     clock.dpiStepper.setAccelerationInStepsPerSecondPerSecond(HOUR_HAND, HOUR_HAND_MAX_SPEED)
 
     clock.dpiStepper.setSpeedInStepsPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
     clock.dpiStepper.setAccelerationInStepsPerSecondPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
 
-    print("go to 12:00")
-    clock.moveToTime(1200)
-
+    print("go to 12:05")
+    clock.moveToTime(1205)
+    clock.dpiStepper.waitUntilMotorStops(MINUTE_HAND)
+    clock.dpiStepper.waitUntilMotorStops(HOUR_HAND)
     # Print radian position and time
     print(f'Hour radians: {clock.getPositionRadians(HOUR_HAND)}')
     print(f'Minute radians: {clock.getPositionRadians(MINUTE_HAND)}')
     print(f'Should be {math.pi / 2} for both')
     print(f'Time: {clock.getPositionTime()}')
 
-    print("go to 3:15")
-    clock.moveToTime(315)
+    print(robot.blockManagers[2].isReady(clock.getPositionRadians(1)))
 
-    # Print radian position and time
-    print(f'Hour radians: {clock.getPositionRadians(HOUR_HAND)}')
-    print(f'Minute radians: {clock.getPositionRadians(MINUTE_HAND)}')
-    print(f'should be 0 for both')
-    print(f'Time: {clock.getPositionTime()}')
-
-    print("Move 3 rotations")
-    clock.dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, HOUR_HAND_STEPS_PER_REVOLUTION * 3, False)
-    clock.dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, MINUTE_HAND_STEPS_PER_REVOLUTION * 3, False)
-    clock.dpiStepper.waitUntilMotorStops(MINUTE_HAND)
-
-    clock.updatePosition()
-
-    print(f'Hour Steps: {clock.getPositionSteps(HOUR_HAND)}, Radians: {clock.getPositionRadians(HOUR_HAND)}')
-    print(f'Minute Steps: {clock.getPositionSteps(MINUTE_HAND)}, Radians: {clock.getPositionRadians(MINUTE_HAND)}')
-    print(f'should be 0 rad for both')
-    print(f'Time: {clock.getPositionTime()}')
+    # print("go to 3:15")
+    # clock.moveToTime(315)
+    # clock.dpiStepper.waitUntilMotorStops(MINUTE_HAND)
+    # clock.dpiStepper.waitUntilMotorStops(HOUR_HAND)
+    # # Print radian position and time
+    # print(f'Hour radians: {clock.getPositionRadians(HOUR_HAND)}')
+    # print(f'Minute radians: {clock.getPositionRadians(MINUTE_HAND)}')
+    # print(f'should be 0 for both')
+    # print(f'Time: {clock.getPositionTime()}')
+    #
+    # print("go to 6:30")
+    # clock.moveToTime(630)
+    # clock.dpiStepper.waitUntilMotorStops(MINUTE_HAND)
+    # clock.dpiStepper.waitUntilMotorStops(HOUR_HAND)
+    # # Print radian position and time
+    # print(f'Hour radians: {clock.getPositionRadians(HOUR_HAND)}')
+    # print(f'Minute radians: {clock.getPositionRadians(MINUTE_HAND)}')
+    # print(f'should be {3*math.pi / 2} for both')
+    # print(f'Time: {clock.getPositionTime()}')
+    #
+    # print("Move 3 rotations")
+    # clock.dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, HOUR_HAND_STEPS_PER_REVOLUTION * 3, False)
+    # clock.dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, MINUTE_HAND_STEPS_PER_REVOLUTION * 3, False)
+    # clock.dpiStepper.waitUntilMotorStops(MINUTE_HAND)
+    #
+    # clock.updatePosition()
+    #
+    # print(f'Hour Steps: {clock.getPositionSteps(HOUR_HAND)}, Radians: {clock.getPositionRadians(HOUR_HAND)}')
+    # print(f'Minute Steps: {clock.getPositionSteps(MINUTE_HAND)}, Radians: {clock.getPositionRadians(MINUTE_HAND)}')
+    # print(f'should be 0 rad for both')
+    # print(f'Time: {clock.getPositionTime()}')
 
     # Honestly I think that is all that we need to check
-
-
+if __name__ == "__main__":
+    main()
