@@ -27,16 +27,16 @@ NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
 def setup():
 
     # Call setup functions for each component
-    print("setup robo")
+    # print("setup robo")
     robot.setup()
     clock.setup()
     for i in range(NUM_BLOCK_FEEDERS):
-        print(f"setup blockfeeder {i}")
+        # print(f"setup blockfeeder {i}")
         blockFeeders[i].setup()
 
     # Move to current time
     currentTime = datetime.now().strftime("%H:%M")
-    print(f"moving to current time which is {currentTime}")
+    # print(f"moving to current time which is {currentTime}")
     time = currentTime.replace(':', '')
     time = int(time)
     clock.moveToTime(time)
@@ -56,7 +56,7 @@ def main():
 
     setup()
 
-    print("moving on to loop")
+    # print("moving on to loop")
     while True:
 
         for i in range(NUM_BLOCK_FEEDERS):

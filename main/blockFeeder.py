@@ -65,7 +65,7 @@ class BlockFeeder:
         self.dpiSolenoid.setBoardNumber(0)
 
         if not self.dpiClockNBlock.initialize():
-            print("Communication with DPiClockNBlock board failed")
+            # print("Communication with DPiClockNBlock board failed")
             return False
 
         self.initializeBlockFeeders()
@@ -78,7 +78,7 @@ class BlockFeeder:
         Returns:
             bool: True if block makes it to the top, otherwise False
         """
-        print("initializing")
+        # print("initializing")
         # Check if block already at the top position
         if self.dpiClockNBlock.readExit():
             return True
@@ -124,7 +124,7 @@ class BlockFeeder:
         """
         State machine for the blockFeeders
         """
-        print(f"Feeder State: {self.state}, NewState: {self.newState}, Board: {self.BOARD_NUMBER}")
+        # print(f"Feeder State: {self.state}, NewState: {self.newState}, Board: {self.BOARD_NUMBER}")
 
         # Update arrow (on if the feeder isn't full, otherwise off)
         self.dpiClockNBlock.arrowToggle(not self.dpiClockNBlock.readEntrance())

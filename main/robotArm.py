@@ -34,7 +34,7 @@ class RobotArm:
     state = 0
     newState = True
 
-    currentManager = -1
+    currentManager = 0
 
     _STATE_GET_BLOCK =    0
     _STATE_PICKUP_BLOCK = 1
@@ -62,7 +62,8 @@ class RobotArm:
     blockFeeder2 = BlockFeeder(_BLOCK_FEEDER2__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER2__SECOND_PISTON__DRIVER_NUM, 2, dpiSolenoid)
     blockFeeder3 = BlockFeeder(_BLOCK_FEEDER3__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER3__SECOND_PISTON__DRIVER_NUM, 3, dpiSolenoid)
 
-    blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2, blockFeeder3]
+    # blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2, blockFeeder3]
+    blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2] # Removed feeder 3 until the structure is rotated
 
     NUM_BLOCK_FEEDERS = len(blockFeeders)
 
@@ -94,7 +95,8 @@ class RobotArm:
         self.start = None
         self.MAGNET_SOLENOID = magnetSolenoid
         self.ROTATING_SOLENOID = rotatingSolenoid
-        self.rotationPosition = True
+        self.rotationPosition = False
+
 
     def setup(self) -> bool:
 
@@ -110,22 +112,22 @@ class RobotArm:
 
         # initializes robot
         if not self.dpiRobot.initialize():
-            print("Communication with the DPiRobot board failed.")
+            # print("Communication with the DPiRobot board failed.")
             return False
 
         # initializes solenoid board
         if not self.dpiSolenoid.initialize():
-            print("Communication with the DPiSolenoid board failed.")
+            # print("Communication with the DPiSolenoid board failed.")
             return False
 
         # Homes robot
         if not self.dpiRobot.homeRobot(True):
-            print("Homing failed.")
+            # print("Homing failed.")
             return False
 
         # Sets first state
         self.setState(self._STATE_GET_BLOCK)
-        print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
+        # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
         return True
 
     def process(self, minutePos: float, hourPos: float):
@@ -145,9 +147,9 @@ class RobotArm:
         """
         # Setup for state machine
         currentPos = self.getPositionRadians()
-        print(f'robot pos: {currentPos}')
-        print(f"Clock: {minutePos}, Robot theta: {currentPos[1]}")
-        print(f'Robot state: {self.state}, {self.newState}')
+        # print(f'robot pos: {currentPos}')
+        # print(f"Clock: {minutePos}, Robot theta: {currentPos[1]}")
+        # print(f'Robot state: {self.state}, {self.newState}')
 
         # Gets a block by grabbing a list of waypoints from the block manager then going to the waypoints
         # Waits for the movement to finish
@@ -157,7 +159,7 @@ class RobotArm:
                 if not self.chooseNextManager(minutePos):
                     self.setState(self._STATE_WAITING)
                     return
-                positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos, hourPos)
+                positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
                 self.queueWaypoints(positionList, self.speed)
                 self.newState = False
                 return
@@ -174,7 +176,7 @@ class RobotArm:
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, True)
                 self.start = timer()
                 self.newState = False
-                print("move up")
+                # print("move up")
                 return
 
             # Wait for robot arm to have picked up the block, then move robot arm up so we can rotate it
@@ -188,14 +190,14 @@ class RobotArm:
         # Rotates block and changes state to place the block
         elif self.state == self._STATE_MOVE_UP:
             if self.newState:
-                print("moving up")
+                # print("moving up")
                 self.target = currentPos[0], currentPos[1], 100
                 self.moveToPosRadians(self.target, self.speed)
                 self.newState = False
                 return
 
             elif self.isAtLocation(self.target):
-                print("rotating solenoid")
+                # print("rotating solenoid")
                 self.rotateBlock()
                 self.setState(self._STATE_PLACE_BLOCK)
                 return
@@ -207,7 +209,7 @@ class RobotArm:
 
             if self.newState:
 
-                print("moving to place block position")
+                # print("moving to place block position")
                 positionList, self.target = self.blockManagers[self.currentManager].placeBlock(currentPos, hourPos)
 
                 # Make sure stack isn't full, if it is just drop the block
@@ -221,7 +223,7 @@ class RobotArm:
             # Check if we are at the location, drop the block
             elif self.isAtLocation(self.target):
 
-                print("dropping block")
+                # print("dropping block")
 
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
                 self.setState(self._STATE_GET_BLOCK)
@@ -237,6 +239,7 @@ class RobotArm:
         #   This is okay because we will just skip one free feeder
         elif self.state == self._STATE_WAITING:
             if self.newState:
+                # print("homing Robot")
                 self.dpiRobot.homeRobot(True)
                 self.newState = False
                 return
@@ -354,7 +357,6 @@ class RobotArm:
             self.moveToPosRadians(waypoints[point], speed)
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
 
-
     def chooseNextManager(self, minutePos: float):
         """Helper function to choose the next blockManager the robot goes to
 
@@ -364,16 +366,15 @@ class RobotArm:
         Returns:
             bool: True if there is an available manager, otherwise False
         """
-        # Chooses the next manager to go to
-        nextManager = (self.currentManager + 1) % 4
+        nextManager = self.currentManager
         # Checks if the manager is actually ready, if not increments manager
         for i in range(self.NUM_BLOCK_FEEDERS):
+            nextManager = (nextManager + 1) % self.NUM_BLOCK_FEEDERS
             if self.blockManagers[nextManager].isReady(minutePos):
-                nextManager = (nextManager + 1) % 4
                 # Sets the current manager to the next available one
                 self.currentManager = nextManager
                 return True
-
+        # print("No next manager")
         return False
 
     # This function is necessary because we always have to set the rotation to the value that it is not
@@ -382,7 +383,7 @@ class RobotArm:
 
         """Helper function to rotate block"""
 
-        print("rotate")
+        # print("rotate")
         self.rotationPosition = not self.rotationPosition
         self.dpiSolenoid.switchDriverOnOrOff(self.ROTATING_SOLENOID, self.rotationPosition)
 
@@ -397,6 +398,7 @@ class RobotArm:
 
         """
         r, theta, z = self.getPositionRadians()
+        # print(f'Robot r, target r: {r}, {target[0]}, theta, tTtheta: {theta}, {target[1]}, Z, tZ: {z}, {target[2]}')
         if abs(r - target[0]) > 1:
             return False
         elif abs(theta - target[1]) > 0.05:  # Arbitrary value should probably change

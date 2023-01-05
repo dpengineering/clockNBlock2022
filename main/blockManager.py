@@ -51,7 +51,8 @@ class BlockManager:
             list: List of waypoints (tuple) to move the robot to
             tuple: Final position to move, used to check completion of robot's state
         """
-        waypointList, target = self.pathToTargetSide(currentPos, self.feederPos, self.radianOffset)
+        # The head is fairly large so we need a larger radian offset.
+        waypointList, target = self.pathToTargetSide(currentPos, self.feederPos, self.radianOffset + 0.2)
 
         return waypointList, target
 
@@ -70,7 +71,7 @@ class BlockManager:
         if self.blockToPlace == len(self.blockPositions):
             return False
         if self.hourBlocking(hourPos):
-            print('going Pathside')
+            # print('going Pathside')
             waypointList, target = self.pathToTargetSide(currentPos, self.blockPositions[self.blockToPlace], self.radianOffset)
         else:
             waypointList, target = self.pathToTarget(currentPos, self.blockPositions[self.blockToPlace], self._BLOCK_SIZE)
@@ -189,7 +190,7 @@ class BlockManager:
                 placements.append(pos)
 
             # Find first block on next row:
-            r, theta, z = initialPos[0] - self._BLOCK_SIZE / 2, initialPos[1], initialPos[2] + self._BLOCK_SIZE
+            r, theta, z = initialPos[0] - self._BLOCK_SIZE / 2, initialPos[1], initialPos[2] + self._BLOCK_SIZE + 2
             initialPos = (r, theta, z)
 
         return placements
@@ -204,7 +205,7 @@ class BlockManager:
         Returns:
             bool: True if currentFeeder is ready, False otherwise
         """
-        print(f"Feed: {self.feederPos[1]}, Build: {self.buildPos[1]}, Clock: {minutePos}")
+        # print(f"Feed: {self.feederPos[1]}, Build: {self.buildPos[1]}, Clock: {minutePos}")
 
         # Shift range from 0 to 2pi because it makes the math easier
         feedPos = (self.feederPos[1] + 2*math.pi) % (2*math.pi)
@@ -222,7 +223,7 @@ class BlockManager:
         if distBuild > math.pi:
             distBuild = 2*math.pi - distBuild
 
-        print(f"distFeed: {distFeed}, distBuild: {distBuild}")
+        # print(f"distFeed: {distFeed}, distBuild: {distBuild}")
 
         # Checks if the robot arm is too close to each build site
         if distFeed < 0.5 or distBuild < 0.5:
