@@ -61,7 +61,7 @@ def main():
 
         for i in range(NUM_BLOCK_FEEDERS):
             blockFeeders[i].process()
-        clock.process()
+        clock.process(3)
         robot.process(clock.getPositionRadians(1), clock.getPositionRadians(0))  # Minute, hour hand
         signal.signal(signal.SIGTERM, (lambda signum, frame: exit_handler()))
         signal.signal(signal.SIGINT, (lambda signum, frame: exit_handler()))
