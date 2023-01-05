@@ -7,8 +7,6 @@
 #      ******************************************************************
 
 from dpeaDPi.DPiRobot import DPiRobot
-from time import sleep
-import math
 
 # Constants:
 dpiRobot = DPiRobot()
