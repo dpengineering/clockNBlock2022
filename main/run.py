@@ -34,6 +34,8 @@ def setup():
         # print(f"setup blockfeeder {i}")
         blockFeeders[i].setup()
 
+    clock.dpiStepper.moveToRelativePositionInSteps(1, 326400, False)
+    clock.dpiStepper.waitUntilMotorStops(1)
     # Move to current time
     currentTime = datetime.now().strftime("%H:%M")
     # print(f"moving to current time which is {currentTime}")
@@ -61,8 +63,9 @@ def main():
 
         for i in range(NUM_BLOCK_FEEDERS):
             blockFeeders[i].process()
-        clock.process(3)
+        clock.process(5)
         robot.process(clock.getPositionRadians(1), clock.getPositionRadians(0))  # Minute, hour hand
+        # Runs exit handler when program stops(only works sometimes)
         signal.signal(signal.SIGTERM, (lambda signum, frame: exit_handler()))
         signal.signal(signal.SIGINT, (lambda signum, frame: exit_handler()))
 

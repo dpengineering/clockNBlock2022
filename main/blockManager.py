@@ -52,12 +52,12 @@ class BlockManager:
             tuple: Final position to move, used to check completion of robot's state
         """
         # The head is fairly large so we need a larger radian offset.
-        waypointList, target = self.pathToTargetSide(currentPos, self.feederPos, self.radianOffset + 0.2)
+        waypointList, target = self.pathToTargetSide(currentPos, self.feederPos, self.radianOffset + 0.1)
 
         return waypointList, target
 
     def placeBlock(self, currentPos: tuple, hourPos: float):
-        """Places the block
+        """Gives positions to place block
 
         Args:
             currentPos (tuple): Current position of robot arm in polar coordinates
@@ -79,12 +79,12 @@ class BlockManager:
         return waypointList, target
 
     def pathToTarget(self, currentPos: tuple, target: tuple, offset: float):
-        """Helper function to generate the path the robot takes to a target position (With straight offset)
+        """Helper function to generate the path the robot takes to a target position (With radius offset)
 
         Args:
             currentPos (tuple): Current position of robot arm in polar coordinates
             target (tuple): Final position the robot moves to
-            offset (float): How far away we want to move down
+            offset (float): How far away from final position we want to move down
                 This is so the robot does not crash into potentially stacked blocks
 
         Returns:
@@ -119,12 +119,12 @@ class BlockManager:
         return movingPath, target
 
     def pathToTargetSide(self, currentPos: tuple, target: tuple, offset: float):
-        """Helper function to generate the path the robot takes to a target position (offset to the side)
+        """Helper function to generate the path the robot takes to a target position (With radian offset)
 
         Args:
             currentPos (tuple): Current position of robot arm in polar coordinates
             target (tuple): Final position the robot moves to
-            offset (float): How far away we want to move down
+            offset (float): How far away from final position we want to move down
                 This is so the robot does not crash into potentially stacked blocks
 
         Returns:
@@ -185,7 +185,7 @@ class BlockManager:
         # Build our list:
         for layer in range(1, stackSize + 1):
             for block in range(stackSize - layer + 1):
-                pos = initialPos[0] - self._BLOCK_SIZE * block, initialPos[1], initialPos[2]
+                pos = initialPos[0] - (self._BLOCK_SIZE + 2) * block, initialPos[1], initialPos[2]
                 placements.append(pos)
 
             # Find first block on next row:
@@ -225,7 +225,7 @@ class BlockManager:
         # print(f"distFeed: {distFeed}, distBuild: {distBuild}")
 
         # Checks if the robot arm is too close to each build site
-        if distFeed < 0.5 or distBuild < 0.5:
+        if distFeed < 0.6 or distBuild < 0.6:
 
             self.resetStack()
             return False
@@ -270,7 +270,7 @@ class BlockManager:
             distBuild = 2*math.pi - distBuild
 
         # Checks if the robot arm is too close to each build site
-        if distFeed < 0.5 or distBuild < 0.5:
+        if distFeed < 0.6 or distBuild < 0.6:
             return True
 
         return False

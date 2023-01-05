@@ -92,7 +92,7 @@ class BlockFeeder:
         # Wait for them to retract
         sleep(2)
 
-        # If there is a block send it to ready position
+        # If there is a block avaliable send it to ready position
 
         # Check if block exists and there isn't already a block that is ready to be pushed up
         if self.dpiClockNBlock.readFeed_1() and not self.dpiClockNBlock.readFeed_2():
@@ -154,7 +154,7 @@ class BlockFeeder:
                 return
 
             # Checks if 2.5 seconds have elapsed
-            elif timer() - self.start > 2.5:
+            elif timer() - self.start > 2:
                 self.setState(self._STATE_FEED2)
                 return
 

@@ -43,7 +43,7 @@ class RobotArm:
     _STATE_WAITING =      4
 
     MINIMUM_Z = 100
-    speed = 100
+    speed = 140
 
     # pin assignments show how the pistons are wired to the DPiSolenoid board
     #
@@ -62,23 +62,22 @@ class RobotArm:
     blockFeeder2 = BlockFeeder(_BLOCK_FEEDER2__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER2__SECOND_PISTON__DRIVER_NUM, 2, dpiSolenoid)
     blockFeeder3 = BlockFeeder(_BLOCK_FEEDER3__FIRST_PISTON__DRIVER_NUM, _BLOCK_FEEDER3__SECOND_PISTON__DRIVER_NUM, 3, dpiSolenoid)
 
-    # blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2, blockFeeder3]
-    blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2] # Removed feeder 3 until the structure is rotated
+    blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2, blockFeeder3]
+    # blockFeeders = [blockFeeder0, blockFeeder1, blockFeeder2] # Removed feeder 3 until the structure is rotated
 
     NUM_BLOCK_FEEDERS = len(blockFeeders)
 
     # Locations for all the block feeders
-    feederLocations = [(345, -0.906, -63), (342, -2.500, -63), (343, 2.196, -63), (340, 0.661, -63)]
+    feederLocations = [(345, -0.906, -65), (342, -2.500, -65), (343, 2.196, -64), (343, 0.661, -63)]
 
     # Locations for all the build locations
     # Note: Currently the third build Location  is closer to the center
     #   This is because the robot arms crash into the structure that houses the robot
     #   We will also need to make it so the third buildLocation will never path in from the side
-    buildLocations = [(422, -0.134, -42), (419, -1.696, -42), (360, 2.998, -42), (420, 1.437, -42)]
-
+    buildLocations = [(412, -0.134, -42), (409, -1.696, -42), (416, 2.998, -42), (350, 1.437, -42)]
 
     # Sets how high the stack of blocks will be
-    stackSize = 4
+    stackSize = 5
     blockManagers = []
     for i in range(NUM_BLOCK_FEEDERS):
         blockManagers.append(BlockManager(blockFeeders[i], feederLocations[i], buildLocations[i], stackSize))
