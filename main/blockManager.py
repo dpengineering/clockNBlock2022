@@ -38,7 +38,7 @@ class BlockManager:
             return False
         if self.hourBlocking(hourPos):
             print('going Pathside')
-            path, target = self.pathToTarget(currentPos, self.blockPositions[self.blockToPlace], self.radianOffset)
+            path, target = self.pathToTargetSide(currentPos, self.blockPositions[self.blockToPlace], self.radianOffset)
         else:
             path, target = self.pathToTarget(currentPos, self.blockPositions[self.blockToPlace], self._BLOCK_SIZE)
         self.blockToPlace += 1
@@ -142,9 +142,9 @@ class BlockManager:
         print(f"Feed: {self.feederPos[1]}, Build: {self.buildPos[1]}, Clock: {clockPos}")
 
         #shift range from 0-2pi cuz easier
-        feedPos = (self.feederPos[1] + 2*math.pi) % 2*math.pi
-        buildPos = (self.buildPos[1] + 2*math.pi) % 2*math.pi
-        clockPos = (clockPos + 2*math.pi) % 2*math.pi
+        feedPos = (self.feederPos[1] + 2*math.pi) % (2*math.pi)
+        buildPos = (self.buildPos[1] + 2*math.pi) % (2*math.pi)
+        clockPos = (clockPos + 2*math.pi) % (2*math.pi)
 
         #find angle between
         distFeed = abs(feedPos - clockPos)
@@ -157,7 +157,9 @@ class BlockManager:
         if distBuild > math.pi:
             distBuild = 2*math.pi - distBuild
 
-        if distFeed < 0.6 or distBuild < 0.6:
+        print(f"distFeed: {distFeed}, distBuild: {distBuild}")
+
+        if distFeed < 0.5 or distBuild < 0.5:
             self.resetStack()
             return False
 
@@ -177,9 +179,9 @@ class BlockManager:
     def hourBlocking(self, hourPos):
 
         #shift range from 0-2pi cuz easier
-        feedPos = (self.feederPos[1] + 2*math.pi) % 2*math.pi
-        buildPos = (self.buildPos[1] + 2*math.pi) % 2*math.pi
-        hourPos = (hourPos + 2*math.pi) % 2*math.pi
+        feedPos = (self.feederPos[1] + 2*math.pi) % (2*math.pi)
+        buildPos = (self.buildPos[1] + 2*math.pi) % (2*math.pi)
+        hourPos = (hourPos + 2*math.pi) % (2*math.pi)
 
         #find angle between
         distFeed = abs(feedPos - hourPos)
@@ -192,7 +194,7 @@ class BlockManager:
         if distBuild > math.pi:
             distBuild = 2*math.pi - distBuild
 
-        if distFeed < 0.6 or distBuild < 0.6:
+        if distFeed < 0.5 or distBuild < 0.5:
             return True
 
         return False

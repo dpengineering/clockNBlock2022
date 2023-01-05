@@ -38,7 +38,7 @@ class RobotArm:
     _STATE_PLACE_BLOCK =  3
 
     MINIMUM_Z = 100
-    speed = 60
+    speed = 100
 
     # pin assignments show how the pistons are wired to the DPiSolenoid board
     #

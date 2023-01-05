@@ -48,8 +48,8 @@ def main():
     clock.dpiStepper.setSpeedInStepsPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
     clock.dpiStepper.setAccelerationInStepsPerSecondPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
 
-    print("go to 12:05")
-    clock.moveToTime(1205)
+    print("go to 6:45")
+    clock.moveToTime(645)
     clock.dpiStepper.waitUntilMotorStops(MINUTE_HAND)
     clock.dpiStepper.waitUntilMotorStops(HOUR_HAND)
     # Print radian position and time
@@ -58,7 +58,7 @@ def main():
     print(f'Should be {math.pi / 2} for both')
     print(f'Time: {clock.getPositionTime()}')
 
-    print(robot.blockManagers[2].isReady(clock.getPositionRadians(1)))
+    print(robot.blockManagers[3].isReady(clock.getPositionRadians(1)))
 
     # print("go to 3:15")
     # clock.moveToTime(315)
@@ -91,6 +91,7 @@ def main():
     # print(f'Minute Steps: {clock.getPositionSteps(MINUTE_HAND)}, Radians: {clock.getPositionRadians(MINUTE_HAND)}')
     # print(f'should be 0 rad for both')
     # print(f'Time: {clock.getPositionTime()}')
+
 
     # Honestly I think that is all that we need to check
 if __name__ == "__main__":
