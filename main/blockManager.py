@@ -147,6 +147,7 @@ class BlockManager:
 
         # Go down to right next to point
         waypoint = currentPos[0], currentPos[1], targetZ + 10
+
         movingPath.append(waypoint)
         currentPos = waypoint
 
@@ -225,6 +226,7 @@ class BlockManager:
 
         # Checks if the robot arm is too close to each build site
         if distFeed < 0.5 or distBuild < 0.5:
+
             self.resetStack()
             return False
 

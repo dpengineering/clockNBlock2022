@@ -13,9 +13,6 @@ sys.path.insert(0, '..')
 from main.clockHands import Clock
 from main.robotArm import RobotArm
 
-from time import sleep
-
-
 robotMagnetSolenoid = 11
 robotRotationSolenoid = 10
 
@@ -30,9 +27,11 @@ NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
 def setup():
 
     # Call setup functions for each component
+    print("setup robo")
     robot.setup()
     clock.setup()
     for i in range(NUM_BLOCK_FEEDERS):
+        print(f"setup blockfeeder {i}")
         blockFeeders[i].setup()
 
     # Move to current time

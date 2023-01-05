@@ -75,6 +75,7 @@ class RobotArm:
     #   We will also need to make it so the third buildLocation will never path in from the side
     buildLocations = [(422, -0.134, -42), (419, -1.696, -42), (360, 2.998, -42), (420, 1.437, -42)]
 
+
     # Sets how high the stack of blocks will be
     stackSize = 4
     blockManagers = []
@@ -202,6 +203,7 @@ class RobotArm:
         # Waits for the block to be at the location
         # Drops block and changes state to get another block
         elif self.state == self._STATE_PLACE_BLOCK:
+
             if self.newState:
                 print("moving to place block position")
                 positionList, self.target = self.blockManagers[self.currentManager].placeBlock(currentPos, hourPos)
@@ -341,6 +343,7 @@ class RobotArm:
         Returns:
             none
         """
+
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
         for point in range(len(waypoints)):
             self.moveToPosRadians(waypoints[point], speed)
@@ -370,9 +373,9 @@ class RobotArm:
     # This function is necessary because we always have to set the rotation to the value that it is not
     # Since it doesn't matter which way we rotate the block
     def rotateBlock(self):
-        """Helper function to rotate block
 
-        """
+        """Helper function to rotate block"""
+
         print("rotate")
         self.rotationPosition = not self.rotationPosition
         self.dpiSolenoid.switchDriverOnOrOff(self.ROTATING_SOLENOID, self.rotationPosition)
@@ -396,5 +399,6 @@ class RobotArm:
             return False
 
         return True
+
 
 
