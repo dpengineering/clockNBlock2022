@@ -53,47 +53,47 @@ class Clock:
         """Sets up clock so it can be used
         Moves clock to the 12:00 position when done
         """
-        print("setup")
+        # print("setup")
         self.dpiStepper.setBoardNumber(0)
 
         if not self.dpiStepper.initialize():
-            print("Communication with the DPiStepper board failed.")
+            # print("Communication with the DPiStepper board failed.")
             return
 
         self.dpiStepper.enableMotors(True)
-        print("homing")
+        # print("homing")
         self.home()
 
     # There isn't much to do for the clock, just make it go
     def process(self, multiplier=1):
         """State machine for the clock"""
 
-        print(f"Hour Position (max {HOUR_HAND_STEPS_PER_REVOLUTION}): {self.getPositionSteps(HOUR_HAND)}")
-        print(f"Minute Position (max {MINUTE_HAND_STEPS_PER_REVOLUTION}): {self.getPositionSteps(MINUTE_HAND)}")
+        # print(f"Hour Position (max {HOUR_HAND_STEPS_PER_REVOLUTION}): {self.getPositionSteps(HOUR_HAND)}")
+        # print(f"Minute Position (max {MINUTE_HAND_STEPS_PER_REVOLUTION}): {self.getPositionSteps(MINUTE_HAND)}")
         # Check if we need to reset the clock steps to be in our range
         self.updatePosition()
 
         # if hands aren't moving, move them a full rotation
         if not self.isStepperMoving(HOUR_HAND):
-            print("moving hour hand")
+            # print("moving hour hand")
             self.moveHand(HOUR_HAND, HOUR_HAND_STEPS_PER_REVOLUTION, multiplier)
 
         if not self.isStepperMoving(MINUTE_HAND):
-            print("moving minute hand")
+            # print("moving minute hand")
             self.moveHand(MINUTE_HAND, MINUTE_HAND_STEPS_PER_REVOLUTION, multiplier)
 
     # Home clock hands
     def home(self):
         """Helper function to home the clock hands and move them to the 12:00 position"""
         # Move to limit switches
-        print("Home hour hand")
+        # print("Home hour hand")
         self.dpiStepper.moveToHomeInSteps(HOUR_HAND, 1, HOUR_HAND_MAX_SPEED, HOUR_HAND_STEPS_PER_REVOLUTION)
-        print("Home minute hand")
+        # print("Home minute hand")
         self.dpiStepper.moveToHomeInSteps(MINUTE_HAND, 1, MINUTE_HAND_MAX_SPEED, MINUTE_HAND_STEPS_PER_REVOLUTION)
 
         self.dpiStepper.waitUntilMotorStops(HOUR_HAND)
         self.dpiStepper.waitUntilMotorStops(MINUTE_HAND)
-        print("done homing")
+        # print("done homing")
 
         # Set Speed and Acceleration to max
 
@@ -104,7 +104,7 @@ class Clock:
         self.dpiStepper.setAccelerationInStepsPerSecondPerSecond(MINUTE_HAND, MINUTE_HAND_MAX_SPEED)
 
         # Go to 12:00 Position
-        print("moving to 12")
+        # print("moving to 12")
         self.dpiStepper.moveToRelativePositionInSteps(MINUTE_HAND, 110400, False)
         self.dpiStepper.moveToRelativePositionInSteps(HOUR_HAND, 4320, False)
 
@@ -113,7 +113,7 @@ class Clock:
 
         self.dpiStepper.setCurrentPositionInSteps(HOUR_HAND, 0)
         self.dpiStepper.setCurrentPositionInSteps(MINUTE_HAND, 0)
-        print("done")
+        # print("done")
 
     def moveToTime(self, time):
         """Moves the clock to a specified time

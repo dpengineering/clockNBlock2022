@@ -225,7 +225,7 @@ class BlockManager:
         # print(f"distFeed: {distFeed}, distBuild: {distBuild}")
 
         # Checks if the robot arm is too close to each build site
-        if distFeed < 0.7 or distBuild < 0.7:
+        if distFeed < 0.5 or distBuild < 0.5:
 
             self.resetStack()
             return False
@@ -270,7 +270,7 @@ class BlockManager:
             distBuild = 2*math.pi - distBuild
 
         # Checks if the robot arm is too close to each build site
-        if distFeed < 0.7 or distBuild < 0.7:
+        if distFeed < 0.5 or distBuild < 0.5:
             return True
 
         return False
