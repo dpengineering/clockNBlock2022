@@ -6,10 +6,9 @@
 #      *                                                                *
 #      ******************************************************************
 
-# This can really be optimized, but it is fine for our purposes at the moment.
+# To import the from other folders in project
 import sys
-
-sys.path.insert(0, '..')
+sys.path.insert(0, "..")
 
 from main.robotArm import RobotArm
 from dpeaDPi.DPiSolenoid import DPiSolenoid

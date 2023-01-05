@@ -1,7 +1,7 @@
 # Simple test to check clock positions and degrees
 
 import math
-# To import the DPiClockNBlock library
+# To import the from other folders in project
 import sys
 sys.path.insert(0, "..")
 
@@ -93,6 +93,5 @@ def main():
     # print(f'Time: {clock.getPositionTime()}')
 
 
-    # Honestly I think that is all that we need to check
 if __name__ == "__main__":
     main()

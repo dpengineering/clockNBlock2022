@@ -45,9 +45,12 @@ def setup():
     clock.dpiStepper.waitUntilMotorStops(0)
 
 
-
 def exit_handler():
+    robot.dpiRobot.homeRobot()
+    robot.dpiRobot.addWaypoint(0, 20, 0)
     robot.dpiRobot.disableMotors()
+    clock.dpiStepper.emergencyStop(0)
+    clock.dpiStepper.emergencyStop(1)
 
 
 def main():
@@ -61,7 +64,6 @@ def main():
             blockFeeders[i].process()
         clock.process()
         robot.process(clock.getPositionRadians(1), clock.getPositionRadians(0))  # Minute, hour hand
-        sleep(0.01)
         signal.signal(signal.SIGTERM, (lambda signum, frame: exit_handler()))
         signal.signal(signal.SIGINT, (lambda signum, frame: exit_handler()))
 
