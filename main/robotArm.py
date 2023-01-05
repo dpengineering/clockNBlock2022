@@ -176,6 +176,7 @@ class RobotArm:
                 self.newState = False
                 print("move up")
                 return
+
             # Wait for robot arm to have picked up the block, then move robot arm up so we can rotate it
             elif timer() - self.start > 0.5:
                 self.setState(self._STATE_MOVE_UP)
@@ -205,8 +206,10 @@ class RobotArm:
         elif self.state == self._STATE_PLACE_BLOCK:
 
             if self.newState:
+
                 print("moving to place block position")
                 positionList, self.target = self.blockManagers[self.currentManager].placeBlock(currentPos, hourPos)
+
                 # Make sure stack isn't full, if it is just drop the block
                 if type(positionList) == bool and not positionList:
                     self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
@@ -217,7 +220,9 @@ class RobotArm:
 
             # Check if we are at the location, drop the block
             elif self.isAtLocation(self.target):
+
                 print("dropping block")
+
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
                 self.setState(self._STATE_GET_BLOCK)
                 return
@@ -348,6 +353,7 @@ class RobotArm:
         for point in range(len(waypoints)):
             self.moveToPosRadians(waypoints[point], speed)
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
+
 
     def chooseNextManager(self, minutePos: float):
         """Helper function to choose the next blockManager the robot goes to
