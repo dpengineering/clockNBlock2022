@@ -65,7 +65,7 @@ class Clock:
         self.home()
 
     # There isn't much to do for the clock, just make it go
-    def process(self, multiplier: int):
+    def process(self, multiplier=1):
         """State machine for the clock"""
 
         print(f"Hour Position (max {HOUR_HAND_STEPS_PER_REVOLUTION}): {self.getPositionSteps(HOUR_HAND)}")
@@ -76,11 +76,11 @@ class Clock:
         # if hands aren't moving, move them a full rotation
         if not self.isStepperMoving(HOUR_HAND):
             print("moving hour hand")
-            self.moveHand(HOUR_HAND, HOUR_HAND_STEPS_PER_REVOLUTION * multiplier)
+            self.moveHand(HOUR_HAND, HOUR_HAND_STEPS_PER_REVOLUTION, multiplier)
 
         if not self.isStepperMoving(MINUTE_HAND):
             print("moving minute hand")
-            self.moveHand(MINUTE_HAND, MINUTE_HAND_STEPS_PER_REVOLUTION * multiplier)
+            self.moveHand(MINUTE_HAND, MINUTE_HAND_STEPS_PER_REVOLUTION, multiplier)
 
     # Home clock hands
     def home(self):
@@ -194,7 +194,7 @@ class Clock:
 
         return f'{hours}:{minutes}'
 
-    def moveHand(self, hand: int, steps: int):
+    def moveHand(self, hand: int, steps: int, multiplier=1):
         """Moves specified hand a certian number of steps
         Args:
             hand (int): Hand to be moved
@@ -212,8 +212,8 @@ class Clock:
             return False
 
         # Moves amount of steps at real time speed
-        self.dpiStepper.setSpeedInStepsPerSecond(hand, speed)
-        self.dpiStepper.setAccelerationInStepsPerSecondPerSecond(hand, speed)
+        self.dpiStepper.setSpeedInStepsPerSecond(hand, speed * multiplier)
+        self.dpiStepper.setAccelerationInStepsPerSecondPerSecond(hand, speed * multiplier)
 
         self.dpiStepper.moveToRelativePositionInSteps(hand, steps, False)
 

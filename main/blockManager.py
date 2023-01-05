@@ -118,7 +118,6 @@ class BlockManager:
 
         return movingPath, target
 
-
     def pathToTargetSide(self, currentPos: tuple, target: tuple, offset: float):
         """Helper function to generate the path the robot takes to a target position (offset to the side)
 
@@ -226,7 +225,7 @@ class BlockManager:
         # print(f"distFeed: {distFeed}, distBuild: {distBuild}")
 
         # Checks if the robot arm is too close to each build site
-        if distFeed < 0.5 or distBuild < 0.5:
+        if distFeed < 0.7 or distBuild < 0.7:
 
             self.resetStack()
             return False
@@ -271,7 +270,7 @@ class BlockManager:
             distBuild = 2*math.pi - distBuild
 
         # Checks if the robot arm is too close to each build site
-        if distFeed < 0.5 or distBuild < 0.5:
+        if distFeed < 0.7 or distBuild < 0.7:
             return True
 
         return False
