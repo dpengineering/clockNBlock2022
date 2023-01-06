@@ -159,7 +159,7 @@ class RobotArm:
                     self.setState(self._STATE_WAITING)
                     return
                 positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
-                self.queueWaypoints(positionList, self.speed)
+                self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
                 return
             # If our current position is at the block feeder, we should grab this block:
@@ -215,7 +215,7 @@ class RobotArm:
                 if type(positionList) == bool and not positionList:
                     self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
                     self.setState(self._STATE_GET_BLOCK)
-                self.queueWaypoints(positionList, self.speed)
+                self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
                 return
 
@@ -340,7 +340,7 @@ class RobotArm:
         self.state = nextState
         self.newState = True
 
-    def queueWaypoints(self, waypoints: list, speed: int):
+    def queueWaypoints(self, waypoints: list, currentPos: tuple, speed: int):
         """Helper function to queue waypoints in a list.
 
         Args:
@@ -350,6 +350,7 @@ class RobotArm:
         Returns:
             none
         """
+        waypoints.insert(0, currentPos)
         waypoints = self.ensureStraightLine(waypoints)
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
         for point in range(len(waypoints)):
@@ -430,9 +431,9 @@ class RobotArm:
             r2, theta2, z2 = waypoints[point + 1]
             distance = math.sqrt(r1*r1 + r2*r2 - 2*r1*r2*math.cos(theta1 - theta2))
             # If the distance is greater than 20mm, split our moves up into 20mm segments
-            if distance > 20:
+            if distance > 5:
                 # Number of steps to split our line into
-                numSteps = int(distance / 20)
+                numSteps = int(distance / 5)
 
                 # To generate the intermediary waypoints, np.linspace() is used on r, theta, and z values individually
                 #   We create the points by merging the same index of each array into a tuple, and add it to our list
