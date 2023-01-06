@@ -22,7 +22,7 @@ class BlockManager:
     """
     # Constants
     _BLOCK_SIZE = 31  # Block size in mm
-    _ROBOT_HEAD_WIDTH = 150  # Baseplate of robot head in mm
+    _ROBOT_HEAD_WIDTH = 160  # Baseplate of robot head in mm
 
     def __init__(self,  blockFeeder: BlockFeeder, feederPos: tuple, buildPos: tuple, stackSize = 5):
         """Constructor for blockManagers
