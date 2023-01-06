@@ -13,6 +13,7 @@ from main.blockManager import BlockManager
 from main.blockFeeder import BlockFeeder
 
 import math
+import numpy as np
 
 # More accurate timer
 from timeit import default_timer as timer
@@ -95,7 +96,6 @@ class RobotArm:
         self.MAGNET_SOLENOID = magnetSolenoid
         self.ROTATING_SOLENOID = rotatingSolenoid
         self.rotationPosition = False
-
 
     def setup(self) -> bool:
 
@@ -341,7 +341,7 @@ class RobotArm:
         self.newState = True
 
     def queueWaypoints(self, waypoints: list, speed: int):
-        """Helper function to queue waypoints in a list
+        """Helper function to queue waypoints in a list.
 
         Args:
             waypoints (list): List of waypoints to queue
@@ -350,7 +350,7 @@ class RobotArm:
         Returns:
             none
         """
-
+        waypoints = self.ensureStraightLine(waypoints)
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
         for point in range(len(waypoints)):
             self.moveToPosRadians(waypoints[point], speed)
@@ -406,6 +406,52 @@ class RobotArm:
             return False
 
         return True
+
+    def ensureStraightLine(self, waypoints: list) -> list:
+        """Helper function to split up long moves in r, theta to a list of short moves.
+        Used for the robot to move with more 'authority'.
+        This ensures that the robot will travel in a straight line as it does not do so with a long move.
+        Check DPi_Robot firmware to see why. Alternatively, google how linear delta arms work.
+
+        Args:
+            waypoints (list): List of waypoints with possible long moves
+
+        Returns:
+            straightWaypoints (list): List of waypoints with long moves broken up
+
+        """
+
+        straightWaypoints = []
+
+        # Loop through our list to find which moves are too far to be a straight line
+        #   We don't need to check how far the points are away in Z because the robot moves downwards in a straight line
+        for point in range(len(waypoints) - 1):
+            r1, theta1, z1 = waypoints[point]
+            r2, theta2, z2 = waypoints[point + 1]
+            distance = math.sqrt(r1*r1 + r2*r2 - 2*r1*r2*math.cos(theta1 - theta2))
+            # If the distance is greater than 20mm, split our moves up into 20mm segments
+            if distance > 20:
+                # Number of steps to split our line into
+                numSteps = int(distance / 20)
+
+                # To generate the intermediary waypoints, np.linspace() is used on r, theta, and z values individually
+                #   We create the points by merging the same index of each array into a tuple, and add it to our list
+
+                rSteps = np.linspace(r1, r2, numSteps)
+                thetaSteps = np.linspace(theta1, theta2, numSteps)
+                zSteps = np.linspace(z1, z2, numSteps)
+
+                # Add our points to the list
+                #   Final point is omitted as it will  get added in the next iteration of the loop or at the very end
+                for i in range(len(rSteps) - 1):
+                    straightWaypoints.append((rSteps[i], thetaSteps[i], zSteps[i]))
+            else:
+                straightWaypoints.append(waypoints[point])
+
+        # Add final point to list
+        straightWaypoints.append(waypoints[-1])
+
+        return straightWaypoints
 
 
 
