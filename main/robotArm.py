@@ -13,6 +13,7 @@ from main.blockManager import BlockManager
 from main.blockFeeder import BlockFeeder
 
 import math
+import numpy as np
 
 # More accurate timer
 from timeit import default_timer as timer
@@ -20,7 +21,6 @@ from timeit import default_timer as timer
 
 class RobotArm:
     """Robot arm object
-
     Controls robot arm
     Also stores solenoid board and locations, objects for feeders and build sites
     """
@@ -84,11 +84,9 @@ class RobotArm:
 
     def __init__(self, magnetSolenoid: int, rotatingSolenoid: int):
         """ Constructor for RobotArm
-
         Args:
             magnetSolenoid (int): Solenoid number to extend and retracts the magnet
             rotatingSolenoid (int): Solenoid number to rotate blocks
-
         """
         self.target = -1, -1, -1
         self.start = None
@@ -96,11 +94,9 @@ class RobotArm:
         self.ROTATING_SOLENOID = rotatingSolenoid
         self.rotationPosition = False
 
-
     def setup(self) -> bool:
 
         """Sets up the robot arm
-
         Returns:
             bool: True on success, otherwise False
         """
@@ -131,18 +127,13 @@ class RobotArm:
 
     def process(self, minutePos: float, hourPos: float):
         """State machine for Robot arm
-
         Args:
             minutePos (float): Position of clock's minute hand
             hourPos (float): Position of clock's hour hand
-
         These are necessary to choose the next blockManager
         And check see if we need to move in from the side to avoid crashing into the hour hand
-
-
         Returns:
             none
-
         """
         # Setup for state machine
         currentPos = self.getPositionRadians()
@@ -159,7 +150,7 @@ class RobotArm:
                     self.setState(self._STATE_WAITING)
                     return
                 positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
-                self.queueWaypoints(positionList, self.speed)
+                self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
                 return
             # If our current position is at the block feeder, we should grab this block:
@@ -215,7 +206,7 @@ class RobotArm:
                 if type(positionList) == bool and not positionList:
                     self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
                     self.setState(self._STATE_GET_BLOCK)
-                self.queueWaypoints(positionList, self.speed)
+                self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
                 return
 
@@ -251,13 +242,10 @@ class RobotArm:
     # ---------------------------------------------------------------------------------
     def cartesianToPolar(self, position: tuple):
         """Helper function to change cartesian coordinates to polar
-
         Args:
             position (tuple): Current robot position in cartesian plane
-
         Returns:
             r, theta, z (tuple (float)): Returns the polar coordinates that correspond to the cartesian coordinates
-
         """
         x, y, z = position
         # Convert to Polar Coords
@@ -268,13 +256,10 @@ class RobotArm:
     def polarToCartesian(self, position: tuple):
 
         """Helper function to change polar coordinates to cartesian
-
                 Args:
                     position (tuple): Current robot position in polar plane
-
                 Returns:
                     x, y, z (tuple (float)): Returns the cartesian coordinates that correspond to the polar coordinates
-
                 """
         r, theta, z = position
         x = r*math.cos(theta)
@@ -283,14 +268,11 @@ class RobotArm:
 
     def moveToPoint(self, position: tuple, speed: int):
         """Helper function to take in a tuple and change it to 3 variables that the dpiRobot can read
-
         Args:
             position (tuple): Position to move to in cartesian coordinates
             speed (int): How fast we want the robot to move
-
         Returns:
             none
-
         """
         x, y, z = position
         return self.dpiRobot.addWaypoint(x, y, z, speed)
@@ -298,24 +280,19 @@ class RobotArm:
     # Enter pass a set of coordinates in radians, and then add waypoint for robot
     def moveToPosRadians(self, position: tuple, speed: int):
         """Helper function to move to a position in radians
-
         Args:
             position (tuple): Position to move to in polar coordinates
             speed (int): How fast we want the robot to move
-
         Returns:
             none
-
         """
         return self.moveToPoint(self.polarToCartesian(position), speed)
 
     def getPosition(self):
         """Helper function to get robot position in cartesian coordinates
-
         Returns:
             x, y, z: The cartesian coordinates of where the robot currently is.
                     Also removes the boolean the dpiRobot function gives
-
         """
         robotPos = self.dpiRobot.getCurrentPosition()
         x, y, z = robotPos[1], robotPos[2], robotPos[3]
@@ -323,34 +300,29 @@ class RobotArm:
 
     def getPositionRadians(self):
         """Helper function to get robot position in polar coordinates
-
         Returns:
             r, theta, z: Where the robot currently is in polar coordinates
-
                 """
         return self.cartesianToPolar(self.getPosition())
 
     def setState(self, nextState: int):
         """Helper function to set the robot state
-
         Returns:
              none
-
         """
         self.state = nextState
         self.newState = True
 
-    def queueWaypoints(self, waypoints: list, speed: int):
-        """Helper function to queue waypoints in a list
-
+    def queueWaypoints(self, waypoints: list, currentPos: tuple, speed: int):
+        """Helper function to queue waypoints in a list.
         Args:
             waypoints (list): List of waypoints to queue
             speed (int): How fast to move robot
-
         Returns:
             none
         """
-
+        waypoints.insert(0, currentPos)
+        waypoints = self.ensureStraightLine(waypoints)
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
         for point in range(len(waypoints)):
             self.moveToPosRadians(waypoints[point], speed)
@@ -358,10 +330,8 @@ class RobotArm:
 
     def chooseNextManager(self, minutePos: float):
         """Helper function to choose the next blockManager the robot goes to
-
         Args:
             minutePos (float): Position of the clock's minute hand in radians
-
         Returns:
             bool: True if there is an available manager, otherwise False
         """
@@ -388,13 +358,10 @@ class RobotArm:
 
     def isAtLocation(self, target: tuple):
         """Helper function to check if the robot is currently at the target location
-
         Args:
             target (tuple): target position for robot in polar coordinates
-
         Returns:
             bool: True if robot is at the location, otherwise False
-
         """
         r, theta, z = self.getPositionRadians()
         # print(f'Robot r, target r: {r}, {target[0]}, theta, tTtheta: {theta}, {target[1]}, Z, tZ: {z}, {target[2]}')
@@ -407,5 +374,46 @@ class RobotArm:
 
         return True
 
+    def ensureStraightLine(self, waypoints: list) -> list:
+        """Helper function to split up long moves in r, theta to a list of short moves.
+        Used for the robot to move with more 'authority'.
+        This ensures that the robot will travel in a straight line as it does not do so with a long move.
+        Check DPi_Robot firmware to see why. Alternatively, google how linear delta arms work.
+        Args:
+            waypoints (list): List of waypoints with possible long moves
+        Returns:
+            straightWaypoints (list): List of waypoints with long moves broken up
+        """
 
+        straightWaypoints = []
+
+        # Loop through our list to find which moves are too far to be a straight line
+        #   We don't need to check how far the points are away in Z because the robot moves downwards in a straight line
+        for point in range(len(waypoints) - 1):
+            r1, theta1, z1 = waypoints[point]
+            r2, theta2, z2 = waypoints[point + 1]
+            distance = math.sqrt(r1*r1 + r2*r2 - 2*r1*r2*math.cos(theta1 - theta2))
+            # If the distance is greater than 20mm, split our moves up into 20mm segments
+            if distance > 20:
+                # Number of steps to split our line into
+                numSteps = int(distance / 5)
+
+                # To generate the intermediary waypoints, np.linspace() is used on r, theta, and z values individually
+                #   We create the points by merging the same index of each array into a tuple, and add it to our list
+
+                rSteps = np.linspace(r1, r2, numSteps)
+                thetaSteps = np.linspace(theta1, theta2, numSteps)
+                zSteps = np.linspace(z1, z2, numSteps)
+
+                # Add our points to the list
+                #   Final point is omitted as it will  get added in the next iteration of the loop or at the very end
+                for i in range(len(rSteps) - 1):
+                    straightWaypoints.append((rSteps[i], thetaSteps[i], zSteps[i]))
+            else:
+                straightWaypoints.append(waypoints[point])
+
+        # Add final point to list
+        straightWaypoints.append(waypoints[-1])
+
+        return straightWaypoints
 

@@ -6,7 +6,7 @@
 #      *                                                                *
 #      ******************************************************************
 
-# To import the from other folders in project
+# To import from the other folders in project
 import sys
 sys.path.insert(0, "..")
 
