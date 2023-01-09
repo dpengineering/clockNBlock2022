@@ -1,6 +1,5 @@
 # Simple test to check clock positions and degrees
 
-import math
 # To import from the other folders in project
 import sys
 sys.path.insert(0, "..")

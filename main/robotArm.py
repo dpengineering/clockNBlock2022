@@ -36,11 +36,11 @@ class RobotArm:
 
     currentManager = 0
 
-    _STATE_GET_BLOCK =    0
-    _STATE_PICKUP_BLOCK = 1
-    _STATE_MOVE_UP =      2
-    _STATE_PLACE_BLOCK =  3
-    _STATE_WAITING =      4
+    STATE_GET_BLOCK =    0
+    STATE_PICKUP_BLOCK = 1
+    STATE_MOVE_UP =      2
+    STATE_PLACE_BLOCK =  3
+    STATE_WAITING =      4
 
     MINIMUM_Z = 100
     speed = 140
@@ -121,7 +121,7 @@ class RobotArm:
             return False
 
         # Sets first state
-        self.setState(self._STATE_GET_BLOCK)
+        self.setState(self.STATE_GET_BLOCK)
         # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
         return True
 
@@ -144,10 +144,10 @@ class RobotArm:
         # Gets a block by grabbing a list of waypoints from the block manager then going to the waypoints
         # Waits for the movement to finish
         # Changes state to pick up the block
-        if self.state == self._STATE_GET_BLOCK:
+        if self.state == self.STATE_GET_BLOCK:
             if self.newState:
                 if not self.chooseNextManager(minutePos):
-                    self.setState(self._STATE_WAITING)
+                    self.setState(self.STATE_WAITING)
                     return
                 positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
                 self.queueWaypoints(positionList, currentPos, self.speed)
@@ -155,13 +155,13 @@ class RobotArm:
                 return
             # If our current position is at the block feeder, we should grab this block:
             elif self.isAtLocation(self.target):
-                self.setState(self._STATE_PICKUP_BLOCK)
+                self.setState(self.STATE_PICKUP_BLOCK)
                 return
 
         # Picks up block and starts timer
         # Waits 0.5 seconds for the robot to actually pick up the block
         # Changes state to rotate block
-        elif self.state == self._STATE_PICKUP_BLOCK:
+        elif self.state == self.STATE_PICKUP_BLOCK:
             if self.newState:
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, True)
                 self.start = timer()
@@ -171,14 +171,14 @@ class RobotArm:
 
             # Wait for robot arm to have picked up the block, then move robot arm up so we can rotate it
             elif timer() - self.start > 0.5:
-                self.setState(self._STATE_MOVE_UP)
+                self.setState(self.STATE_MOVE_UP)
                 return
 
         # This state is necessary because we need to rotate the block
         # Moves the robot up to pull the block out of the feeder
         # Waits for robot to finish move
         # Rotates block and changes state to place the block
-        elif self.state == self._STATE_MOVE_UP:
+        elif self.state == self.STATE_MOVE_UP:
             if self.newState:
                 # print("moving up")
                 self.target = currentPos[0], currentPos[1], 100
@@ -189,13 +189,13 @@ class RobotArm:
             elif self.isAtLocation(self.target):
                 # print("rotating solenoid")
                 self.rotateBlock()
-                self.setState(self._STATE_PLACE_BLOCK)
+                self.setState(self.STATE_PLACE_BLOCK)
                 return
 
         # Stacks block by grabbing a list of waypoints from blockManager
         # Waits for the block to be at the location
         # Drops block and changes state to get another block
-        elif self.state == self._STATE_PLACE_BLOCK:
+        elif self.state == self.STATE_PLACE_BLOCK:
 
             if self.newState:
 
@@ -205,7 +205,7 @@ class RobotArm:
                 # Make sure stack isn't full, if it is just drop the block
                 if type(positionList) == bool and not positionList:
                     self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
-                    self.setState(self._STATE_GET_BLOCK)
+                    self.setState(self.STATE_GET_BLOCK)
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
                 return
@@ -216,7 +216,7 @@ class RobotArm:
                 # print("dropping block")
 
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
-                self.setState(self._STATE_GET_BLOCK)
+                self.setState(self.STATE_GET_BLOCK)
                 return
 
         # Rehomes robot if there is nowhere for it to go
@@ -227,7 +227,7 @@ class RobotArm:
         # Note: This will call choose next manager which will set the feeder to the next available one
         #   Then it chooses next manager again in the get block state
         #   This is okay because we will just skip one free feeder
-        elif self.state == self._STATE_WAITING:
+        elif self.state == self.STATE_WAITING:
             if self.newState:
                 # print("homing Robot")
                 self.dpiRobot.homeRobot(True)
@@ -235,7 +235,7 @@ class RobotArm:
                 return
 
             if self.chooseNextManager(minutePos):
-                self.setState(self._STATE_GET_BLOCK)
+                self.setState(self.STATE_GET_BLOCK)
 
     # ---------------------------------------------------------------------------------
     #                                 Helper functions

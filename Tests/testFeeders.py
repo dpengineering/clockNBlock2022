@@ -1,6 +1,6 @@
 # Test program that runs all the feeders continuously
 
-# To import the from other folders in project
+# To import from other folders in project
 import sys
 sys.path.insert(0, "..")
 
