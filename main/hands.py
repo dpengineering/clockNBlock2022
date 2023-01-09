@@ -59,11 +59,12 @@ class Hands:
         # Check if we need to reset the  steps to be in our range
         self.updatePosition()
 
-        if not self.isStepperMoving(self.KNOCKER):
-            # print("moving minute hand")
-            self.dpiStepper.moveToRelativePositionInSteps(self.KNOCKER, self.KNOCKER_STEPS_PER_REVOLUTION, False)
+        # if not self.isStepperMoving(self.KNOCKER):
+        #     # print("moving minute hand")
+        #     self.dpiStepper.moveToRelativePositionInSteps(self.KNOCKER, self.KNOCKER_STEPS_PER_REVOLUTION, False)
 
         self.processPointer(robot)
+        return
 
     def processPointer(self, robot: RobotArm):
         """State machine for the pointer
@@ -77,7 +78,7 @@ class Hands:
             self.pointerDitherState = 0
             self.setSpeed(self.POINTER, self.POINTER_MAX_SPEED)
             # Position of feeder
-            pos = robot.blockManagers[robot.currentManager].feederPos
+            pos = robot.blockManagers[robot.currentManager].feederPos[1]
             self.moveToPosRadians(self.POINTER, pos)
             return
 
@@ -87,7 +88,7 @@ class Hands:
             if self.pointerDitherState == 0:
                 # Speed value is arbitrary, more testing needed
                 self.setSpeed(self.POINTER, int(self.POINTER_MAX_SPEED / 3))
-                pos = robot.blockManagers[robot.currentManager].buildPos - 0.25
+                pos = robot.blockManagers[robot.currentManager].buildPos[1] - 0.25
                 self.moveToPosRadians(self.POINTER, pos)
                 self.pointerDitherState += 1
                 return
@@ -95,7 +96,7 @@ class Hands:
             # Sulk back to right before our position slowly
             elif self.pointerDitherState == 1:
                 self.setSpeed(self.POINTER, int(self.POINTER_BASE_SPEED / 2))
-                pos = robot.blockManagers[robot.currentManager].buildPos + 0.1
+                pos = robot.blockManagers[robot.currentManager].buildPos[1] + 0.1
                 self.moveToPosRadians(self.POINTER, pos)
                 self.pointerDitherState += 1
                 return
@@ -103,28 +104,28 @@ class Hands:
             # Dither slowly to the correct position at base speed
             elif self.pointerDitherState == 2:
                 self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-                pos = robot.blockManagers[robot.currentManager].buildPos - 0.75
+                pos = robot.blockManagers[robot.currentManager].buildPos[1] - 0.75
                 self.moveToPosRadians(self.POINTER, pos)
                 self.pointerDitherState += 1
                 return
 
             elif self.pointerDitherState == 3:
                 self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-                pos = robot.blockManagers[robot.currentManager].buildPos + 0.5
+                pos = robot.blockManagers[robot.currentManager].buildPos[1] + 0.5
                 self.moveToPosRadians(self.POINTER, pos)
                 self.pointerDitherState += 1
                 return
 
             elif self.pointerDitherState == 4:
                 self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-                pos = robot.blockManagers[robot.currentManager].buildPos - 0.25
+                pos = robot.blockManagers[robot.currentManager].buildPos[1] - 0.25
                 self.moveToPosRadians(self.POINTER, pos)
                 self.pointerDitherState += 1
                 return
 
             elif self.pointerDitherState == 5:
                 self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-                pos = robot.blockManagers[robot.currentManager].buildPos
+                pos = robot.blockManagers[robot.currentManager].buildPos[1]
                 self.moveToPosRadians(self.POINTER, pos)
                 self.pointerDitherState += 1
                 return
@@ -145,35 +146,35 @@ class Hands:
         """Sets up hands to can be used
         Moves to the "0" position when done
         """
-        print("setup")
+        # print("setup")
         self.dpiStepper.setBoardNumber(0)
 
         if not self.dpiStepper.initialize():
-            print("Communication with the DPiStepper board failed.")
+            # print("Communication with the DPiStepper board failed.")
             return
 
         self.dpiStepper.setMicrostepping(self.MICROSTEPPING)
 
         self.dpiStepper.enableMotors(True)
-        print("homing")
+        # print("homing")
         self.home()
 
     def home(self):
         """Helper function to home the hands and move them to the 0 position"""
         # Move to limit switches
-        print("Home pointer hand")
+        # print("Home pointer hand")
         self.dpiStepper.moveToHomeInSteps(self.POINTER, 1, self.POINTER_MAX_SPEED, self.POINTER_STEPS_PER_REVOLUTION)
-        print("Home knocker hand")
+        # print("Home knocker hand")
         self.dpiStepper.moveToHomeInSteps(self.KNOCKER, 1, self.KNOCKER_MAX_SPEED, self.KNOCKER_STEPS_PER_REVOLUTION)
 
         self.dpiStepper.waitUntilMotorStops(self.POINTER)
         self.dpiStepper.waitUntilMotorStops(self.KNOCKER)
-        print("done homing")
+        # print("done homing")
 
         self.setSpeedBoth(self.POINTER_MAX_SPEED, self.KNOCKER_MAX_SPEED)
 
         # Go to 0 Position
-        print("moving to 0")
+        # print("moving to 0")
         self.dpiStepper.moveToRelativePositionInSteps(self.KNOCKER, -134400, False)
         self.dpiStepper.moveToRelativePositionInSteps(self.POINTER, -1905, False)
 
@@ -182,7 +183,7 @@ class Hands:
 
         self.dpiStepper.setCurrentPositionInSteps(self.KNOCKER, 0)
         self.dpiStepper.setCurrentPositionInSteps(self.POINTER, 0)
-        print("done")
+        # print("done")
 
     def setSpeed(self, hand: int, speed: int):
         """Helper function to set the speed of one motor
@@ -238,11 +239,8 @@ class Hands:
         pointerRad = 2 * math.pi * (pointerPos / self.POINTER_STEPS_PER_REVOLUTION)
         knockerRad = 2 * math.pi * (knockerPos / self.KNOCKER_STEPS_PER_REVOLUTION)
 
-        # Necessary because hands go clockwise while radians go counter-clockwise
-        pointerRad -= 2 * math.pi
-        knockerRad -= 2 * math.pi
-        print(f'pointer: {round(pointerRad, 3)}, Knocker {round(knockerRad, 3)}')
-        return round(pointerRad, 3), round(knockerRad, 3)
+        # print(f'pointer: {round(pointerRad, 3)}, Knocker {round(knockerRad, 3)}')
+        return round(-pointerRad, 3), round(-knockerRad, 3)
 
     def moveToPosRadians(self, hand: int, pos: float):
         """Moves hand to a position in radians"""
@@ -254,20 +252,20 @@ class Hands:
         #     steps = self.KNOCKER_STEPS_PER_REVOLUTION - (pos * self.KNOCKER_STEPS_PER_REVOLUTION) / 2 * math.pi
 
         # Does the inverse of getPositionRadians
-        if hand == self.POINTER:
-            steps = -pos * self.POINTER_STEPS_PER_REVOLUTION / 2 * math.pi
-        else:
-            steps = -pos * self.KNOCKER_STEPS_PER_REVOLUTION / 2 * math.pi
+        # if hand == self.POINTER:
+        #     steps = -pos * self.POINTER_STEPS_PER_REVOLUTION / 2 * math.pi
+        # else:
+        #     steps = -pos * self.KNOCKER_STEPS_PER_REVOLUTION / 2 * math.pi
 
         # If that doesn't work:
-        # # Does the inverse of getPositionRadians
-        # if hand == self.POINTER:
-        #     steps = (-pos * self.POINTER_STEPS_PER_REVOLUTION / 2 * math.pi) % self.POINTER_STEPS_PER_REVOLUTION
-        # else:
-        #     steps = -pos * self.KNOCKER_STEPS_PER_REVOLUTION / 2 * math.pi % self.KNOCKER_STEPS_PER_REVOLUTION
+        # Does the inverse of getPositionRadians
+        if hand == self.POINTER:
+            steps = -pos * self.POINTER_STEPS_PER_REVOLUTION / (2 * math.pi) % self.POINTER_STEPS_PER_REVOLUTION
+        else:
+            steps = -pos * self.KNOCKER_STEPS_PER_REVOLUTION / (2 * math.pi) % self.KNOCKER_STEPS_PER_REVOLUTION
 
-        print(f'Moving {hand} to {steps}')
-        self.dpiStepper.moveToAbsolutePositionInSteps(hand, int(steps), False)
+        # print(f'Moving {hand} to {round(steps)}')
+        self.dpiStepper.moveToAbsolutePositionInSteps(hand, round(steps), False)
 
     def waitForHandsStopped(self):
         """Helper function that busy-waits until both hands are stopped

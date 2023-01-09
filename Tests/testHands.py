@@ -1,7 +1,9 @@
 # Simple test to check clock positions and degrees
-
+import math
 # To import from the other folders in project
 import sys
+from time import sleep
+
 sys.path.insert(0, "..")
 
 from main.hands import Hands
@@ -25,6 +27,9 @@ def main():
     hands.dpiStepper.moveToRelativePositionInSteps(hands.POINTER, hands.POINTER_STEPS_PER_REVOLUTION, False)
     hands.dpiStepper.moveToRelativePositionInSteps(hands.KNOCKER, hands.KNOCKER_STEPS_PER_REVOLUTION, False)
 
+    hands.waitForHandsStopped()
+    sleep(5)
+
     # Getting position radians
     print(f'Pointer pos: {hands.getPositionRadians()[0]}, Knocker pos: {hands.getPositionRadians()[1]}')
 
@@ -36,8 +41,9 @@ def main():
     hands.dpiStepper.moveToRelativePositionInSteps(hands.KNOCKER, hands.KNOCKER_STEPS_PER_REVOLUTION, False)
 
     # Moving pointer to feed 0
-    pos = robot.feederLocations[0][1]
-    print(f'Move pointer to Feeder 0 pickup')
+    # pos = robot.feederLocations[0][1]
+    pos = math.pi / 2
+    print(f'Move pointer pi / 2')
     hands.moveToPosRadians(hands.POINTER, pos)
 
 

@@ -36,10 +36,11 @@ def setup():
 
     hands.dpiStepper.moveToRelativePositionInSteps(1, 326400, False)
     hands.dpiStepper.waitUntilMotorStops(1)
+    hands.setSpeedBoth(hands.POINTER_BASE_SPEED, round(hands.KNOCKER_BASE_SPEED))
 
 
 def exit_handler():
-    robot.dpiRobot.homeRobot()
+    robot.dpiRobot.homeRobot(True)
     robot.dpiRobot.addWaypoint(0, 20, 0)
     robot.dpiRobot.disableMotors()
     hands.dpiStepper.emergencyStop(0)
