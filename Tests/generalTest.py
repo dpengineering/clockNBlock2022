@@ -90,14 +90,36 @@ def pathToTarget(currentPos: tuple, target: tuple, offset: float):
     return movingPath, target
 
 
+def polarToCartesian(position: tuple):
+    """Helper function to change polar coordinates to cartesian
+
+    Args:
+        position (tuple): Current robot position in polar plane
+
+    Returns:
+        x, y, z (tuple (float)): Returns the cartesian coordinates that correspond to the polar coordinates
+
+    """
+    r, theta, z = position
+    x = r*math.cos(theta)
+    y = r*math.sin(theta)
+    return x, y, z
+
+
 def main():
 
     i = pathToTarget((422, -0.134, -42), (345, -0.906, -65), 33)
     print(i)
 
-    j = ensureStraightLine(i[0])
+    path = i[0]
+    path.insert(0, (422, -0.134, -42))
+    j = ensureStraightLine(path)
     print(j)
 
+    for point in j:
+        print(polarToCartesian(point))
+
+    print(f'Initial: {polarToCartesian((422, -0.134, -42))}, Final: {polarToCartesian((345, -0.906, -65))}')
 
 if __name__ == "__main__":
     main()

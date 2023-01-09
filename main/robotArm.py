@@ -266,16 +266,15 @@ class RobotArm:
         return r, theta, z
 
     def polarToCartesian(self, position: tuple):
-
         """Helper function to change polar coordinates to cartesian
 
-                Args:
-                    position (tuple): Current robot position in polar plane
+        Args:
+            position (tuple): Current robot position in polar plane
 
-                Returns:
-                    x, y, z (tuple (float)): Returns the cartesian coordinates that correspond to the polar coordinates
+        Returns:
+            x, y, z (tuple (float)): Returns the cartesian coordinates that correspond to the polar coordinates
 
-                """
+        """
         r, theta, z = position
         x = r*math.cos(theta)
         y = r*math.sin(theta)
@@ -431,7 +430,7 @@ class RobotArm:
             r2, theta2, z2 = waypoints[point + 1]
             distance = math.sqrt(r1*r1 + r2*r2 - 2*r1*r2*math.cos(theta1 - theta2))
             # If the distance is greater than 20mm, split our moves up into 20mm segments
-            if distance > 5:
+            if distance > 20:
                 # Number of steps to split our line into
                 numSteps = int(distance / 5)
 
