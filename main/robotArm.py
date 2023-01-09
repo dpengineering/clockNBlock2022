@@ -6,6 +6,8 @@
 #      *                                                                *
 #      ******************************************************************
 import sys
+from time import sleep
+
 sys.path.insert(0, '..')
 from dpeaDPi.DPiRobot import DPiRobot
 from dpeaDPi.DPiSolenoid import DPiSolenoid
@@ -179,6 +181,7 @@ class RobotArm:
         # Waits for robot to finish move
         # Rotates block and changes state to place the block
         elif self.state == self.STATE_MOVE_UP:
+            print(self.dpiRobot.getRobotStatus())
             if self.newState:
                 # print("moving up")
                 self.target = currentPos[0], currentPos[1], 100
@@ -186,7 +189,7 @@ class RobotArm:
                 self.newState = False
                 return
 
-            elif self.isAtLocation(self.target):
+            elif self.dpiRobot.getRobotStatus() == self.dpiRobot.STATE_STOPPED:
                 # print("rotating solenoid")
                 self.rotateBlock()
                 self.setState(self.STATE_PLACE_BLOCK)
@@ -323,6 +326,7 @@ class RobotArm:
         """
         waypoints.insert(0, currentPos)
         waypoints = self.ensureStraightLine(waypoints)
+        # sleep(6)
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
         for point in range(len(waypoints)):
             self.moveToPosRadians(waypoints[point], speed)
@@ -396,7 +400,7 @@ class RobotArm:
             # If the distance is greater than 20mm, split our moves up into 20mm segments
             if distance > 20:
                 # Number of steps to split our line into
-                numSteps = int(distance / 5)
+                numSteps = int(distance / 20)
 
                 # To generate the intermediary waypoints, np.linspace() is used on r, theta, and z values individually
                 #   We create the points by merging the same index of each array into a tuple, and add it to our list
