@@ -139,6 +139,7 @@ class RobotArm:
         """
         # Setup for state machine
         currentPos = self.getPositionRadians()
+        print(f'State: {self.state}, newState: {self.newState}, robotStatus: {self.dpiRobot.getRobotStatus()}')
         # print(f'robot pos: {currentPos}')
         # print(f"Clock: {minutePos}, Robot theta: {currentPos[1]}")
         # print(f'Robot state: {self.state}, {self.newState}')
@@ -152,11 +153,18 @@ class RobotArm:
                     self.setState(self.STATE_WAITING)
                     return
                 positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
+                # One possibility of ensuring the robot is stopped is this
+                # if self.dpiRobot.getRobotStatus()[1] == 6:
+                #     self.queueWaypoints(positionList, currentPos, self.speed)
+                #     self.newState = False
+                #     return
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
                 return
+
             # If our current position is at the block feeder, we should grab this block:
-            elif self.isAtLocation(self.target):
+            # elif self.isAtLocation(self.target):
+            elif self.isAtLocation(self.target) and self.dpiRobot.getRobotStatus()[1] == 6:
                 self.setState(self.STATE_PICKUP_BLOCK)
                 return
 
@@ -181,7 +189,6 @@ class RobotArm:
         # Waits for robot to finish move
         # Rotates block and changes state to place the block
         elif self.state == self.STATE_MOVE_UP:
-            print(self.dpiRobot.getRobotStatus())
             if self.newState:
                 # print("moving up")
                 self.target = currentPos[0], currentPos[1], 100
@@ -189,8 +196,9 @@ class RobotArm:
                 self.newState = False
                 return
 
-            elif self.dpiRobot.getRobotStatus() == self.dpiRobot.STATE_STOPPED:
-                # print("rotating solenoid")
+            # elif self.isAtLocation(self.target):
+            elif self.isAtLocation(self.target) and self.dpiRobot.getRobotStatus()[1] == 6:
+                print("rotating solenoid")
                 self.rotateBlock()
                 self.setState(self.STATE_PLACE_BLOCK)
                 return
@@ -201,10 +209,8 @@ class RobotArm:
         elif self.state == self.STATE_PLACE_BLOCK:
 
             if self.newState:
-
                 # print("moving to place block position")
                 positionList, self.target = self.blockManagers[self.currentManager].placeBlock(currentPos, hourPos)
-
                 # Make sure stack isn't full, if it is just drop the block
                 if type(positionList) == bool and not positionList:
                     self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
@@ -214,10 +220,9 @@ class RobotArm:
                 return
 
             # Check if we are at the location, drop the block
-            elif self.isAtLocation(self.target):
-
+            # elif self.isAtLocation(self.target):
+            elif self.isAtLocation(self.target) and self.dpiRobot.getRobotStatus()[1] == 6:
                 # print("dropping block")
-
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
                 self.setState(self.STATE_GET_BLOCK)
                 return
@@ -326,7 +331,7 @@ class RobotArm:
         """
         waypoints.insert(0, currentPos)
         waypoints = self.ensureStraightLine(waypoints)
-        # sleep(6)
+        print(f'Queue Waypoints, robotStatus: {self.dpiRobot.getRobotStatus()} (Stopped is 6)')
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
         for point in range(len(waypoints)):
             self.moveToPosRadians(waypoints[point], speed)
