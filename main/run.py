@@ -10,15 +10,14 @@ import signal
 import sys
 sys.path.insert(0, '..')
 
-from main.hands import Hands
 from main.robotArm import RobotArm
 
 robotMagnetSolenoid = 11
 robotRotationSolenoid = 10
 
-hands = Hands()
 robot = RobotArm(robotMagnetSolenoid, robotRotationSolenoid)
 
+hands = robot.hands()
 blockFeeders = robot.blockFeeders
 
 NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS

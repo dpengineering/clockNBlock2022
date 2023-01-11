@@ -12,8 +12,6 @@ from time import sleep
 
 import sys
 sys.path.insert(0, '..')
-from main.robotArm import RobotArm
-
 
 # Placeholder name for now
 class Hands:
@@ -53,7 +51,7 @@ class Hands:
         self.currentKnockerSpeed = self.KNOCKER_BASE_SPEED
         return
 
-    def process(self, robot: RobotArm):
+    def process(self):
         """State machine for the hands"""
 
         # Check if we need to reset the  steps to be in our range
@@ -63,81 +61,54 @@ class Hands:
         #     # print("moving minute hand")
         #     self.dpiStepper.moveToRelativePositionInSteps(self.KNOCKER, self.KNOCKER_STEPS_PER_REVOLUTION, False)
 
-        self.processPointer(robot)
         return
 
-    def processPointer(self, robot: RobotArm):
+    def processPointer(self, pos: float):
         """State machine for the pointer
         These are individual state machines to make the code a slight bit cleaner
 
         The state for the pointer will be reliant on the Robot state
         """
 
-        # If the robot is getting a block, move the pointer firmly to the feeder
-        if robot.state == robot.STATE_GET_BLOCK and not robot.newState:
-            self.pointerDitherState = 0
-            self.setSpeed(self.POINTER, self.POINTER_MAX_SPEED)
-            # Position of feeder
-            pos = robot.blockManagers[robot.currentManager].feederPos[1]
-            self.moveToPosRadians(self.POINTER, pos)
+        if self.pointerDitherState == 0:
+            # Speed value is arbitrary, more testing needed
+            self.setSpeed(self.POINTER, int(self.POINTER_MAX_SPEED / 3))
+            self.moveToPosRadians(self.POINTER, pos - 0.25)
+            self.pointerDitherState += 1
             return
 
-        # Dither to the build position
-        elif robot.state == robot.STATE_PLACE_BLOCK and not robot.newState:
-            # For the first time, overshoot the build pos at a fast speed
-            if self.pointerDitherState == 0:
-                # Speed value is arbitrary, more testing needed
-                self.setSpeed(self.POINTER, int(self.POINTER_MAX_SPEED / 3))
-                pos = robot.blockManagers[robot.currentManager].buildPos[1] - 0.25
-                self.moveToPosRadians(self.POINTER, pos)
-                self.pointerDitherState += 1
-                return
+        # Sulk back to right before our position slowly
+        elif self.pointerDitherState == 1:
+            self.setSpeed(self.POINTER, int(self.POINTER_BASE_SPEED / 2))
+            self.moveToPosRadians(self.POINTER, pos + 0.1)
+            self.pointerDitherState += 1
+            return
 
-            # Sulk back to right before our position slowly
-            elif self.pointerDitherState == 1:
-                self.setSpeed(self.POINTER, int(self.POINTER_BASE_SPEED / 2))
-                pos = robot.blockManagers[robot.currentManager].buildPos[1] + 0.1
-                self.moveToPosRadians(self.POINTER, pos)
-                self.pointerDitherState += 1
-                return
+        # Dither slowly to the correct position at base speed
+        elif self.pointerDitherState == 2:
+            self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
+            self.moveToPosRadians(self.POINTER, pos - 0.75)
+            self.pointerDitherState += 1
+            return
 
-            # Dither slowly to the correct position at base speed
-            elif self.pointerDitherState == 2:
-                self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-                pos = robot.blockManagers[robot.currentManager].buildPos[1] - 0.75
-                self.moveToPosRadians(self.POINTER, pos)
-                self.pointerDitherState += 1
-                return
+        elif self.pointerDitherState == 3:
+            self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
+            self.moveToPosRadians(self.POINTER, pos + 0.5)
+            self.pointerDitherState += 1
+            return
 
-            elif self.pointerDitherState == 3:
-                self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-                pos = robot.blockManagers[robot.currentManager].buildPos[1] + 0.5
-                self.moveToPosRadians(self.POINTER, pos)
-                self.pointerDitherState += 1
-                return
+        elif self.pointerDitherState == 4:
+            self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
+            self.moveToPosRadians(self.POINTER, pos - 0.25)
+            self.pointerDitherState += 1
+            return
 
-            elif self.pointerDitherState == 4:
-                self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-                pos = robot.blockManagers[robot.currentManager].buildPos[1] - 0.25
-                self.moveToPosRadians(self.POINTER, pos)
-                self.pointerDitherState += 1
-                return
-
-            elif self.pointerDitherState == 5:
-                self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-                pos = robot.blockManagers[robot.currentManager].buildPos[1]
-                self.moveToPosRadians(self.POINTER, pos)
-                self.pointerDitherState += 1
-                return
-
-            # Once we are there, do nothing
-            else:
-                return
-
-        elif robot.state == robot.STATE_WAITING:
-            self.pointerDitherState = 0
-            self.followKnocker()
-
+        elif self.pointerDitherState == 5:
+            self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
+            self.moveToPosRadians(self.POINTER, pos)
+            self.pointerDitherState = -1
+            return
+        # Once we are there, do nothing
         else:
             return
 

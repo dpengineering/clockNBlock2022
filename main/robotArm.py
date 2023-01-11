@@ -5,20 +5,21 @@
 #      *      Arnav Wadhwa, Brian Vesper           12/03/2022           *
 #      *                                                                *
 #      ******************************************************************
-import sys
-from time import sleep
-
-sys.path.insert(0, '..')
-from dpeaDPi.DPiRobot import DPiRobot
-from dpeaDPi.DPiSolenoid import DPiSolenoid
-from main.blockManager import BlockManager
-from main.blockFeeder import BlockFeeder
 
 import math
 import numpy as np
 
 # More accurate timer
 from timeit import default_timer as timer
+
+import sys
+sys.path.insert(0, '..')
+
+from dpeaDPi.DPiRobot import DPiRobot
+from dpeaDPi.DPiSolenoid import DPiSolenoid
+from main.blockManager import BlockManager
+from main.blockFeeder import BlockFeeder
+from main.hands import Hands
 
 
 class RobotArm:
@@ -30,6 +31,7 @@ class RobotArm:
 
     dpiRobot = DPiRobot()
     dpiSolenoid = DPiSolenoid()
+    hands = Hands()
     MAGNET_SOLENOID = 0
     ROTATING_SOLENOID = 0
 
@@ -160,6 +162,11 @@ class RobotArm:
                 #     return
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
+
+                # Sends the pointer hand to the place where the robot is picking a block up
+                self.hands.setSpeed(self.hands.POINTER, self.hands.POINTER_MAX_SPEED)
+                self.moveToPosRadians(self.hands.POINTER, self.target[1])
+
                 return
 
             # If our current position is at the block feeder, we should grab this block:
@@ -201,6 +208,7 @@ class RobotArm:
                 print("rotating solenoid")
                 self.rotateBlock()
                 self.setState(self.STATE_PLACE_BLOCK)
+
                 return
 
         # Stacks block by grabbing a list of waypoints from blockManager
@@ -217,6 +225,11 @@ class RobotArm:
                     self.setState(self.STATE_GET_BLOCK)
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
+
+                # Sends the pointer hand to the place where the robot is picking a block up
+                self.hands.setSpeed(self.hands.POINTER, self.hands.POINTER_MAX_SPEED)
+                self.moveToPosRadians(self.hands.POINTER, self.target[1])
+
                 return
 
             # Check if we are at the location, drop the block
@@ -227,7 +240,7 @@ class RobotArm:
                 self.setState(self.STATE_GET_BLOCK)
                 return
 
-        # Rehomes robot if there is nowhere for it to go
+        # Re-homes robot if there is nowhere for it to go
         # This will take a while and interrupt our state machine
         # But is helpful to rehome the robot incase it loses steps
         # Waits for a manager to be free

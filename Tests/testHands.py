@@ -46,6 +46,24 @@ def main():
     print(f'Move pointer pi / 2')
     hands.moveToPosRadians(hands.POINTER, pos)
 
+    hands.waitForHandsStopped()
+
+    pos = 3 * math.pi / 2
+    print(f'Move pointer 3pi / 2')
+    hands.moveToPosRadians(hands.POINTER, pos)
+
+    hands.waitForHandsStopped()
+
+    pos = robot.blockManagers[0].feederPos[1]
+    print(f'Move to Feeder 0 ')
+    hands.moveToPosRadians(hands.POINTER, pos)
+
+    hands.waitForHandsStopped()
+
+    pos = robot.blockManagers[0].buildPos[1]
+    print(f'Move to build 0')
+    hands.moveToPosRadians(hands.POINTER, pos)
+
 
 if __name__ == "__main__":
     main()
