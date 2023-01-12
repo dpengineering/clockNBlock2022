@@ -72,13 +72,13 @@ class RobotArm:
     NUM_BLOCK_FEEDERS = len(blockFeeders)
 
     # Locations for all the block feeders
-    feederLocations = [(345, -0.906, -65), (342, -2.500, -65), (343, 2.196, -64), (343, 0.661, -63)]
+    feederLocations = [(345, -0.906, -65), (342, -2.500, -65), (343, 2.200, -65), (343, 0.663, -63)]
 
     # Locations for all the build locations
     # Note: Currently the third build Location  is closer to the center
     #   This is because the robot arms crash into the structure that houses the robot
     #   We will also need to make it so the third buildLocation will never path in from the side
-    buildLocations = [(402, -0.134, -42), (409, -1.696, -42), (416, 2.998, -42), (350, 1.437, -42)]
+    buildLocations = [(375, -0.134, -42), (409, -1.696, -42), (416, 2.998, -42), (350, 1.437, -42)]
 
     # Sets how high the stack of blocks will be
     stackSize = 5
@@ -125,6 +125,7 @@ class RobotArm:
             return False
 
         # Sets first state
+        self.rotateBlock()
         self.setState(self.STATE_GET_BLOCK)
         # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
         return True
@@ -141,7 +142,7 @@ class RobotArm:
         """
         # Setup for state machine
         currentPos = self.getPositionRadians()
-        print(f'State: {self.state}, newState: {self.newState}, robotStatus: {self.dpiRobot.getRobotStatus()}')
+        # print(f'State: {self.state}, newState: {self.newState}, robotStatus: {self.dpiRobot.getRobotStatus()}')
         # print(f'robot pos: {currentPos}')
         # print(f"Clock: {minutePos}, Robot theta: {currentPos[1]}")
         # print(f'Robot state: {self.state}, {self.newState}')
@@ -162,16 +163,19 @@ class RobotArm:
                 #     return
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
-
+                print(f"R: {self.target[0]}, theta: {self.target[1]}, z: {self.target[2]}")
                 # Sends the pointer hand to the place where the robot is picking a block up
                 self.hands.setSpeed(self.hands.POINTER, self.hands.POINTER_MAX_SPEED)
-                self.moveToPosRadians(self.hands.POINTER, self.target[1])
+
+                # The + 0.11 for position is necessary because otherwise the hand is offset by a bunch
+                self.hands.moveToPosRadians(self.hands.POINTER, self.target[1] + 0.11)
 
                 return
 
             # If our current position is at the block feeder, we should grab this block:
             # elif self.isAtLocation(self.target):
             elif self.isAtLocation(self.target) and self.dpiRobot.getRobotStatus()[1] == 6:
+                print(f"position: {self.hands.getPositionRadians()}")
                 self.setState(self.STATE_PICKUP_BLOCK)
                 return
 
@@ -205,7 +209,7 @@ class RobotArm:
 
             # elif self.isAtLocation(self.target):
             elif self.isAtLocation(self.target) and self.dpiRobot.getRobotStatus()[1] == 6:
-                print("rotating solenoid")
+                # print("rotating solenoid")
                 self.rotateBlock()
                 self.setState(self.STATE_PLACE_BLOCK)
 
@@ -225,10 +229,11 @@ class RobotArm:
                     self.setState(self.STATE_GET_BLOCK)
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
-
+                print(f"R: {self.target[0]}, theta: {self.target[1]}, z: {self.target[2]}")
                 # Sends the pointer hand to the place where the robot is picking a block up
                 self.hands.setSpeed(self.hands.POINTER, self.hands.POINTER_MAX_SPEED)
-                self.moveToPosRadians(self.hands.POINTER, self.target[1])
+                self.hands.moveToPosRadians(self.hands.POINTER, self.target[1] + 0.11)
+
 
                 return
 
@@ -236,6 +241,7 @@ class RobotArm:
             # elif self.isAtLocation(self.target):
             elif self.isAtLocation(self.target) and self.dpiRobot.getRobotStatus()[1] == 6:
                 # print("dropping block")
+                print(f"position: {self.hands.getPositionRadians()}")
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
                 self.setState(self.STATE_GET_BLOCK)
                 return
@@ -344,7 +350,7 @@ class RobotArm:
         """
         waypoints.insert(0, currentPos)
         waypoints = self.ensureStraightLine(waypoints)
-        print(f'Queue Waypoints, robotStatus: {self.dpiRobot.getRobotStatus()} (Stopped is 6)')
+        # print(f'Queue Waypoints, robotStatus: {self.dpiRobot.getRobotStatus()} (Stopped is 6)')
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
         for point in range(len(waypoints)):
             self.moveToPosRadians(waypoints[point], speed)
@@ -387,11 +393,11 @@ class RobotArm:
         """
         r, theta, z = self.getPositionRadians()
         # print(f'Robot r, target r: {r}, {target[0]}, theta, tTtheta: {theta}, {target[1]}, Z, tZ: {z}, {target[2]}')
-        if abs(r - target[0]) > 1:
+        if abs(r - target[0]) > 0.5:
             return False
-        elif abs(theta - target[1]) > 0.05:  # Arbitrary value should probably change
+        elif abs(theta - target[1]) > 0.01:  # Arbitrary value should probably change
             return False
-        elif abs(z - target[2]) > 1:
+        elif abs(z - target[2]) > 0.5:
             return False
 
         return True
@@ -416,9 +422,9 @@ class RobotArm:
             r2, theta2, z2 = waypoints[point + 1]
             distance = math.sqrt(r1*r1 + r2*r2 - 2*r1*r2*math.cos(theta1 - theta2))
             # If the distance is greater than 20mm, split our moves up into 20mm segments
-            if distance > 20:
+            if distance > 25:
                 # Number of steps to split our line into
-                numSteps = int(distance / 20)
+                numSteps = int(distance / 25)
 
                 # To generate the intermediary waypoints, np.linspace() is used on r, theta, and z values individually
                 #   We create the points by merging the same index of each array into a tuple, and add it to our list

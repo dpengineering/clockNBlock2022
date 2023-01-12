@@ -17,7 +17,7 @@ robotRotationSolenoid = 10
 
 robot = RobotArm(robotMagnetSolenoid, robotRotationSolenoid)
 
-hands = robot.hands()
+hands = robot.hands
 blockFeeders = robot.blockFeeders
 
 NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
@@ -39,11 +39,9 @@ def setup():
 
 
 def exit_handler():
+    robot.dpiRobot.waitWhileRobotIsMoving()
     robot.dpiRobot.homeRobot(True)
-    robot.dpiRobot.addWaypoint(0, 20, 0)
-    robot.dpiRobot.disableMotors()
-    hands.dpiStepper.emergencyStop(0)
-    hands.dpiStepper.emergencyStop(1)
+    hands.dpiStepper.enableMotors(False)
 
 
 def main():
@@ -55,7 +53,7 @@ def main():
 
         for i in range(NUM_BLOCK_FEEDERS):
             blockFeeders[i].process()
-        hands.process(robot)
+        hands.process()
         robot.process(hands.getPositionRadians()[1], hands.getPositionRadians()[0])  # Minute, hour hand
         # Runs exit handler when program stops(only works sometimes)
         signal.signal(signal.SIGTERM, (lambda signum, frame: exit_handler()))

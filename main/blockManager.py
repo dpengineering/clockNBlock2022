@@ -33,7 +33,7 @@ class BlockManager:
             buildPos (tuple): Build site location in polar coordinates
             stackSize (int): Optional height and width of stack
         """
-        self.radianOffset = .2
+        self.radianOffset = .25
         self.feederPos = feederPos
         self.buildPos = buildPos
         self.MINIMUM_MOVING_HEIGHT = 100  # feederPos[2] + self._BLOCK_SIZE * 6
@@ -100,6 +100,14 @@ class BlockManager:
             movingPath.append(waypoint)
 
         # Add actual moving points:
+
+        # Move 40mm inwards so it does not hit any of the pillars
+        # Fix for QueueWaypoints breaking if R is negative
+        if targetR <= 150:
+            waypoint = targetR - 150, currentPos[1], currentPos
+            movingPath.append(waypoint)
+            currentPos = waypoint
+
         # Go next to point and hover above
         waypoint = targetR - offset, targetTheta, currentPos[2]
         movingPath.append(waypoint)
@@ -140,6 +148,15 @@ class BlockManager:
             movingPath.append(waypoint)
 
         # Add actual moving points:
+
+        # Move 40mm inwards so it does not hit any of the pillars
+        # Fix for QueueWaypoints breaking if R is negative
+        if targetR <= 40:
+            waypoint = targetR - 40, currentPos[1], currentPos
+            movingPath.append(waypoint)
+            currentPos = waypoint
+
+
         # Go side to point and hover above
         waypoint = targetR, targetTheta - offset, currentPos[2]
         movingPath.append(waypoint)

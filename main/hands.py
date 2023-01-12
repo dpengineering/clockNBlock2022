@@ -13,6 +13,7 @@ from time import sleep
 import sys
 sys.path.insert(0, '..')
 
+
 # Placeholder name for now
 class Hands:
     """Controls the hands through the DPi_Stepper board
@@ -29,7 +30,7 @@ class Hands:
     # I am not sure why there is 300 extra steps for a full rotation.
     POINTER_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * POINTER_GEAR_REDUCTION + 300  # 8300
     # Pointer hand base speed, 1660 steps/sec
-    POINTER_BASE_SPEED = int(POINTER_STEPS_PER_REVOLUTION / 5)
+    POINTER_BASE_SPEED = int(POINTER_STEPS_PER_REVOLUTION / 3)
     # Pointer hand max speed. I don't feel comfortable sending it more than 0.5 rev / sec - 4150 steps/sec
     POINTER_MAX_SPEED = int(POINTER_STEPS_PER_REVOLUTION / 2)
 
@@ -54,12 +55,9 @@ class Hands:
     def process(self):
         """State machine for the hands"""
 
-        # Check if we need to reset the  steps to be in our range
-        self.updatePosition()
-
-        # if not self.isStepperMoving(self.KNOCKER):
-        #     # print("moving minute hand")
-        #     self.dpiStepper.moveToRelativePositionInSteps(self.KNOCKER, self.KNOCKER_STEPS_PER_REVOLUTION, False)
+        if not self.isStepperMoving(self.KNOCKER):
+            # print("moving minute hand")
+            self.dpiStepper.moveToRelativePositionInSteps(self.KNOCKER, self.KNOCKER_STEPS_PER_REVOLUTION, False)
 
         return
 
@@ -244,17 +242,6 @@ class Hands:
 
         self.dpiStepper.waitUntilMotorStops(self.POINTER)
         self.dpiStepper.waitUntilMotorStops(self.KNOCKER)
-
-    def updatePosition(self):
-        """Helper function to reset step value to within the range of a full rotation"""
-
-        pointerPos = self.dpiStepper.getCurrentPositionInSteps(self.POINTER)[1]
-        if pointerPos >= self.POINTER_STEPS_PER_REVOLUTION:
-            self.dpiStepper.setCurrentPositionInSteps(self.POINTER, pointerPos % self.POINTER_STEPS_PER_REVOLUTION)
-
-        knockerPos = self.dpiStepper.getCurrentPositionInSteps(self.KNOCKER)[1]
-        if knockerPos >= self.KNOCKER_STEPS_PER_REVOLUTION:
-            self.dpiStepper.setCurrentPositionInSteps(self.KNOCKER, knockerPos % self.KNOCKER_STEPS_PER_REVOLUTION)
 
     # This is probably going to be quite jerky, will test more
     def followKnocker(self):
