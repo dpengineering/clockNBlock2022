@@ -156,11 +156,6 @@ class RobotArm:
                     self.setState(self.STATE_WAITING)
                     return
                 positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
-                # One possibility of ensuring the robot is stopped is this
-                # if self.dpiRobot.getRobotStatus()[1] == 6:
-                #     self.queueWaypoints(positionList, currentPos, self.speed)
-                #     self.newState = False
-                #     return
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
                 print(f"R: {self.target[0]}, theta: {self.target[1]}, z: {self.target[2]}")
@@ -173,9 +168,8 @@ class RobotArm:
                 return
 
             # If our current position is at the block feeder, we should grab this block:
-            # elif self.isAtLocation(self.target):
             elif self.isAtLocation(self.target) and self.dpiRobot.getRobotStatus()[1] == 6:
-                print(f"position: {self.hands.getPositionRadians()}")
+                # print(f"position: {self.hands.getPositionRadians()}")
                 self.setState(self.STATE_PICKUP_BLOCK)
                 return
 
@@ -229,7 +223,7 @@ class RobotArm:
                     self.setState(self.STATE_GET_BLOCK)
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
-                print(f"R: {self.target[0]}, theta: {self.target[1]}, z: {self.target[2]}")
+                # print(f"R: {self.target[0]}, theta: {self.target[1]}, z: {self.target[2]}")
                 # Sends the pointer hand to the place where the robot is picking a block up
                 self.hands.setSpeed(self.hands.POINTER, self.hands.POINTER_MAX_SPEED)
                 self.hands.moveToPosRadians(self.hands.POINTER, self.target[1] + 0.11)
@@ -241,7 +235,7 @@ class RobotArm:
             # elif self.isAtLocation(self.target):
             elif self.isAtLocation(self.target) and self.dpiRobot.getRobotStatus()[1] == 6:
                 # print("dropping block")
-                print(f"position: {self.hands.getPositionRadians()}")
+                # print(f"position: {self.hands.getPositionRadians()}")
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
                 self.setState(self.STATE_GET_BLOCK)
                 return
