@@ -136,6 +136,7 @@ class BlockFeeder:
         # Changes state to pull piston down
         if self.state == self._STATE_READY:
             if not self.dpiClockNBlock.readExit():
+                # print(f"Board: {self.BOARD_NUMBER},block removed")
                 self.setState(self._STATE_BLOCK_REMOVED)
                 print('Moving on to State block removed')
                 return
@@ -147,6 +148,8 @@ class BlockFeeder:
         elif self.state == self._STATE_BLOCK_REMOVED:
 
             # Retract the up piston
+            # print(f"Exit: {self.dpiClockNBlock.readExit()}")
+            # Check if block is actually gone first
             if self.newState:
                 print('Sleeping 5 seconds before dropping piston')
                 sleep(5)
@@ -155,6 +158,7 @@ class BlockFeeder:
                     print('Misfire, going back to ready')
                     self.setState(self._STATE_READY)
                     return
+
                 self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
                 # Starts timer
                 self.start = timer()
