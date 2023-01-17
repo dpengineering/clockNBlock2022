@@ -144,8 +144,8 @@ class Hands:
 
         # Go to 0 Position
         # print("moving to 0")
-        self.dpiStepper.moveToRelativePositionInSteps(self.KNOCKER, -134400, False)
-        self.dpiStepper.moveToRelativePositionInSteps(self.POINTER, -1905, False)
+        self.dpiStepper.moveToRelativePositionInSteps(self.KNOCKER, -81100, False)
+        self.dpiStepper.moveToRelativePositionInSteps(self.POINTER, 2025, False)
 
         while not self.dpiStepper.getAllMotorsStopped():
             sleep(0.1)
