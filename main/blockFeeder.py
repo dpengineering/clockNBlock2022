@@ -138,7 +138,7 @@ class BlockFeeder:
             if not self.dpiClockNBlock.readExit():
                 # print(f"Board: {self.BOARD_NUMBER},block removed")
                 self.setState(self._STATE_BLOCK_REMOVED)
-                print('Moving on to State block removed')
+                # print('Moving on to State block removed')
                 return
             return
 
@@ -146,16 +146,11 @@ class BlockFeeder:
         # Waits for it to be completely down
         # Changes state to push block over
         elif self.state == self._STATE_BLOCK_REMOVED:
-
             # Retract the up piston
-            # print(f"Exit: {self.dpiClockNBlock.readExit()}")
-            # Check if block is actually gone first
             if self.newState:
-                print('Sleeping 5 seconds before dropping piston')
-                sleep(5)
-                # Testing purposes
+                # To make sure the block is actually gone
                 if self.dpiClockNBlock.readExit():
-                    print('Misfire, going back to ready')
+                    # print('Misfire, going back to ready')
                     self.setState(self._STATE_READY)
                     return
 

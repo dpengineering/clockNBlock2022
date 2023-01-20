@@ -60,8 +60,8 @@ def main():
         robot.process(hands.getPositionRadians()[1], hands.getPositionRadians()[0])  # Minute, hour hand
 
         # Runs exit handler when program stops
-        signal.signal(signal.SIGTERM, (lambda signum, frame: exit_handler()))
-        signal.signal(signal.SIGINT, (lambda signum, frame: exit_handler()))
+        # signal.signal(signal.SIGTERM, (lambda signum, frame: exit_handler()))
+        # signal.signal(signal.SIGINT, (lambda signum, frame: exit_handler()))
 
 
 # Run script

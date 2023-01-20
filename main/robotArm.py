@@ -72,13 +72,13 @@ class RobotArm:
     NUM_BLOCK_FEEDERS = len(blockFeeders)
 
     # Locations for all the block feeders
-    feederLocations = [(345, -0.906, -65), (342, -2.500, -65), (343, 2.200, -65), (343, 0.663, -63)]
+    feederLocations = [(345, -0.906, -65), (342, -2.500, -65), (346, 2.24, -67), (343, 0.663, -63)]
 
     # Locations for all the build locations
     # Note: Currently the third build Location  is closer to the center
     #   This is because the robot arms crash into the structure that houses the robot
     #   We will also need to make it so the third buildLocation will never path in from the side
-    buildLocations = [(375, -0.134, -42), (409, -1.696, -42), (416, 2.998, -42), (350, 1.437, -42)]
+    buildLocations = [(355, -0.134, -42), (409, -1.696, -42), (416, 2.998, -42), (350, 1.437, -42)]
 
     # Sets how high the stack of blocks will be
     stackSize = 5
@@ -158,7 +158,7 @@ class RobotArm:
                 positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
-                print(f"R: {self.target[0]}, theta: {self.target[1]}, z: {self.target[2]}")
+                # print(f"R: {self.target[0]}, theta: {self.target[1]}, z: {self.target[2]}")
                 # Sends the pointer hand to the place where the robot is picking a block up
                 self.hands.setSpeed(self.hands.POINTER, self.hands.POINTER_MAX_SPEED)
 

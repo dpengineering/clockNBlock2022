@@ -30,14 +30,14 @@ class Hands:
     # I am not sure why there is 300 extra steps for a full rotation.
     POINTER_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * POINTER_GEAR_REDUCTION + 300  # 8300
     # Pointer hand base speed, 1660 steps/sec
-    POINTER_BASE_SPEED = int(POINTER_STEPS_PER_REVOLUTION / 3)
+    POINTER_BASE_SPEED = int(POINTER_STEPS_PER_REVOLUTION)
     # Pointer hand max speed. I don't feel comfortable sending it more than 0.5 rev / sec - 4150 steps/sec
     POINTER_MAX_SPEED = int(POINTER_STEPS_PER_REVOLUTION / 2)
 
     KNOCKER_GEAR_REDUCTION = 204  # Gear reduction is 204:1
     KNOCKER_STEPS_PER_REVOLUTION = int(200 * MICROSTEPPING * KNOCKER_GEAR_REDUCTION * 0.998)  # 326400
-    # Base knocker speed, 1 revolution in 16 minutes ~ 340 steps/sec
-    KNOCKER_BASE_SPEED = KNOCKER_STEPS_PER_REVOLUTION / 960
+    # Base knocker speed, 1 revolution in 16 minutes ~ 467 steps/sec
+    KNOCKER_BASE_SPEED = KNOCKER_STEPS_PER_REVOLUTION / 700
     KNOCKER_MAX_SPEED = 20000
 
     pointerDitherState = 0
