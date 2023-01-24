@@ -468,8 +468,8 @@ class RobotArm:
         # Note: this operation is fairly slow because of the nested for loops.
         #   If this moves us in a straight line, it might be worth refactoring
         #   The code to work in cartesian coordinates
-        for i in waypoints:
-            nextPoint = self.polarToCartesian(waypoints[i])
+        for waypoint in waypoints:
+            nextPoint = self.polarToCartesian(waypoint)
             # Calculating the distance between our last point and the next point we need to go to
             distance = abs(math.dist(straightWaypoints[-1], nextPoint))
 
