@@ -52,7 +52,7 @@ class BlockManager:
             tuple: Final position to move, used to check completion of robot's state
         """
         # The head is fairly large so we need a larger radian offset.
-        waypointList, target = self.pathToTargetSide(currentPos, self.feederPos, self.radianOffset + 0.1)
+        waypointList, target = self.pathToTarget(currentPos, self.feederPos, self.radianOffset + 0.1)
 
         return waypointList, target
 
@@ -70,63 +70,12 @@ class BlockManager:
         """
         if self.blockToPlace == len(self.blockPositions):
             return False
-        if self.hourBlocking(hourPos):
-            # print('going Pathside')
-            waypointList, target = self.pathToTargetSide(currentPos, self.blockPositions[self.blockToPlace], self.radianOffset)
-        else:
-            waypointList, target = self.pathToTarget(currentPos, self.blockPositions[self.blockToPlace], self._BLOCK_SIZE)
+
+        waypointList, target = self.pathToTarget(currentPos, self.blockPositions[self.blockToPlace], self.radianOffset)
         self.blockToPlace += 1
         return waypointList, target
 
-    def pathToTarget(self, currentPos: tuple, target: tuple, offset: float):
-        """Helper function to generate the path the robot takes to a target position (With radius offset)
-
-        Args:
-            currentPos (tuple): Current position of robot arm in polar coordinates
-            target (tuple): Final position the robot moves to
-            offset (float): How far away from final position we want to move down
-                This is so the robot does not crash into potentially stacked blocks
-
-        Returns:
-            list: List of waypoints (tuple) to move the robot to
-            tuple: Final position to move, used to check completion of robot's state
-        """
-        movingPath = []
-        targetR, targetTheta, targetZ = target
-        # If we are too low, bring the robot up to over the working height.
-        if currentPos[2] < self.MINIMUM_MOVING_HEIGHT:
-            waypoint = currentPos[0], currentPos[1], self.MINIMUM_MOVING_HEIGHT
-            currentPos = waypoint
-            movingPath.append(waypoint)
-
-        # Add actual moving points:
-
-        # Move 40mm inwards so it does not hit any of the pillars
-        # Fix for QueueWaypoints breaking if R is negative
-        if targetR <= 150:
-            waypoint = targetR - 150, currentPos[1], currentPos
-            movingPath.append(waypoint)
-            currentPos = waypoint
-
-        # Go next to point and hover above
-        waypoint = targetR - offset, targetTheta, currentPos[2]
-        movingPath.append(waypoint)
-        currentPos = waypoint
-
-        # Go down to right next to point
-        waypoint = currentPos[0], currentPos[1], targetZ + 10
-        movingPath.append(waypoint)
-        currentPos = waypoint
-
-        # slide over to point
-        waypoint = targetR, targetTheta, currentPos[2]
-        movingPath.append(waypoint)
-
-        movingPath.append(target)
-
-        return movingPath, target
-
-    def pathToTargetSide(self, currentPos: tuple, target: tuple, offset: float):
+    def pathToTarget(self, currentPos: tuple, target: tuple, offset=.25):
         """Helper function to generate the path the robot takes to a target position (With radian offset)
 
         Args:

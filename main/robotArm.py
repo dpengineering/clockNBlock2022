@@ -227,8 +227,6 @@ class RobotArm:
                 # Sends the pointer hand to the place where the robot is picking a block up
                 self.hands.setSpeed(self.hands.POINTER, self.hands.POINTER_MAX_SPEED)
                 self.hands.moveToPosRadians(self.hands.POINTER, self.target[1] + 0.11)
-
-
                 return
 
             # Check if we are at the location, drop the block
@@ -342,12 +340,20 @@ class RobotArm:
         Returns:
             none
         """
+        # waypoints.insert(0, currentPos)
+        # waypoints = self.ensureStraightLine(waypoints)
+        # # print(f'Queue Waypoints, robotStatus: {self.dpiRobot.getRobotStatus()} (Stopped is 6)')
+        # self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
+        # for point in range(len(waypoints)):
+        #     self.moveToPosRadians(waypoints[point], speed)
+        # self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
+
+        # For an actually straight line, non-polar moves
         waypoints.insert(0, currentPos)
-        waypoints = self.ensureStraightLine(waypoints)
-        # print(f'Queue Waypoints, robotStatus: {self.dpiRobot.getRobotStatus()} (Stopped is 6)')
+        waypoints = self.ensureStraightLineCartesian(waypoints)
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
         for point in range(len(waypoints)):
-            self.moveToPosRadians(waypoints[point], speed)
+            self.moveToPoint(waypoints[point], speed)
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
 
     def chooseNextManager(self, minutePos: float):
@@ -415,7 +421,7 @@ class RobotArm:
             r1, theta1, z1 = waypoints[point]
             r2, theta2, z2 = waypoints[point + 1]
             distance = math.sqrt(r1*r1 + r2*r2 - 2*r1*r2*math.cos(theta1 - theta2))
-            # If the distance is greater than 20mm, split our moves up into 20mm segments
+            # If the distance is greater than 25mm, split our moves up into 25mm segments
             if distance > 25:
                 # Number of steps to split our line into
                 numSteps = int(distance / 25)
@@ -438,4 +444,54 @@ class RobotArm:
         straightWaypoints.append(waypoints[-1])
 
         return straightWaypoints
+
+    def ensureStraightLineCartesian(self, waypoints: list) -> list:
+        """Helper function to split up long moves to a list of short moves.
+        Used for the robot to move with more 'authority'.
+        This ensures that the robot will travel in a straight line as it does not do so with a long move.
+        Check DPi_Robot firmware to see why. Alternatively, google how linear delta arms work.
+
+        This makes the robot move in a straight line for cartesian coordinates. (As in no arcs)
+
+        Args:
+            waypoints (list): List of waypoints with possible long moves
+        Returns:
+            straightWaypoints (list): List of waypoints with long moves broken up
+        """
+
+        # Create our list of waypoints to return
+        # Also, add our current position to the list
+        straightWaypoints = [self.getPosition()]
+
+        # Convert our list of waypoints in polar coordinates to a list in cartesian coordinates
+
+        # Note: this operation is fairly slow because of the nested for loops.
+        #   If this moves us in a straight line, it might be worth refactoring
+        #   The code to work in cartesian coordinates
+        for i in waypoints:
+            nextPoint = self.polarToCartesian(waypoints[i])
+            # Calculating the distance between our last point and the next point we need to go to
+            distance = abs(math.dist(straightWaypoints[-1], nextPoint))
+
+            # If the distance is greater than 25mm, split the move into many steps
+            if distance > 25:
+                numSteps = int(distance / 25)
+                # Current x, y, z values
+                cX, cY, cZ = straightWaypoints[-1]
+                # target x, y, z
+                tX, tY, tZ = nextPoint
+
+                # Split our move into a bunch of steps
+                xSteps = np.linspace(cX, tX, numSteps, False)
+                ySteps = np.linspace(cY, tY, numSteps, False)
+                zSteps = np.linspace(cZ, tZ, numSteps, False)
+
+                # Add these points to our list
+                for j in range(len(xSteps)):
+                    straightWaypoints.append((xSteps[j], ySteps[j], zSteps[j]))
+
+            straightWaypoints.append(nextPoint)
+
+        return straightWaypoints
+
 
