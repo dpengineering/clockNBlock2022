@@ -207,7 +207,9 @@ class BlockFeeder:
         # Waits for block to be inputted
         # Changes state to push block over
         elif self.state == self._STATE_IDLE:
-            self.dpiClockNBlock.blinkArrow(True, 1000)
+            if self.newState:
+                self.dpiClockNBlock.blinkArrow(True, 200)
+                self.newState = False
             # Wait for a block to be inserted then switch to feed 2
             if self.dpiClockNBlock.readFeed_1():
                 self.dpiClockNBlock.blinkArrow(False)

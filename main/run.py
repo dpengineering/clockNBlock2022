@@ -5,7 +5,6 @@
 #      *            Arnav Wadhwa                   12/08/2022           *
 #      *                                                                *
 #      ******************************************************************
-import signal
 import sys
 sys.path.insert(0, '..')
 
@@ -39,12 +38,6 @@ def setup():
     hands.setSpeedBoth(hands.POINTER_BASE_SPEED, round(hands.KNOCKER_BASE_SPEED))
 
 
-# This runs when the python script is terminated. Used for a safe shutdown of the project.
-def exit_handler():
-    robot.dpiRobot.waitWhileRobotIsMoving()
-    robot.dpiRobot.homeRobot(True)
-    hands.dpiStepper.enableMotors(False)
-
 
 # Main loop where all of the individual state functions are called.
 def main():
@@ -58,10 +51,6 @@ def main():
             blockFeeders[i].process()
         hands.process()
         robot.process(hands.getPositionRadians()[1], hands.getPositionRadians()[0])  # Minute, hour hand
-
-        # Runs exit handler when program stops
-        signal.signal(signal.SIGTERM, (lambda signum, frame: exit_handler()))
-        signal.signal(signal.SIGINT, (lambda signum, frame: exit_handler()))
 
 
 # Run script
