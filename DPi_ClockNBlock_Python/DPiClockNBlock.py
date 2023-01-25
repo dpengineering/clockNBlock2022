@@ -21,6 +21,7 @@ _CMD_DPi_CLOCKNBLOCK__READ_FEED_2           = 0x04
 _CMD_DPi_CLOCKNBLOCK__READ_EXIT             = 0x05
 _CMD_DPi_CLOCKNBLOCK__ARROW_ON              = 0x06
 _CMD_DPi_CLOCKNBLOCK__ARROW_OFF             = 0x07
+_CMD_DPi_CLOCKNBLOCK__BLINK_ARROW           = 0x08
 
 #
 # other constants used by this class
@@ -28,6 +29,7 @@ _CMD_DPi_CLOCKNBLOCK__ARROW_OFF             = 0x07
 _NUMBER_OF_DPi_CLOCKNBLOCK_SENSORS = 4
 _DPiNETWORK_TIMEOUT_PERIOD_MS = 3
 _DPiNETWORK_BASE_ADDRESS = 0x3C
+
 
 class DPiClockNBlock:
     #
@@ -133,7 +135,6 @@ class DPiClockNBlock:
     def arrowOff(self):
         return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__ARROW_OFF)
 
-
     #
     # Toggle arrow
     #   Exit: True on success, else False
@@ -143,3 +144,16 @@ class DPiClockNBlock:
             return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__ARROW_ON)
         else:
             return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__ARROW_OFF)
+
+    #
+    # Start blinking the arrow
+    #   Exit: True on success, else False
+    #
+    def blinkArrow(self, enableFlg=False, blinkDurationMS=1000):
+
+        if (blinkDurationMS < 1) or (blinkDurationMS > 65000):
+            return False
+
+        dpiNetwork.pushUint8(int(enableFlg))
+        dpiNetwork.pushUint16(blinkDurationMS)
+        return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__BLINK_ARROW)
