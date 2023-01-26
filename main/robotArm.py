@@ -168,7 +168,7 @@ class RobotArm:
                 return
 
             # If our current position is at the block feeder, we should grab this block:
-            elif self.isAtLocation(self.target) and self.dpiRobot.getRobotStatus()[1] == 6:
+            elif self.isAtLocation(self.target):
                 # print(f"position: {self.hands.getPositionRadians()}")
                 self.setState(self.STATE_PICKUP_BLOCK)
                 return
@@ -202,7 +202,7 @@ class RobotArm:
                 return
 
             # elif self.isAtLocation(self.target):
-            elif self.isAtLocation(self.target) and self.dpiRobot.getRobotStatus()[1] == 6:
+            elif self.isAtLocation(self.target):
                 # print("rotating solenoid")
                 self.rotateBlock()
                 self.setState(self.STATE_PLACE_BLOCK)
@@ -231,7 +231,7 @@ class RobotArm:
 
             # Check if we are at the location, drop the block
             # elif self.isAtLocation(self.target):
-            elif self.isAtLocation(self.target) and self.dpiRobot.getRobotStatus()[1] == 6:
+            elif self.isAtLocation(self.target):
                 # print("dropping block")
                 # print(f"position: {self.hands.getPositionRadians()}")
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
@@ -340,17 +340,10 @@ class RobotArm:
         Returns:
             none
         """
-        # waypoints.insert(0, currentPos)
-        # waypoints = self.ensureStraightLine(waypoints)
-        # # print(f'Queue Waypoints, robotStatus: {self.dpiRobot.getRobotStatus()} (Stopped is 6)')
-        # self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
-        # for point in range(len(waypoints)):
-        #     self.moveToPosRadians(waypoints[point], speed)
-        # self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
 
         # For an actually straight line, non-polar moves
         waypoints.insert(0, currentPos)
-        waypoints = self.ensureStraightLineCartesian(waypoints)
+        waypoints = self.ensureStraightLine(waypoints)
         self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
         for point in range(len(waypoints)):
             self.moveToPoint(waypoints[point], speed)
@@ -400,52 +393,9 @@ class RobotArm:
         elif abs(z - target[2]) > 0.5:
             return False
 
-        return True
+        return True and self.dpiRobot.getRobotStatus()[1] == 6
 
     def ensureStraightLine(self, waypoints: list) -> list:
-        """Helper function to split up long moves in r, theta to a list of short moves.
-        Used for the robot to move with more 'authority'.
-        This ensures that the robot will travel in a straight line as it does not do so with a long move.
-        Check DPi_Robot firmware to see why. Alternatively, google how linear delta arms work.
-        Args:
-            waypoints (list): List of waypoints with possible long moves
-        Returns:
-            straightWaypoints (list): List of waypoints with long moves broken up
-        """
-
-        straightWaypoints = []
-
-        # Loop through our list to find which moves are too far to be a straight line
-        #   We don't need to check how far the points are away in Z because the robot moves downwards in a straight line
-        for point in range(len(waypoints) - 1):
-            r1, theta1, z1 = waypoints[point]
-            r2, theta2, z2 = waypoints[point + 1]
-            distance = math.sqrt(r1*r1 + r2*r2 - 2*r1*r2*math.cos(theta1 - theta2))
-            # If the distance is greater than 25mm, split our moves up into 25mm segments
-            if distance > 25:
-                # Number of steps to split our line into
-                numSteps = int(distance / 25)
-
-                # To generate the intermediary waypoints, np.linspace() is used on r, theta, and z values individually
-                #   We create the points by merging the same index of each array into a tuple, and add it to our list
-
-                rSteps = np.linspace(r1, r2, numSteps)
-                thetaSteps = np.linspace(theta1, theta2, numSteps)
-                zSteps = np.linspace(z1, z2, numSteps)
-
-                # Add our points to the list
-                #   Final point is omitted as it will  get added in the next iteration of the loop or at the very end
-                for i in range(len(rSteps) - 1):
-                    straightWaypoints.append((rSteps[i], thetaSteps[i], zSteps[i]))
-            else:
-                straightWaypoints.append(waypoints[point])
-
-        # Add final point to list
-        straightWaypoints.append(waypoints[-1])
-
-        return straightWaypoints
-
-    def ensureStraightLineCartesian(self, waypoints: list) -> list:
         """Helper function to split up long moves to a list of short moves.
         Used for the robot to move with more 'authority'.
         This ensures that the robot will travel in a straight line as it does not do so with a long move.

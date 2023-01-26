@@ -10,11 +10,7 @@ import math
 from dpeaDPi.DPiStepper import DPiStepper
 from time import sleep
 
-import sys
-sys.path.insert(0, '..')
 
-
-# Placeholder name for now
 class Hands:
     """Controls the hands through the DPi_Stepper board
 
@@ -60,55 +56,6 @@ class Hands:
             self.dpiStepper.moveToRelativePositionInSteps(self.KNOCKER, self.KNOCKER_STEPS_PER_REVOLUTION, False)
 
         return
-
-    def processPointer(self, pos: float):
-        """State machine for the pointer
-        These are individual state machines to make the code a slight bit cleaner
-
-        The state for the pointer will be reliant on the Robot state
-        """
-
-        if self.pointerDitherState == 0:
-            # Speed value is arbitrary, more testing needed
-            self.setSpeed(self.POINTER, int(self.POINTER_MAX_SPEED / 3))
-            self.moveToPosRadians(self.POINTER, pos - 0.25)
-            self.pointerDitherState += 1
-            return
-
-        # Sulk back to right before our position slowly
-        elif self.pointerDitherState == 1:
-            self.setSpeed(self.POINTER, int(self.POINTER_BASE_SPEED / 2))
-            self.moveToPosRadians(self.POINTER, pos + 0.1)
-            self.pointerDitherState += 1
-            return
-
-        # Dither slowly to the correct position at base speed
-        elif self.pointerDitherState == 2:
-            self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-            self.moveToPosRadians(self.POINTER, pos - 0.75)
-            self.pointerDitherState += 1
-            return
-
-        elif self.pointerDitherState == 3:
-            self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-            self.moveToPosRadians(self.POINTER, pos + 0.5)
-            self.pointerDitherState += 1
-            return
-
-        elif self.pointerDitherState == 4:
-            self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-            self.moveToPosRadians(self.POINTER, pos - 0.25)
-            self.pointerDitherState += 1
-            return
-
-        elif self.pointerDitherState == 5:
-            self.setSpeed(self.POINTER, self.POINTER_BASE_SPEED)
-            self.moveToPosRadians(self.POINTER, pos)
-            self.pointerDitherState = -1
-            return
-        # Once we are there, do nothing
-        else:
-            return
 
     # Sets up hands
     def setup(self):
@@ -243,11 +190,4 @@ class Hands:
         self.dpiStepper.waitUntilMotorStops(self.POINTER)
         self.dpiStepper.waitUntilMotorStops(self.KNOCKER)
 
-    # This is probably going to be quite jerky, will test more
-    def followKnocker(self):
-        """Helper function to send the pointer to the knocker"""
-        pos = self.getPositionRadians()[1]
-
-        self.setSpeed(self.POINTER, self.POINTER_MAX_SPEED)
-        self.moveToPosRadians(self.POINTER, pos)
 

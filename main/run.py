@@ -6,7 +6,7 @@
 #      *                                                                *
 #      ******************************************************************
 import sys
-sys.path.insert(0, '..')
+sys.path.insert(0, '/home/pi/projects/clockNBlock2022/')
 
 from main.robotArm import RobotArm
 
