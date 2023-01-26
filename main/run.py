@@ -5,20 +5,19 @@
 #      *            Arnav Wadhwa                   12/08/2022           *
 #      *                                                                *
 #      ******************************************************************
-from datetime import datetime
-import signal
 import sys
-sys.path.insert(0, '..')
+sys.path.insert(0, '/home/pi/projects/clockNBlock2022/')
 
-from main.clockHands import Clock
 from main.robotArm import RobotArm
+
+# Constants for setup
 
 robotMagnetSolenoid = 11
 robotRotationSolenoid = 10
 
-clock = Clock()
 robot = RobotArm(robotMagnetSolenoid, robotRotationSolenoid)
 
+hands = robot.hands
 blockFeeders = robot.blockFeeders
 
 NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
@@ -29,47 +28,32 @@ def setup():
     # Call setup functions for each component
     # print("setup robo")
     robot.setup()
-    clock.setup()
+    hands.setup()
     for i in range(NUM_BLOCK_FEEDERS):
         # print(f"setup blockfeeder {i}")
         blockFeeders[i].setup()
 
-    clock.dpiStepper.moveToRelativePositionInSteps(1, 326400, False)
-    clock.dpiStepper.waitUntilMotorStops(1)
-    # Move to current time
-    currentTime = datetime.now().strftime("%H:%M")
-    # print(f"moving to current time which is {currentTime}")
-    time = currentTime.replace(':', '')
-    time = int(time)
-    clock.moveToTime(time)
-    clock.dpiStepper.waitUntilMotorStops(1)
-    clock.dpiStepper.waitUntilMotorStops(0)
+    hands.dpiStepper.moveToRelativePositionInSteps(1, 326400, False)
+    hands.dpiStepper.waitUntilMotorStops(1)
+    hands.setSpeedBoth(hands.POINTER_BASE_SPEED, round(hands.KNOCKER_BASE_SPEED))
 
 
-def exit_handler():
-    robot.dpiRobot.homeRobot()
-    robot.dpiRobot.addWaypoint(0, 20, 0)
-    robot.dpiRobot.disableMotors()
-    clock.dpiStepper.emergencyStop(0)
-    clock.dpiStepper.emergencyStop(1)
 
-
+# Main loop where all of the individual state functions are called.
 def main():
 
     setup()
 
     # print("moving on to loop")
     while True:
-
+        # Call state functions
         for i in range(NUM_BLOCK_FEEDERS):
             blockFeeders[i].process()
-        clock.process(5)
-        robot.process(clock.getPositionRadians(1), clock.getPositionRadians(0))  # Minute, hour hand
-        # Runs exit handler when program stops(only works sometimes)
-        signal.signal(signal.SIGTERM, (lambda signum, frame: exit_handler()))
-        signal.signal(signal.SIGINT, (lambda signum, frame: exit_handler()))
+        hands.process()
+        robot.process(hands.getPositionRadians()[1], hands.getPositionRadians()[0])  # Minute, hour hand
 
 
+# Run script
 if __name__ == "__main__":
     main()
 

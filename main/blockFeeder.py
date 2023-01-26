@@ -6,7 +6,7 @@
 #      *                                                                *
 #      ******************************************************************
 
-# To import the from other folders in project
+# To import from the other folders in project
 import sys
 sys.path.insert(0, "..")
 
@@ -135,18 +135,25 @@ class BlockFeeder:
         # Waits for block to be picked up
         # Changes state to pull piston down
         if self.state == self._STATE_READY:
-
             if not self.dpiClockNBlock.readExit():
+                # print(f"Board: {self.BOARD_NUMBER},block removed")
                 self.setState(self._STATE_BLOCK_REMOVED)
+                # print('Moving on to State block removed')
+                return
             return
 
         # Pulls piston down
         # Waits for it to be completely down
         # Changes state to push block over
         elif self.state == self._STATE_BLOCK_REMOVED:
-
             # Retract the up piston
             if self.newState:
+                # To make sure the block is actually gone
+                if self.dpiClockNBlock.readExit():
+                    # print('Misfire, going back to ready')
+                    self.setState(self._STATE_READY)
+                    return
+
                 self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
                 # Starts timer
                 self.start = timer()
@@ -200,8 +207,12 @@ class BlockFeeder:
         # Waits for block to be inputted
         # Changes state to push block over
         elif self.state == self._STATE_IDLE:
+            if self.newState:
+                self.dpiClockNBlock.blinkArrow(True, 200)
+                self.newState = False
             # Wait for a block to be inserted then switch to feed 2
             if self.dpiClockNBlock.readFeed_1():
+                self.dpiClockNBlock.blinkArrow(False)
                 self.setState(self._STATE_FEED2)
                 return
             return
