@@ -221,6 +221,7 @@ class RobotArm:
                 if type(positionList) == bool and not positionList:
                     self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
                     self.setState(self.STATE_GET_BLOCK)
+                    
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
                 # print(f"R: {self.target[0]}, theta: {self.target[1]}, z: {self.target[2]}")
@@ -273,13 +274,14 @@ class RobotArm:
         return r, theta, z
 
     def polarToCartesian(self, position: tuple):
-
         """Helper function to change polar coordinates to cartesian
-                Args:
-                    position (tuple): Current robot position in polar plane
-                Returns:
-                    x, y, z (tuple (float)): Returns the cartesian coordinates that correspond to the polar coordinates
-                """
+
+        Args:
+            position (tuple): Current robot position in polar plane
+        Returns:
+            x, y, z (tuple (float)): Returns the cartesian coordinates that correspond to the polar coordinates
+        """
+                
         r, theta, z = position
         x = r*math.cos(theta)
         y = r*math.sin(theta)
@@ -340,7 +342,6 @@ class RobotArm:
         Returns:
             none
         """
-
         # For an actually straight line, non-polar moves
         waypoints.insert(0, currentPos)
         waypoints = self.ensureStraightLine(waypoints)
@@ -441,7 +442,4 @@ class RobotArm:
                     straightWaypoints.append((xSteps[j], ySteps[j], zSteps[j]))
 
             straightWaypoints.append(nextPoint)
-
         return straightWaypoints
-
-
