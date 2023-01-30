@@ -251,10 +251,12 @@ class RobotArm:
             if self.newState:
                 # print("homing Robot")
                 self.dpiRobot.homeRobot(True)
+                self.hands.Idle = True
                 self.newState = False
                 return
 
             if self.chooseNextManager(minutePos):
+                self.hands.Idle = False
                 self.setState(self.STATE_GET_BLOCK)
 
     # ---------------------------------------------------------------------------------

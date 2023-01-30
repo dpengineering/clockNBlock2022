@@ -38,6 +38,8 @@ class Hands:
 
     pointerDitherState = 0
 
+    Idle = False
+
     def __init__(self, pointer=0, knocker=1):
         """Constructor for hands
         Does nothing, just creates the object
@@ -50,11 +52,12 @@ class Hands:
 
     def process(self):
         """State machine for the hands"""
-
-        if not self.isStepperMoving(self.KNOCKER):
-            # print("moving minute hand")
-            self.dpiStepper.moveToRelativePositionInSteps(self.KNOCKER, self.KNOCKER_STEPS_PER_REVOLUTION, False)
-
+        if self.Idle:
+            self.dpiStepper.emergencyStop(self.KNOCKER)
+        else:
+            if not self.isStepperMoving(self.KNOCKER):
+                # print("moving minute hand")
+                self.dpiStepper.moveToRelativePositionInSteps(self.KNOCKER, self.KNOCKER_STEPS_PER_REVOLUTION, False)
         return
 
     # Sets up hands
