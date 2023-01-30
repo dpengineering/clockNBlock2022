@@ -1,3 +1,8 @@
+# ToDo List
+[Google Doc Link](https://docs.google.com/document/d/1s_93HzQu_74fJWDLWwISt_NYs3OvQ41pf5nRqQ8sUA4/edit?usp=sharing).  
+Please request access if you would like to change the doc or check things off.  
+  
+
 # ClockNBlock 2022 Version
 Written by `@ArnavVWadhwa` and `@bvesper15` this is the new version of the clockNBlock project with the "shiny new delta arm." The major changes this year was to the circuit boards used. We added `@Stan-Reifel's` new DPi Circuit boards and redid the wiring. 
 
