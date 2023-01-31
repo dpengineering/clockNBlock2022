@@ -16,12 +16,13 @@ class TrainingCartesian:
 
     # YOU CAN CRASH THE ROBOT WITH THIS, PLEASE DON'T DRIVE IT RECKLESSLY
 
-    # Empty array of waypoints at the moment,
-    buffer = [[0] * 3] * 3
     locationsFile = open("locations", "a")
     time = strftime("%Y-%m-%d %H:%M", gmtime())
     locationsFile.write(f'Locations saved at {time} \n')
     locationsFile.close()
+
+    minZ = -70
+    maxZ = 210
 
     def __init__(self):
 
@@ -34,6 +35,8 @@ class TrainingCartesian:
         self.joystick.init()
 
         self.dpiRobot = DPiRobot()
+        self.dpiRobot.setBoardNumber(0)
+        self.dpiRobot.homeRobot(True)
 
     def get_axis(self, axis):
         """
@@ -72,7 +75,7 @@ class TrainingCartesian:
         # Currently, the 5 is an arbitrary number, change it as you wish
         translateX = self.num_to_range(self.get_axis('x'), -1, 1, -5, 5)
         translateY = self.num_to_range(self.get_axis('y'), -1, 1, -5, 5)
-        translateZ = self.num_to_range(self.get_axis('z'), 1, -1, -60, 200)
+        translateZ = self.num_to_range(self.get_axis('z'), 1, -1, self.minZ, self.maxZ)
 
         currentX, currentY, currentZ = self.dpiRobot.getCurrentPosition()
 
