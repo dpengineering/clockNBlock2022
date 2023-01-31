@@ -5,7 +5,7 @@
 #      *            Arnav Wadhwa                     1/30/2023          *
 #      *                                                                *
 #      ******************************************************************
-from time import strftime, gmtime
+from time import strftime, gmtime, sleep
 
 import pygame
 import os
@@ -21,6 +21,10 @@ class TrainingCartesian:
     locationsFile.write(f'Locations saved at {time} \n')
     locationsFile.close()
 
+    minX = -610
+    maxX = 610
+    minY = -610
+    maxY = 610
     minZ = -70
     maxZ = 210
 
@@ -73,13 +77,11 @@ class TrainingCartesian:
     def generate_waypoint(self):
 
         # Currently, the 5 is an arbitrary number, change it as you wish
-        translateX = self.num_to_range(self.get_axis('x'), -1, 1, -5, 5)
-        translateY = self.num_to_range(self.get_axis('y'), -1, 1, -5, 5)
+        translateX = self.num_to_range(self.get_axis('x'), -1, 1, self.minX, self.maxX)
+        translateY = self.num_to_range(self.get_axis('y'), -1, 1, self.minY, self.maxY)
         translateZ = self.num_to_range(self.get_axis('z'), 1, -1, self.minZ, self.maxZ)
 
-        currentX, currentY, currentZ = self.dpiRobot.getCurrentPosition()
-
-        return translateX + currentX, translateY + currentY, translateZ
+        return translateX, translateY, translateZ
 
     def add_waypoint(self, waypoint: tuple, speed: int = 50):
         self.dpiRobot.addWaypoint(waypoint[0], waypoint[1], waypoint[2], speed)
