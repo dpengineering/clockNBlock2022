@@ -216,7 +216,7 @@ class RobotArm:
 
             if self.newState:
                 # print("moving to place block position")
-                positionList, self.target = self.blockManagers[self.currentManager].placeBlock(currentPos, hourPos)
+                positionList, self.target = self.blockManagers[self.currentManager].placeBlock(currentPos)
                 # Make sure stack isn't full, if it is just drop the block
                 if type(positionList) == bool and not positionList:
                     self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
