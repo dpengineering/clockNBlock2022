@@ -73,7 +73,7 @@ class Training:
         homingStatus = self.dpiRobot.homeRobot(True)
         print(f"robot homing status {homingStatus}")
 
-        self.movementFlag = True
+        self.movementFlag = False
 
     #
     # Get the axis (x, y, or z) of the joystick.
@@ -149,9 +149,11 @@ class Training:
             translateZ = 3
         elif translateZ < -3:
             translateZ = -3
+        elif abs(translateZ) < 0.3:
+            translateZ = 0
 
         if status:
-            return translateX + currentX, translateY + currentY, translateZ, speed
+            return translateX + currentX, translateY + currentY, currentZ + translateZ, speed
         else:
             raise Exception("Could not get current position from DPiRobot")
 
@@ -179,6 +181,20 @@ class Training:
 
         return (X, Y, Z), speed
 
+    @staticmethod
+    def cartesianToPolar(position: tuple):
+        """Helper function to change cartesian coordinates to polar
+        Args:
+            position (tuple): Current robot position in cartesian plane
+        Returns:
+            r, theta, z (tuple (float)): Returns the polar coordinates that correspond to the cartesian coordinates
+        """
+        x, y, z = position
+        # Convert to Polar Coords
+        r = math.sqrt(x ** 2 + y ** 2)
+        theta = math.atan2(y, x)
+        return r, theta, z
+
     #
     # Checks if we have pressed other buttons.
     # The trigger saves the location the robot is currently at
@@ -189,11 +205,12 @@ class Training:
             if event.type == pygame.JOYBUTTONDOWN:
                 if self.joystick.get_button(0):
                     status, x, y, z = self.dpiRobot.getCurrentPosition()
+                    r, theta, z = self.cartesianToPolar((x, y, z))
                     if status:
                         print("Write to file")
                         locationsFile = open("locations", "a")
                         name = input("What point is this? ")
-                        locationsFile.write(f'{name}: ({x}, {y}, {z} \n')
+                        locationsFile.write(f'{name}: ({r}, {theta}, {z} \n')
                         locationsFile.close()
                     else:
                         raise Exception("Could not get current position from DPiRobot")
