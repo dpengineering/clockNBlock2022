@@ -73,6 +73,8 @@ class Training:
         homingStatus = self.dpiRobot.homeRobot(True)
         print(f"robot homing status {homingStatus}")
 
+        self.movementFlag = True
+
     #
     # Get the axis (x, y, or z) of the joystick.
     # Returns a float from -1 to 1 of each joystick position
@@ -209,6 +211,10 @@ class Training:
                     print("rotating")
                     self.dpiSolenoid.switchDriverOnOrOff(10, self.rotateVal)
                     self.rotateVal = not self.rotateVal
+
+                elif self.joystick.get_button(4):
+                    print("toggling movement")
+                    self.movementFlag = not self.movementFlag
 
 
 # Runs our main loop
