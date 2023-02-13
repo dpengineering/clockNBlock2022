@@ -69,22 +69,25 @@ class Hands:
         self.dpiStepper.setBoardNumber(0)
 
         if not self.dpiStepper.initialize():
-            # print("Communication with the DPiStepper board failed.")
-            return
+            print("Communication with the DPiStepper board failed.")
+            return False
 
         self.dpiStepper.setMicrostepping(self.MICROSTEPPING)
 
         self.dpiStepper.enableMotors(True)
         # print("homing")
-        self.home()
+        if not self.home():
+            return False
 
     def home(self):
         """Helper function to home the hands and move them to the 0 position"""
         # Move to limit switches
         # print("Home pointer hand")
-        self.dpiStepper.moveToHomeInSteps(self.POINTER, 1, self.POINTER_MAX_SPEED, self.POINTER_STEPS_PER_REVOLUTION)
-        # print("Home knocker hand")
-        self.dpiStepper.moveToHomeInSteps(self.KNOCKER, 1, self.KNOCKER_MAX_SPEED, self.KNOCKER_STEPS_PER_REVOLUTION)
+        if not self.dpiStepper.moveToHomeInSteps(self.POINTER, 1, self.POINTER_MAX_SPEED, self.POINTER_STEPS_PER_REVOLUTION):
+            return False
+
+        if not self.dpiStepper.moveToHomeInSteps(self.KNOCKER, 1, self.KNOCKER_MAX_SPEED, self.KNOCKER_STEPS_PER_REVOLUTION):
+            return False
 
         self.dpiStepper.waitUntilMotorStops(self.POINTER)
         self.dpiStepper.waitUntilMotorStops(self.KNOCKER)
@@ -102,6 +105,7 @@ class Hands:
 
         self.dpiStepper.setCurrentPositionInSteps(self.KNOCKER, 0)
         self.dpiStepper.setCurrentPositionInSteps(self.POINTER, 0)
+        return True
         # print("done")
 
     def setSpeed(self, hand: int, speed: int):
