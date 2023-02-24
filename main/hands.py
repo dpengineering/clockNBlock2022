@@ -79,6 +79,8 @@ class Hands:
         if not self.home():
             return False
 
+        return True
+
     def home(self):
         """Helper function to home the hands and move them to the 0 position"""
         # Move to limit switches
