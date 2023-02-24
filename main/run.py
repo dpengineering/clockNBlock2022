@@ -54,7 +54,7 @@ def main():
         hands.process()
         robot.process(hands.getPositionRadians()[1])
 
-        setup()
+        # setup()
 
 
 # Run script

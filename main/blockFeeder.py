@@ -127,7 +127,7 @@ class BlockFeeder:
         # print(f"Feeder State: {self.state}, NewState: {self.newState}, Board: {self.BOARD_NUMBER}")
 
         # Update arrow (on if the feeder isn't full, otherwise off)
-        self.dpiClockNBlock.arrowToggle(not self.dpiClockNBlock.readEntrance())
+        # self.dpiClockNBlock.arrowToggle(not self.dpiClockNBlock.readEntrance())
 
         # Ready State
         #   This means the feeder is displaying a block for the robot to pick up
