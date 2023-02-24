@@ -48,7 +48,7 @@ def main():
     setup()
 
     # print("moving on to loop")
-    while not robot.isHomedFlg:
+    while robot.isHomedFlg:
         # Call state functions
         for i in range(NUM_BLOCK_FEEDERS):
             blockFeeders[i].process()
