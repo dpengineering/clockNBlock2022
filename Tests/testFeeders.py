@@ -17,8 +17,10 @@ NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
 
 
 def setup():
-    print("Setting up feeder 0")
-    blockFeeders[0].setup()
+    for i in range(NUM_BLOCK_FEEDERS):
+        print(f"setup blockfeeder {i}")
+        if not blockFeeders[i].setup():
+            raise Exception(f"BlockFeeder {i} setup failed")
 
 
 def main():
@@ -26,7 +28,9 @@ def main():
     setup()
 
     while True:
-        blockFeeders[0].process()
+        for i in range(NUM_BLOCK_FEEDERS):
+            print(f'Running blockfeeder {i}')
+            blockFeeders[i].process()
 
 
 if __name__ == "__main__":
