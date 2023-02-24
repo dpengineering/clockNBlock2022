@@ -108,18 +108,11 @@ def polarToCartesian(position: tuple):
 
 def main():
 
-    i = pathToTarget((422, -0.134, -42), (345, -0.906, -65), 33)
-    print(i)
-
-    path = i[0]
-    path.insert(0, (422, -0.134, -42))
-    j = ensureStraightLine(path)
-    print(j)
-
-    for point in j:
-        print(polarToCartesian(point))
-
-    print(f'Initial: {polarToCartesian((422, -0.134, -42))}, Final: {polarToCartesian((345, -0.906, -65))}')
+    x, y, z = -276.7, -210.1, -63
+    # Convert to Polar Coords
+    r = math.sqrt(x ** 2 + y ** 2)
+    theta = math.atan2(y, x)
+    print(r, theta, z)
 
 if __name__ == "__main__":
     main()

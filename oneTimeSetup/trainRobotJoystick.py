@@ -5,9 +5,8 @@
 #      *            Arnav Wadhwa                     1/30/2023          *
 #      *                                                                *
 #      ******************************************************************
-
 import math
-from time import strftime, gmtime
+from time import strftime, gmtime, sleep
 
 import pygame
 import os
@@ -20,8 +19,8 @@ class Training:
     # YOU CAN CRASH THE ROBOT WITH THIS, PLEASE DON'T DRIVE IT RECKLESSLY
 
     # Constants:
-    maxZ = 202
-    minZ = -60
+    maxZ = -1200
+    minZ = -1500
     #
     # This program is intended to be used to "train" points that the robot can repeatedly go to
     # In order to save our points, we will write them to a text file so the user does not have to
@@ -73,7 +72,8 @@ class Training:
         homingStatus = self.dpiRobot.homeRobot(True)
         print(f"robot homing status {homingStatus}")
 
-        self.movementFlag = False
+        self.movementFlag = True
+        self.pushVal = False
 
     #
     # Get the axis (x, y, or z) of the joystick.
@@ -129,26 +129,41 @@ class Training:
 
         # Currently, the 3 is an arbitrary number, change it as you wish
         # However, it limits the step size of the robot to be at max 27 mm
-        translateX = self.num_to_range(self.get_axis('x'), -1, 1, 0, 3)
-        translateY = self.num_to_range(self.get_axis('y'), -1, 1, 0, 3)
-        joystickZ = self.num_to_range(self.get_axis('z'), -1, 1, self.minZ, self.maxZ)
+        translateX = self.num_to_range(self.get_axis('x'), -1, 1, -10, 10)
+        translateY = self.num_to_range(self.get_axis('y'), 1, -1, -10, 10)
+        joystickZ = self.num_to_range(self.get_axis('z'), 1, -1, self.minZ, self.maxZ)
+
+        if self.get_axis('x') == 0:
+            translateX = 0
+        if self.get_axis('y') == 0:
+            translateY = 0
+
+        # print(f'Translate X, Y: {translateX, translateY}')
 
         magnitude = math.sqrt(sum(pow(element, 2) for element in self.get_axis('all')))
 
-        speed = self.num_to_range(magnitude, 0, math.sqrt(3), 0, 100)
+        if magnitude == 0:
+            magnitude = 1
+
+        speed = self.num_to_range(magnitude, 0, math.sqrt(5), 0, 100)
 
         status, currentX, currentY, currentZ = self.dpiRobot.getCurrentPosition()
 
-        translateZ = currentZ - joystickZ
+
+        translateZ = joystickZ - currentZ
+
+        if self.get_axis('z') == 0:
+            translateZ = 0
 
         # Splits out Z steps into small amounts
-        if translateZ > 3:
+        # print(f'translateZ: {translateZ}')
+        if translateZ > 5:
             # One line way to get the sign of translateZ but honestly this is slow and
             # Not worth it at all
             # 3 * (translateZ/abs(translateZ))
-            translateZ = 3
-        elif translateZ < -3:
-            translateZ = -3
+            translateZ = 5
+        elif translateZ < -5:
+            translateZ = -5
         elif abs(translateZ) < 0.3:
             translateZ = 0
 
@@ -162,13 +177,14 @@ class Training:
     # This ensures we don't overflow the waypoint queue
     #
     def ready_for_next_point(self, target: tuple) -> bool:
+        # print(self.dpiRobot.getRobotStatus())
         status, currentX, currentY, currentZ = self.dpiRobot.getCurrentPosition()
         if status:
             currentPos = currentX, currentY, currentZ
         else:
             raise Exception("Could not get current position from DPiRobot")
 
-        return math.dist(currentPos, target) <= 2
+        return math.dist(currentPos, target) <= 1
 
     #
     # Adds the generated waypoint after the robot is close enough to the previous waypoint
@@ -176,8 +192,12 @@ class Training:
     # Returns the waypoint in order to be able to set it as a previous waypoint
     #
     def add_waypoint(self):
-        X, Y, Z, speed = self.generate_waypoint()
-        self.dpiRobot.addWaypoint(X, Y, Z, speed)
+        if self.movementFlag:
+            X, Y, Z, speed = self.generate_waypoint()
+            print(self.dpiRobot.addWaypoint(X, Y, Z, speed))
+            print(f"Moving to {X, Y, Z}")
+        else:
+            X, Y, Z, speed = 0, 0, 0, 0
 
         return (X, Y, Z), speed
 
@@ -233,6 +253,14 @@ class Training:
                     print("toggling movement")
                     self.movementFlag = not self.movementFlag
 
+                elif self.joystick.get_button(5):
+                    print('pushing pistons')
+                    self.dpiSolenoid.switchDriverOnOrOff(7, self.pushVal)
+                    self.dpiSolenoid.switchDriverOnOrOff(3, self.pushVal)
+                    self.dpiSolenoid.switchDriverOnOrOff(8, self.pushVal)
+                    self.dpiSolenoid.switchDriverOnOrOff(1, self.pushVal)
+                    self.pushVal = not self.pushVal
+
 
 # Runs our main loop
 def main():
@@ -245,8 +273,10 @@ def main():
     # This is for checking if we should add more waypoints to the buffer
     print("getting current position and setting previous target")
     status, currentX, currentY, currentZ = joystick.dpiRobot.getCurrentPosition()
+    print(f"Status: {status}: Location{currentX, currentY, currentZ}")
     previousTarget = currentX, currentY, currentZ
-
+    print(f'Status: {status}, CurrentPos: {currentX}, {currentY}, {currentZ}')
+    print((joystick.dpiRobot.addWaypoint(previousTarget[0], previousTarget[1], previousTarget[2], 100)))
     # Loop through our main function
     while True:
 
@@ -254,11 +284,11 @@ def main():
         joystick.check_other_buttons()
 
         # If we are close enough to make our next move, do so now
-        if joystick.ready_for_next_point(previousTarget):
+        # print(f'Status: {joystick.dpiRobot.getRobotStatus()}')
+        if joystick.dpiRobot.getRobotStatus()[1] == 6:
             # Sets target to the point we are going to
-            target, speed = joystick.add_waypoint()
-            print(f"Moving to {target}")
-            previousTarget = target
+            joystick.add_waypoint()
+        # print(joystick.get_axis('all'))
 
 
 if __name__ == "__main__":

@@ -72,7 +72,7 @@ class RobotArm:
     NUM_BLOCK_FEEDERS = len(blockFeeders)
 
     # Locations for all the block feeders
-    feederLocations = [(345, -0.906, -65), (342, -2.500, -65), (346, 2.24, -67), (343, 0.663, -63)]
+    feederLocations = [(348, -0.910, -63.0), (347, -2.492, -63), (342, 2.230, -60.2), (338, 0.643, -60.2)]
 
     # Locations for all the build locations
     # Note: Currently the third build Location  is closer to the center
