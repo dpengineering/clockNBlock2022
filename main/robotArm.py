@@ -7,6 +7,8 @@
 #      ******************************************************************
 
 import math
+from time import sleep
+
 import numpy as np
 
 # More accurate timer
@@ -92,6 +94,7 @@ class RobotArm:
             magnetSolenoid (int): Solenoid number to extend and retracts the magnet
             rotatingSolenoid (int): Solenoid number to rotate blocks
         """
+        self.isHomedFlg = False
         self.target = -1, -1, -1
         self.start = None
         self.MAGNET_SOLENOID = magnetSolenoid
@@ -109,6 +112,8 @@ class RobotArm:
         self.dpiRobot.setBoardNumber(0)
         self.dpiSolenoid.setBoardNumber(0)
 
+
+
         # initializes robot
         if not self.dpiRobot.initialize():
             # print("Communication with the DPiRobot board failed.")
@@ -121,8 +126,14 @@ class RobotArm:
 
         # Homes robot
         if not self.dpiRobot.homeRobot(True):
-            # print("Homing failed.")
+            print("Homing failed.")
+
+            _success_flg, status = self.dpiRobot.getRobotStatus()
+            if status == self.dpiRobot.STATE_E_STOPPED_PRESSED:
+                print("E-Stop button is pressed.")
             return False
+
+        self.isHomedFlg = True
 
         # Sets first state
         self.rotateBlock()
@@ -150,6 +161,14 @@ class RobotArm:
         # Gets a block by grabbing a list of waypoints from the block manager then going to the waypoints
         # Waits for the movement to finish
         # Changes state to pick up the block
+
+        # Check if E-Stop has been pressed, if so suspend all actions by busy waiting until
+        #   Unpressed and then re-initialize program.
+        if self.state == self.dpiRobot.STATE_NOT_HOMED or self.state == self.dpiRobot.STATE_E_STOPPED_PRESSED:
+            while self.state != self.dpiRobot.STATE_NOT_HOMED:
+                sleep(0.1)
+            self.isHomedFlg = False
+
         if self.state == self.STATE_GET_BLOCK:
             if self.newState:
                 if not self.chooseNextManager(minutePos):

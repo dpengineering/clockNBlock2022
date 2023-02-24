@@ -27,16 +27,19 @@ def setup():
 
     # Call setup functions for each component
     # print("setup robo")
-    robot.setup()
-    hands.setup()
+    if not robot.setup():
+        raise Exception("Robot setup failed")
+
+    if not hands.setup():
+        raise Exception("Hands setup failed")
     for i in range(NUM_BLOCK_FEEDERS):
         # print(f"setup blockfeeder {i}")
-        blockFeeders[i].setup()
+        if not blockFeeders[i].setup():
+            raise Exception(f"BlockFeeder {i} setup failed")
 
     hands.dpiStepper.moveToRelativePositionInSteps(1, 326400, False)
     hands.dpiStepper.waitUntilMotorStops(1)
     hands.setSpeedBoth(hands.POINTER_BASE_SPEED, round(hands.KNOCKER_BASE_SPEED))
-
 
 
 # Main loop where all of the individual state functions are called.
@@ -45,12 +48,14 @@ def main():
     setup()
 
     # print("moving on to loop")
-    while True:
+    while not robot.isHomedFlg:
         # Call state functions
         for i in range(NUM_BLOCK_FEEDERS):
             blockFeeders[i].process()
         hands.process()
-        robot.process(hands.getPositionRadians()[1], hands.getPositionRadians()[0])  # Minute, hour hand
+        robot.process(hands.getPositionRadians()[1], hands.getPositionRadians()[0])
+
+        setup()
 
 
 # Run script
