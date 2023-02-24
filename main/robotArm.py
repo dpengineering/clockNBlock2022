@@ -116,12 +116,12 @@ class RobotArm:
 
         # initializes robot
         if not self.dpiRobot.initialize():
-            # print("Communication with the DPiRobot board failed.")
+            print("Communication with the DPiRobot board failed.")
             return False
 
         # initializes solenoid board
         if not self.dpiSolenoid.initialize():
-            # print("Communication with the DPiSolenoid board failed.")
+            print("Communication with the DPiSolenoid board failed.")
             return False
 
         # Homes robot
@@ -142,11 +142,10 @@ class RobotArm:
         # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
         return True
 
-    def process(self, minutePos: float, hourPos: float):
+    def process(self, minutePos: float):
         """State machine for Robot arm
         Args:
             minutePos (float): Position of clock's minute hand
-            hourPos (float): Position of clock's hour hand
         These are necessary to choose the next blockManager
         And check see if we need to move in from the side to avoid crashing into the hour hand
         Returns:

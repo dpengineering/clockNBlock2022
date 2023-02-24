@@ -26,7 +26,6 @@ NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
 def setup():
 
     # Call setup functions for each component
-    # print("setup robo")
     if not robot.setup():
         raise Exception("Robot setup failed")
 
@@ -53,7 +52,7 @@ def main():
         for i in range(NUM_BLOCK_FEEDERS):
             blockFeeders[i].process()
         hands.process()
-        robot.process(hands.getPositionRadians()[1], hands.getPositionRadians()[0])
+        robot.process(hands.getPositionRadians()[1])
 
         setup()
 
