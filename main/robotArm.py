@@ -74,16 +74,16 @@ class RobotArm:
     NUM_BLOCK_FEEDERS = len(blockFeeders)
 
     # Locations for all the block feeders
-    feederLocations = [(348, -0.910, -63.0), (347, -2.492, -63), (342, 2.230, -60.2), (338, 0.643, -60.2)]
+    feederLocations = [(343, -0.906, -1470.6), (340, -2.497, -1478.3), (345, 2.216, -1473.7), (339, 0.648, -1472.2)]
 
     # Locations for all the build locations
     # Note: Currently the third build Location  is closer to the center
     #   This is because the robot arms crash into the structure that houses the robot
     #   We will also need to make it so the third buildLocation will never path in from the side
-    buildLocations = [(355, -0.134, -42), (409, -1.696, -42), (416, 2.998, -42), (350, 1.437, -42)]
+    buildLocations = [(351, -0.139, -1447.4), (385, -1.685, -1445.9), (389, 3.004, -1445.9), (313, 1.434, -1450.5)]
 
     # Sets how high the stack of blocks will be
-    stackSize = 5
+    stackSize = 6
     blockManagers = []
     for i in range(NUM_BLOCK_FEEDERS):
         blockManagers.append(BlockManager(blockFeeders[i], feederLocations[i], buildLocations[i], stackSize))
@@ -137,6 +137,7 @@ class RobotArm:
 
         # Sets first state
         self.rotateBlock()
+        self.rotateBlock()
         self.setState(self.STATE_GET_BLOCK)
         # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
         return True
@@ -174,6 +175,7 @@ class RobotArm:
                 if not self.chooseNextManager(minutePos):
                     self.setState(self.STATE_WAITING)
                     return
+                self.rotateBlock()
                 positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
