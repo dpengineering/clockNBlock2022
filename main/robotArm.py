@@ -5,7 +5,7 @@
 #      *      Arnav Wadhwa, Brian Vesper           12/03/2022           *
 #      *                                                                *
 #      ******************************************************************
-
+import logging
 import math
 from time import sleep
 
@@ -140,6 +140,14 @@ class RobotArm:
         self.rotateBlock()
         self.setState(self.STATE_GET_BLOCK)
         # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
+
+        logging.debug(f'Robot Arm States Key:'
+                      f'STATE_GET_BLOCK =    0'
+                      f'STATE_PICKUP_BLOCK = 1'
+                      f'STATE_MOVE_UP =      2'
+                      f'STATE_PLACE_BLOCK =  3'
+                      f'STATE_WAITING =      4'
+                      )
         return True
 
     def process(self, minutePos: float):
@@ -153,6 +161,8 @@ class RobotArm:
         """
         # Setup for state machine
         currentPos = self.getPositionRadians()
+        logging.debug(f"Robot Arm:"
+                      f"State: {self.state}, NewState: {self.newState}")
         # print(f'State: {self.state}, newState: {self.newState}, robotStatus: {self.dpiRobot.getRobotStatus()}')
         # print(f'robot pos: {currentPos}')
         # print(f"Clock: {minutePos}, Robot theta: {currentPos[1]}")
@@ -201,7 +211,6 @@ class RobotArm:
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, True)
                 self.start = timer()
                 self.newState = False
-                # print("move up")
                 return
 
             # Wait for robot arm to have picked up the block, then move robot arm up so we can rotate it

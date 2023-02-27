@@ -9,6 +9,7 @@ import math
 
 # To import from other folders in project
 import sys
+
 sys.path.insert(0, "..")
 
 from main.blockFeeder import BlockFeeder
@@ -24,7 +25,7 @@ class BlockManager:
     _BLOCK_SIZE = 31  # Block size in mm
     _ROBOT_HEAD_WIDTH = 160  # Baseplate of robot head in mm
 
-    def __init__(self,  blockFeeder: BlockFeeder, feederPos: tuple, buildPos: tuple, stackSize = 5):
+    def __init__(self, blockFeeder: BlockFeeder, feederPos: tuple, buildPos: tuple, stackSize=5):
         """Constructor for blockManagers
 
         Args:
@@ -159,8 +160,8 @@ class BlockManager:
         # print(f"Feed: {self.feederPos[1]}, Build: {self.buildPos[1]}, Clock: {minutePos}")
 
         # Shift range from 0 to 2pi because it makes the math easier
-        feedPos = (self.feederPos[1] + 2*math.pi) % (2*math.pi)
-        buildPos = (self.buildPos[1] + 2*math.pi) % (2*math.pi)
+        feedPos = (self.feederPos[1] + 2 * math.pi) % (2 * math.pi)
+        buildPos = (self.buildPos[1] + 2 * math.pi) % (2 * math.pi)
         minutePos = (minutePos + 2 * math.pi) % (2 * math.pi)
 
         # Find angle between minute hand and the locations for the feeder and building site
@@ -169,16 +170,15 @@ class BlockManager:
 
         # Edge case handler to make sure that we are choosing the minor arc
         if distFeed > math.pi:
-            distFeed = 2*math.pi - distFeed
+            distFeed = 2 * math.pi - distFeed
 
         if distBuild > math.pi:
-            distBuild = 2*math.pi - distBuild
+            distBuild = 2 * math.pi - distBuild
 
         # print(f"distFeed: {distFeed}, distBuild: {distBuild}")
 
         # Checks if the robot arm is too close to each build site
         if distFeed < 0.6 or distBuild < 0.6:
-
             self.resetStack()
             return False
 

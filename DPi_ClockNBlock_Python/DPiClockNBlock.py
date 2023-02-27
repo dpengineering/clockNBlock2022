@@ -94,7 +94,6 @@ class DPiClockNBlock:
         self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_ENTRANCE)
         return not dpiNetwork.popUint8()
 
-
     #
     # read from feed 1 sensor
     #   Exit: True if on, else false
@@ -103,7 +102,6 @@ class DPiClockNBlock:
         self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_FEED_1)
         return not dpiNetwork.popUint8()
 
-
     #
     # read from feed 2 sensor
     #   Exit: True if on, else false
@@ -111,7 +109,6 @@ class DPiClockNBlock:
     def readFeed_2(self):
         self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__READ_FEED_2)
         return not dpiNetwork.popUint8()
-
 
     #
     # read from exit sensor
@@ -139,7 +136,7 @@ class DPiClockNBlock:
     # Toggle arrow
     #   Exit: True on success, else False
     #
-    def arrowToggle(self, onOffValue: bool):
+    def toggleArrow(self, onOffValue: bool):
         if onOffValue:
             return self.__sendCommand(_CMD_DPi_CLOCKNBLOCK__ARROW_ON)
         else:

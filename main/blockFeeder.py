@@ -5,19 +5,14 @@
 #      *            Arnav Wadhwa                   12/08/2022           *
 #      *                                                                *
 #      ******************************************************************
-
 # To import from the other folders in project
 import sys
 sys.path.insert(0, "..")
 
+import logging
+import time
 from DPi_ClockNBlock_Python.DPiClockNBlock import DPiClockNBlock
 from time import sleep
-
-# More accurate timer
-from timeit import default_timer as timer
-
-
-BLOCK_SIZE = 31  # block side length in mm
 
 
 class BlockFeeder:
@@ -29,9 +24,6 @@ class BlockFeeder:
     # For state function
     state = 0
     newState = False
-
-    # Start timer
-    start = 0
 
     # Constants
     _STATE_READY =           0
@@ -49,6 +41,7 @@ class BlockFeeder:
             board_number (int): Which DPi_ClockNBlock board corresponds to this blockFeeder
             solenoidBoard (DPi_Solenoid): Gets the solenoid board object from the robotArm
         """
+        self.start = None
         self._SOLENOID_SIDE = solenoid_side
         self._SOLENOID_UP = solenoid_up
         self.BOARD_NUMBER = board_number
@@ -65,10 +58,20 @@ class BlockFeeder:
         self.dpiSolenoid.setBoardNumber(0)
 
         if not self.dpiClockNBlock.initialize():
-            # print("Communication with DPiClockNBlock board failed")
+            logging.error('dpiClockNBlock failed to initialize')
             return False
 
-        self.initializeBlockFeeders()
+        if not self.initializeBlockFeeders():
+
+            return False
+
+        logging.debug(f'BlockFeeder State Key'
+                      f'_STATE_READY = 0'
+                      f'_STATE_BLOCK_REMOVED = 1'
+                      f'_STATE_FEED1 = 2'
+                      f'_STATE_FEED2 = 3'
+                      f'_STATE_IDLE = 4'
+                      )
 
         return True
 
@@ -78,13 +81,11 @@ class BlockFeeder:
         Returns:
             bool: True if block makes it to the top, otherwise False
         """
-        # print("initializing")
         # Check if block already at the top position
         if self.dpiClockNBlock.readExit():
             return True
 
         # Otherwise, cycle the blocks
-
         # Turn both solenoids off
         self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
         self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, False)
@@ -92,9 +93,9 @@ class BlockFeeder:
         # Wait for them to retract
         sleep(2)
 
-        # If there is a block avaliable send it to ready position
+        # If there is a block available send it to ready position
 
-        # Check if block exists and there isn't already a block that is ready to be pushed up
+        # Check if a block is ready to be pushed over, and there isn't a block already pushed over
         if self.dpiClockNBlock.readFeed_1() and not self.dpiClockNBlock.readFeed_2():
             # Push the block over
             self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_SIDE, True)
@@ -103,7 +104,7 @@ class BlockFeeder:
             while not self.dpiClockNBlock.readFeed_2():
                 sleep(0.1)
 
-        # Check if block actually made it over
+        # Check if block actually made it
         if self.dpiClockNBlock.readFeed_2():
             # Push the block up
             self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, True)
@@ -117,17 +118,20 @@ class BlockFeeder:
 
             # Set state machine to the ready state
             self.setState(self._STATE_READY)
+
             return True
+
         return False
 
     def process(self):
         """
         State machine for the blockFeeders
         """
-        # print(f"Feeder State: {self.state}, NewState: {self.newState}, Board: {self.BOARD_NUMBER}")
 
         # Update arrow (on if the feeder isn't full, otherwise off)
-        # self.dpiClockNBlock.arrowToggle(not self.dpiClockNBlock.readEntrance())
+        logging.debug(f'BlockFeederStates'
+                      f'State: {self.state}, NewState: {self.newState}')
+        self.dpiClockNBlock.toggleArrow(not self.dpiClockNBlock.readEntrance())
 
         # Ready State
         #   This means the feeder is displaying a block for the robot to pick up
@@ -136,9 +140,9 @@ class BlockFeeder:
         # Changes state to pull piston down
         if self.state == self._STATE_READY:
             if not self.dpiClockNBlock.readExit():
-                # print(f"Board: {self.BOARD_NUMBER},block removed")
+                logging.debug(f"Board: {self.BOARD_NUMBER}, block removed")
                 self.setState(self._STATE_BLOCK_REMOVED)
-                # print('Moving on to State block removed')
+                logging.debug(f'Board: {self.BOARD_NUMBER}: Moving on to State block removed')
                 return
             return
 
@@ -150,18 +154,18 @@ class BlockFeeder:
             if self.newState:
                 # To make sure the block is actually gone
                 if self.dpiClockNBlock.readExit():
-                    # print('Misfire, going back to ready')
+                    logging.debug(f'Board: {self.BOARD_NUMBER}, Misfire, going back to ready')
                     self.setState(self._STATE_READY)
                     return
 
                 self.dpiSolenoid.switchDriverOnOrOff(self._SOLENOID_UP, False)
                 # Starts timer
-                self.start = timer()
+                self.start = time.perf_counter()
                 self.newState = False
                 return
 
             # Checks if 2.5 seconds have elapsed
-            elif timer() - self.start > 2:
+            elif time.perf_counter() - self.start > 2:
                 self.setState(self._STATE_FEED2)
                 return
 

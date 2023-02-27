@@ -5,6 +5,7 @@
 #      *            Arnav Wadhwa                   12/08/2022           *
 #      *                                                                *
 #      ******************************************************************
+import logging
 import sys
 sys.path.insert(0, '/home/pi/projects/clockNBlock2022/')
 
@@ -26,12 +27,16 @@ NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
 def setup():
 
     # Call setup functions for each component
+    logging.debug(f'Setting up robot arm')
     if not robot.setup():
         raise Exception("Robot setup failed")
 
+    logging.debug('Setting up hands')
     if not hands.setup():
         raise Exception("Hands setup failed")
+
     for i in range(NUM_BLOCK_FEEDERS):
+        logging.debug(f'Setting up blockFeeder {i}')
         # print(f"setup blockfeeder {i}")
         if not blockFeeders[i].setup():
             raise Exception(f"BlockFeeder {i} setup failed")
@@ -49,8 +54,7 @@ def main():
     # print("moving on to loop")
     while robot.isHomedFlg:
         # Call state functions
-        for i in range(NUM_BLOCK_FEEDERS):
-            blockFeeders[i].process()
+        [blockFeeders[i].process() for i in NUM_BLOCK_FEEDERS]
         hands.process()
         robot.process(hands.getPositionRadians()[1])
 
@@ -59,6 +63,7 @@ def main():
 
 # Run script
 if __name__ == "__main__":
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
     main()
 
 
