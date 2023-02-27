@@ -65,12 +65,12 @@ class BlockFeeder:
 
             return False
 
-        logging.debug(f'BlockFeeder State Key'
-                      f'_STATE_READY = 0'
-                      f'_STATE_BLOCK_REMOVED = 1'
-                      f'_STATE_FEED1 = 2'
-                      f'_STATE_FEED2 = 3'
-                      f'_STATE_IDLE = 4'
+        logging.debug(f'BlockFeeder State Key \n'
+                      f'_STATE_READY = 0 \n'
+                      f'_STATE_BLOCK_REMOVED = 1 \n'
+                      f'_STATE_FEED1 = 2 \n'
+                      f'_STATE_FEED2 = 3 \n'
+                      f'_STATE_IDLE = 4 \n'
                       )
 
         return True

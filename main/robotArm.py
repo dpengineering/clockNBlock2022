@@ -141,12 +141,12 @@ class RobotArm:
         self.setState(self.STATE_GET_BLOCK)
         # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
 
-        logging.debug(f'Robot Arm States Key:'
-                      f'STATE_GET_BLOCK =    0'
-                      f'STATE_PICKUP_BLOCK = 1'
-                      f'STATE_MOVE_UP =      2'
-                      f'STATE_PLACE_BLOCK =  3'
-                      f'STATE_WAITING =      4'
+        logging.debug(f'Robot Arm States Key: \n'
+                      f'STATE_GET_BLOCK =    0 \n'
+                      f'STATE_PICKUP_BLOCK = 1 \n'
+                      f'STATE_MOVE_UP =      2 \n'
+                      f'STATE_PLACE_BLOCK =  3 \n'
+                      f'STATE_WAITING =      4 \n'
                       )
         return True
 
