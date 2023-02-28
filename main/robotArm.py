@@ -196,12 +196,15 @@ class RobotArm:
                 self.start = timer()
                 return
 
-            # If our current position is at the block feeder, we should grab this block:
             elif self.isAtLocation(self.target):
-                self.rotateBlock()
                 # print(f"position: {self.hands.getPositionRadians()}")
                 self.setState(self.STATE_PICKUP_BLOCK)
                 return
+
+            # As we need to rotate before we get the block. So somewhere on the way over to the feeder
+            #   rotate the solenoid
+            if timer() - self.start > 0.5:
+                self.rotateBlock()
 
         # Picks up block and starts timer
         # Waits 0.5 seconds for the robot to actually pick up the block
