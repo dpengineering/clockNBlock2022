@@ -193,10 +193,10 @@ class RobotArm:
 
                 # The + 0.11 for position is necessary because otherwise the hand is offset by a bunch
                 self.hands.moveToPosRadians(self.hands.POINTER, self.target[1] + 0.11)
-                self.rotateBlock()
                 return
 
             elif self.isAtLocation(self.target):
+                self.rotateBlock()
                 # print(f"position: {self.hands.getPositionRadians()}")
                 self.setState(self.STATE_PICKUP_BLOCK)
                 return
