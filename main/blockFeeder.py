@@ -81,8 +81,8 @@ class BlockFeeder:
         Returns:
             bool: True if block makes it to the top, otherwise False
         """
-        # Check if block already at the top position
-        if self.dpiClockNBlock.readExit():
+        # Check if block already at the top position or if there isn't a block
+        if self.dpiClockNBlock.readExit() or not self.dpiClockNBlock.readFeed_1():
             return True
 
         # Otherwise, cycle the blocks
@@ -212,10 +212,12 @@ class BlockFeeder:
         # Changes state to push block over
         elif self.state == self._STATE_IDLE:
             if self.newState:
+                logging.debug('BlockFeeder State Idle')
                 self.dpiClockNBlock.blinkArrow(True, 200)
                 self.newState = False
+                return
             # Wait for a block to be inserted then switch to feed 2
-            if self.dpiClockNBlock.readFeed_1():
+            elif self.dpiClockNBlock.readFeed_1():
                 self.dpiClockNBlock.blinkArrow(False)
                 self.setState(self._STATE_FEED2)
                 return

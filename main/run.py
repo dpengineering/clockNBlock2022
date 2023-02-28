@@ -54,10 +54,10 @@ def main():
     # print("moving on to loop")
     while robot.isHomedFlg:
         # Call state functions
-        for i in range(NUM_BLOCK_FEEDERS):
-            blockFeeders[i].process()
+        [blockFeeder.process() for blockFeeder in blockFeeders]
         hands.process()
         robot.process(hands.getPositionRadians()[1])
+    logging.debug('Done with loop')
 
         # setup()
 

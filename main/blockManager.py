@@ -10,6 +10,8 @@ import math
 # To import from other folders in project
 import sys
 
+import numpy as np
+
 sys.path.insert(0, "..")
 
 from main.blockFeeder import BlockFeeder
@@ -22,24 +24,24 @@ class BlockManager:
 
     """
     # Constants
-    _BLOCK_SIZE = 31  # Block size in mm
+    _BLOCK_SIZE = 30  # Block size in mm
     _ROBOT_HEAD_WIDTH = 160  # Baseplate of robot head in mm
 
-    def __init__(self, blockFeeder: BlockFeeder, feederPos: tuple, buildPos: tuple, stackSize=5):
+    def __init__(self, blockFeeder: BlockFeeder, feederPos: tuple, buildPos: tuple, managerNumber: int, stackSize=6):
         """Constructor for blockManagers
 
         Args:
             blockFeeder (BlockFeeder): blockFeeder object that corresponds to the block manager
             feederPos (tuple): Feeder location in polar coordinates
             buildPos (tuple): Build site location in polar coordinates
-            stackSize (int): Optional height and width of stack
+            managerNumber (int): Manager number to determine which stack we want
         """
         self.radianOffset = .25
         self.feederPos = feederPos
         self.buildPos = buildPos
-        self.MINIMUM_MOVING_HEIGHT = 100  # feederPos[2] + self._BLOCK_SIZE * 6
+        self.MINIMUM_MOVING_HEIGHT = -1480.8 + 200  # feederPos[2] + self._BLOCK_SIZE * 6
         self.blockFeeder = blockFeeder
-        self.blockPositions = self.generateBlockPlacements(buildPos, stackSize)
+        self.blockPlacementList = self.generateBlockPlacements(buildPos, managerNumber, stackSize)
         self.blockToPlace = 0
 
     def getNextBlock(self, currentPos: tuple):
@@ -67,10 +69,10 @@ class BlockManager:
             list: List of waypoints (tuple) to move the robot to
             tuple: Final position to move, used to check completion of robot's state
         """
-        if self.blockToPlace == len(self.blockPositions):
+        if self.blockToPlace == len(self.blockPlacementList):
             return False
 
-        waypointList, target = self.pathToTarget(currentPos, self.blockPositions[self.blockToPlace], self.radianOffset)
+        waypointList, target = self.pathToTarget(currentPos, self.blockPlacementList[self.blockToPlace], self.radianOffset)
         self.blockToPlace += 1
         return waypointList, target
 
@@ -90,10 +92,9 @@ class BlockManager:
         movingPath = []
         targetR, targetTheta, targetZ = target
         # If we are too low, bring the robot up to over the working height.
-        if currentPos[2] < self.MINIMUM_MOVING_HEIGHT:
-            waypoint = currentPos[0], currentPos[1], self.MINIMUM_MOVING_HEIGHT
-            currentPos = waypoint
-            movingPath.append(waypoint)
+        waypoint = currentPos[0], currentPos[1], currentPos[2] + 20
+        currentPos = waypoint
+        movingPath.append(waypoint)
 
         # Add actual moving points:
 
@@ -116,7 +117,7 @@ class BlockManager:
 
         return movingPath, target
 
-    def generateBlockPlacements(self, baseLocation: tuple, stackSize: int):
+    def generateBlockPlacements(self, baseLocation: tuple, managerNumber: int):
         """Helper function to generate the list of where to place each individual block
 
         Args:
@@ -131,19 +132,69 @@ class BlockManager:
 
         r, theta, z = baseLocation
 
-        # Our r, theta, z will be the middle block on the first layer.
-        # This location will be where the first block we place is. Gets updated per layer we insert
-        initialPos = (r + stackSize / 2 * self._BLOCK_SIZE, theta, z)
+        # Using if else statements because python's match case was added in python 3.10
+        if managerNumber == 0:
+            # Right triangle
+            placementArray = ([0, 1, 0, 0, 0, 0, 0],
+                              [0, 1, 1, 0, 0, 0, 0],
+                              [0, 1, 1, 1, 0, 0, 0],
+                              [0, 1, 1, 1, 1, 0, 0],
+                              [0, 1, 1, 1, 1, 1, 0],
+                              [0, 1, 1, 1, 1, 1, 1])
+            placements = self.generatePlacementsFromArray(placementArray)
+        elif managerNumber == 1:
+            # Funky shape
+            placementArray = ([0, 0, 0, 0, 0, 1, 0],
+                              [0, 0, 0, 0, 0, 1, 0],
+                              [0, 0, 0, 1, 0, 1, 1],
+                              [0, 1, 0, 1, 1, 1, 1],
+                              [0, 1, 0, 1, 1, 1, 1],
+                              [0, 1, 1, 1, 1, 1, 1])
+            placements = self.generatePlacementsFromArray(placementArray)
+        elif managerNumber == 2:
+            # Regular pyramid
+            placementArray = ([-self._BLOCK_SIZE/2, 0, 0, 0, 1, 0, 0],
+                              [0                  , 0, 0, 1, 1, 0, 0],
+                              [-self._BLOCK_SIZE/2, 0, 0, 1, 1, 1, 0],
+                              [0                  , 0, 1, 1, 1, 1, 0],
+                              [-self._BLOCK_SIZE/2, 0, 1, 1, 1, 1, 1],
+                              [0                  , 1, 1, 1, 1, 1, 1])
+            placements = self.generatePlacementsFromArray(placementArray)
+        elif managerNumber == 3:
+            # 2 wide tower. This manager cannot build huge towers
+            placementArray = ([-self._BLOCK_SIZE/2, 0, 1, 0, 0, 0, 0],
+                              [0                  , 1, 1, 0, 0, 0, 0],
+                              [0                  , 1, 1, 0, 0, 0, 0],
+                              [0                  , 1, 1, 0, 0, 0, 0],
+                              [0                  , 1, 1, 0, 0, 0, 0],
+                              [0                  , 1, 1, 0, 0, 0, 0])
+            placements = self.generatePlacementsFromArray(placementArray)
 
-        # Build our list:
-        for layer in range(1, stackSize + 1):
-            for block in range(stackSize - layer + 1):
-                pos = initialPos[0] - (self._BLOCK_SIZE + 2) * block, initialPos[1], initialPos[2]
-                placements.append(pos)
+        return placements
 
-            # Find first block on next row:
-            r, theta, z = initialPos[0] - self._BLOCK_SIZE / 2, initialPos[1], initialPos[2] + self._BLOCK_SIZE + 2
-            initialPos = (r, theta, z)
+    def generatePlacementsFromArray(self, placementArray, blockSpacing=1) -> list:
+        """Creates a list of where to place blocks dependent on an array passed in.
+        Each 1 in the array will denote where to place a block and the 0's are empty space
+        Since we would like to have some rows "offset" from each other, the first column will be reserved
+        For setting the offset of the next row in mm. The origin will be at the bottom - back corner
+        of the stack and the positions will be calculated from there.
+        blockSpacing (int): How far the blocks get placed from each other in mm
+        """
+        placements = []
+        blockSizeWithSpacing = self._BLOCK_SIZE + blockSpacing
+        numRows = len(placementArray)
+        colSize = len(placementArray[1]) - 1
+        for rowIdx, row in enumerate(placementArray):
+            currentOrigin = self.buildPos
+            for colIdx, value in enumerate(row):
+                # If we are at the first column, offset by the
+                if colIdx == 0:
+                    currentOrigin = currentOrigin[0] + value, currentOrigin[1], currentOrigin[2]
+                elif value:
+                    # Calculate the position we need to place our block
+                    zPos = (numRows - rowIdx) * blockSizeWithSpacing + currentOrigin[2]
+                    rPos = (colSize - colIdx) * blockSizeWithSpacing + currentOrigin[0]
+                    placements.insert(0, (rPos, currentOrigin[1], zPos))
 
         return placements
 
@@ -187,7 +238,7 @@ class BlockManager:
             return False
 
         # Check if stack is complete
-        if self.blockToPlace == len(self.blockPositions):
+        if self.blockToPlace == len(self.blockPlacementList):
             return False
 
         return True

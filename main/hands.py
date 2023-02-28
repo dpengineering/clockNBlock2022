@@ -5,7 +5,7 @@
 #      *            Arnav Wadhwa                   12/03/2022           *
 #      *                                                                *
 #      ******************************************************************
-
+import logging
 import math
 from dpeaDPi.DPiStepper import DPiStepper
 from time import sleep
@@ -53,6 +53,7 @@ class Hands:
     def process(self):
         """State machine for the hands"""
         if self.Idle:
+            logging.debug('hands are idle')
             self.dpiStepper.emergencyStop(self.KNOCKER)
         else:
             if not self.isStepperMoving(self.KNOCKER):

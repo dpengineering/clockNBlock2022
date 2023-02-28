@@ -74,19 +74,19 @@ class RobotArm:
     NUM_BLOCK_FEEDERS = len(blockFeeders)
 
     # Locations for all the block feeders
-    feederLocations = [(343, -0.906, -1470.6), (340, -2.497, -1478.3), (345, 2.216, -1473.7), (339, 0.648, -1472.2)]
+    feederLocations = [(343, -0.906, -1474.6), (340, -2.497, -1478.3), (343, 2.216, -1473.7), (339, 0.648, -1472.2)]
 
     # Locations for all the build locations
     # Note: Currently the third build Location  is closer to the center
     #   This is because the robot arms crash into the structure that houses the robot
     #   We will also need to make it so the third buildLocation will never path in from the side
-    buildLocations = [(351, -0.139, -1447.4), (385, -1.685, -1445.9), (389, 3.004, -1445.9), (313, 1.434, -1450.5)]
+    buildLocations = [(441, -0.139, -1449.4), (475, -1.685, -1447.9), (479, 3.004, -1447.9), (403, 1.434, -1450.5)]
 
     # Sets how high the stack of blocks will be
-    stackSize = 6
+    # stackSize = 6
     blockManagers = []
     for i in range(NUM_BLOCK_FEEDERS):
-        blockManagers.append(BlockManager(blockFeeders[i], feederLocations[i], buildLocations[i], stackSize))
+        blockManagers.append(BlockManager(blockFeeders[i], feederLocations[i], buildLocations[i], i))
 
     def __init__(self, magnetSolenoid: int, rotatingSolenoid: int):
         """ Constructor for RobotArm
@@ -137,7 +137,6 @@ class RobotArm:
 
         # Sets first state
         self.rotateBlock()
-        self.rotateBlock()
         self.setState(self.STATE_GET_BLOCK)
         # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
 
@@ -184,7 +183,7 @@ class RobotArm:
                 if not self.chooseNextManager(minutePos):
                     self.setState(self.STATE_WAITING)
                     return
-                self.rotateBlock()
+
                 positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
@@ -194,11 +193,12 @@ class RobotArm:
 
                 # The + 0.11 for position is necessary because otherwise the hand is offset by a bunch
                 self.hands.moveToPosRadians(self.hands.POINTER, self.target[1] + 0.11)
-
+                self.start = timer()
                 return
 
             # If our current position is at the block feeder, we should grab this block:
             elif self.isAtLocation(self.target):
+                self.rotateBlock()
                 # print(f"position: {self.hands.getPositionRadians()}")
                 self.setState(self.STATE_PICKUP_BLOCK)
                 return
@@ -225,13 +225,14 @@ class RobotArm:
         elif self.state == self.STATE_MOVE_UP:
             if self.newState:
                 # print("moving up")
-                self.target = currentPos[0], currentPos[1], 100
+                self.target = currentPos[0], currentPos[1], currentPos[2] + 200
                 self.moveToPosRadians(self.target, self.speed)
                 self.newState = False
                 return
 
             # elif self.isAtLocation(self.target):
-            elif self.isAtLocation(self.target):
+            logging.debug(f'Current Location: {currentPos}, Target Location: {self.target}')
+            if self.isAtLocation(self.target):
                 # print("rotating solenoid")
                 self.rotateBlock()
                 self.setState(self.STATE_PLACE_BLOCK)
@@ -279,14 +280,17 @@ class RobotArm:
         elif self.state == self.STATE_WAITING:
             if self.newState:
                 # print("homing Robot")
+                logging.debug('homing robot')
                 self.dpiRobot.homeRobot(True)
+                logging.debug('setting hands to idle')
                 self.hands.Idle = True
                 self.newState = False
+                logging.debug(f'Robot NewState after idle: {self.newState}')
                 return
-
-            if self.chooseNextManager(minutePos):
+            elif self.chooseNextManager(minutePos):
                 self.hands.Idle = False
                 self.setState(self.STATE_GET_BLOCK)
+                return
 
     # ---------------------------------------------------------------------------------
     #                                 Helper functions
@@ -389,6 +393,7 @@ class RobotArm:
             bool: True if there is an available manager, otherwise False
         """
         nextManager = self.currentManager
+        logging.debug('Robot arm grabbing next manager')
         # Checks if the manager is actually ready, if not increments manager
         for i in range(self.NUM_BLOCK_FEEDERS):
             nextManager = (nextManager + 1) % self.NUM_BLOCK_FEEDERS
