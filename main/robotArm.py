@@ -80,7 +80,7 @@ class RobotArm:
     # Note: Currently the third build Location  is closer to the center
     #   This is because the robot arms crash into the structure that houses the robot
     #   We will also need to make it so the third buildLocation will never path in from the side
-    buildLocations = [(441, -0.139, -1449.4), (475, -1.685, -1447.9), (479, 3.004, -1447.9), (403, 1.434, -1450.5)]
+    buildLocations = [(441, -0.139, -1449.4), (475, -1.685, -1447.9), (479, 3.004, -1447.9), (463, 1.434, -1450.5)]
 
     # Sets how high the stack of blocks will be
     # stackSize = 6

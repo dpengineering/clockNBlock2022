@@ -41,7 +41,7 @@ class BlockManager:
         self.buildPos = buildPos
         self.MINIMUM_MOVING_HEIGHT = -1480.8 + 200  # feederPos[2] + self._BLOCK_SIZE * 6
         self.blockFeeder = blockFeeder
-        self.blockPlacementList = self.generateBlockPlacements(buildPos, managerNumber, stackSize)
+        self.blockPlacementList = self.generateBlockPlacements(buildPos, managerNumber)
         self.blockToPlace = 0
 
     def getNextBlock(self, currentPos: tuple):
