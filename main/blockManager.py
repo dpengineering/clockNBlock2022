@@ -184,17 +184,16 @@ class BlockManager:
         blockSizeWithSpacing = self._BLOCK_SIZE + blockSpacing
         numRows = len(placementArray)
         colSize = len(placementArray[1]) - 1
-        offset = 0
         for rowIdx, row in enumerate(placementArray):
             currentOrigin = self.buildPos
             for colIdx, value in enumerate(row):
                 # If we are at the first column, offset by the
                 if colIdx == 0:
-                    offset = value
+                    currentOrigin = currentOrigin[0] + value, currentOrigin[1], currentOrigin[2]
                 elif value:
                     # Calculate the position we need to place our block
-                    zPos = -(numRows - rowIdx) * blockSizeWithSpacing
-                    rPos = -(colSize - colIdx) * blockSizeWithSpacing + offset
+                    zPos = -(numRows - (rowIdx + 1)) * blockSizeWithSpacing + currentOrigin[2]
+                    rPos = -(colSize - (colIdx + 1)) * blockSizeWithSpacing + currentOrigin[0]
                     placements.insert(0, (rPos, currentOrigin[1], zPos))
 
         return placements
