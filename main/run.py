@@ -59,7 +59,7 @@ def main():
         robot.process(hands.getPositionRadians()[1])
     logging.debug('Done with loop')
 
-        # setup()
+    setup()
 
 
 # Run script

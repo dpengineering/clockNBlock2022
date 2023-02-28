@@ -74,13 +74,13 @@ class RobotArm:
     NUM_BLOCK_FEEDERS = len(blockFeeders)
 
     # Locations for all the block feeders
-    feederLocations = [(343, -0.906, -1474.6), (340, -2.497, -1478.3), (343, 2.216, -1473.7), (339, 0.648, -1472.2)]
+    feederLocations = [(343, -0.906, -1474.6), (340, -2.497, -1478.3), (343, 2.218, -1473.7), (339, 0.648, -1472.2)]
 
     # Locations for all the build locations
     # Note: Currently the third build Location  is closer to the center
     #   This is because the robot arms crash into the structure that houses the robot
     #   We will also need to make it so the third buildLocation will never path in from the side
-    buildLocations = [(441, -0.139, -1449.4), (475, -1.685, -1447.9), (479, 3.004, -1447.9), (463, 1.434, -1450.5)]
+    buildLocations = [(446, -0.139, -1448.4), (475, -1.685, -1446.9), (479, 3.004, -1447.9), (503, 1.434, -1448.5)]
 
     # Sets how high the stack of blocks will be
     # stackSize = 6
@@ -100,6 +100,7 @@ class RobotArm:
         self.MAGNET_SOLENOID = magnetSolenoid
         self.ROTATING_SOLENOID = rotatingSolenoid
         self.rotationPosition = False
+        self.previousState = None
 
     def setup(self) -> bool:
 
@@ -137,6 +138,7 @@ class RobotArm:
 
         # Sets first state
         self.rotateBlock()
+        self.rotateBlock()
         self.setState(self.STATE_GET_BLOCK)
         # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
 
@@ -173,8 +175,9 @@ class RobotArm:
 
         # Check if E-Stop has been pressed, if so suspend all actions by busy waiting until
         #   Unpressed and then re-initialize program.
-        if self.state == self.dpiRobot.STATE_NOT_HOMED or self.state == self.dpiRobot.STATE_E_STOPPED_PRESSED:
-            while self.state != self.dpiRobot.STATE_NOT_HOMED:
+        if self.dpiRobot.getRobotStatus()[1] == self.dpiRobot.STATE_NOT_HOMED or \
+                self.dpiRobot.getRobotStatus()[1] == self.dpiRobot.STATE_E_STOPPED_PRESSED:
+            while self.dpiRobot.getRobotStatus()[1] != self.dpiRobot.STATE_NOT_HOMED:
                 sleep(0.1)
             self.isHomedFlg = False
 
@@ -196,7 +199,6 @@ class RobotArm:
                 return
 
             elif self.isAtLocation(self.target):
-                self.rotateBlock()
                 # print(f"position: {self.hands.getPositionRadians()}")
                 self.setState(self.STATE_PICKUP_BLOCK)
                 return
@@ -221,19 +223,27 @@ class RobotArm:
         # Waits for robot to finish move
         # Rotates block and changes state to place the block
         elif self.state == self.STATE_MOVE_UP:
-            if self.newState:
+            if self.newState and timer() - self.start > 0.4:
                 # print("moving up")
-                self.target = currentPos[0], currentPos[1], currentPos[2] + 200
+                if self.previousState == self.STATE_PICKUP_BLOCK:
+                    self.target = currentPos[0], currentPos[1], currentPos[2] + 150
+                else:
+                    self.target = currentPos[0], currentPos[1], currentPos[2] + 20
                 self.moveToPosRadians(self.target, self.speed)
                 self.newState = False
                 return
 
             # elif self.isAtLocation(self.target):
-            logging.debug(f'Current Location: {currentPos}, Target Location: {self.target}')
-            if self.isAtLocation(self.target):
+            # logging.debug(f'Current Location: {currentPos}, Target Location: {self.target}')
+            elif self.isAtLocation(self.target) and not self.newState:
                 # print("rotating solenoid")
                 self.rotateBlock()
-                self.setState(self.STATE_PLACE_BLOCK)
+                if self.previousState == self.STATE_PICKUP_BLOCK:
+                    self.setState(self.STATE_PLACE_BLOCK)
+                elif self.previousState == self.STATE_PLACE_BLOCK:
+                    self.setState(self.STATE_GET_BLOCK)
+                else:
+                    raise Exception('Robot Arm States after Move up was something weird')
 
                 return
 
@@ -256,6 +266,7 @@ class RobotArm:
                 # Sends the pointer hand to the place where the robot is picking a block up
                 self.hands.setSpeed(self.hands.POINTER, self.hands.POINTER_MAX_SPEED)
                 self.hands.moveToPosRadians(self.hands.POINTER, self.target[1] + 0.11)
+
                 return
 
             # Check if we are at the location, drop the block
@@ -264,7 +275,8 @@ class RobotArm:
                 # print("dropping block")
                 # print(f"position: {self.hands.getPositionRadians()}")
                 self.dpiSolenoid.switchDriverOnOrOff(self.MAGNET_SOLENOID, False)
-                self.setState(self.STATE_GET_BLOCK)
+                self.setState(self.STATE_MOVE_UP)
+                self.start = timer()
                 return
 
         # Re-homes robot if there is nowhere for it to go
@@ -364,6 +376,7 @@ class RobotArm:
         Returns:
              none
         """
+        self.previousState = self.state
         self.state = nextState
         self.newState = True
 

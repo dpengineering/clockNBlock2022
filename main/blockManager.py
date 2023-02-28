@@ -73,6 +73,7 @@ class BlockManager:
             return False
 
         waypointList, target = self.pathToTarget(currentPos, self.blockPlacementList[self.blockToPlace], self.radianOffset)
+
         self.blockToPlace += 1
         return waypointList, target
 
@@ -92,9 +93,9 @@ class BlockManager:
         movingPath = []
         targetR, targetTheta, targetZ = target
         # If we are too low, bring the robot up to over the working height.
-        waypoint = currentPos[0], currentPos[1], currentPos[2] + 20
-        currentPos = waypoint
-        movingPath.append(waypoint)
+        # waypoint = currentPos[0], currentPos[1], currentPos[2] + 30
+        # currentPos = waypoint
+        # movingPath.append(waypoint)
 
         # Add actual moving points:
 
@@ -144,12 +145,12 @@ class BlockManager:
             placements = self.generatePlacementsFromArray(placementArray)
         elif managerNumber == 1:
             # Funky shape
-            placementArray = ([0, 0, 0, 0, 0, 1, 0],
-                              [0, 0, 0, 0, 0, 1, 0],
-                              [0, 0, 0, 1, 0, 1, 1],
-                              [0, 1, 0, 1, 1, 1, 1],
-                              [0, 1, 0, 1, 1, 1, 1],
-                              [0, 1, 1, 1, 1, 1, 1])
+            placementArray = ([-self._BLOCK_SIZE/2, 0, 0, 0, 1, 0, 0],
+                              [0                  , 0, 0, 1, 1, 0, 0],
+                              [-self._BLOCK_SIZE/2, 0, 0, 1, 1, 1, 0],
+                              [0                  , 0, 1, 1, 1, 1, 0],
+                              [0                  , 0, 1, 1, 1, 1, 0],
+                              [0                  , 0, 1, 1, 1, 1, 0])
             placements = self.generatePlacementsFromArray(placementArray)
         elif managerNumber == 2:
             # Regular pyramid
@@ -192,8 +193,8 @@ class BlockManager:
                     currentOrigin = currentOrigin[0] + value, currentOrigin[1], currentOrigin[2]
                 elif value:
                     # Calculate the position we need to place our block
-                    zPos = -(numRows - (rowIdx + 1)) * blockSizeWithSpacing + currentOrigin[2]
-                    rPos = -(colSize - (colIdx + 1)) * blockSizeWithSpacing + currentOrigin[0]
+                    zPos = (numRows - rowIdx - 1) * blockSizeWithSpacing + currentOrigin[2]
+                    rPos = (-colSize + (colIdx - 1)) * blockSizeWithSpacing + currentOrigin[0]
                     placements.insert(0, (rPos, currentOrigin[1], zPos))
 
         return placements
