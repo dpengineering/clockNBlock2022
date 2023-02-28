@@ -192,8 +192,8 @@ class BlockManager:
                     currentOrigin = currentOrigin[0] + value, currentOrigin[1], currentOrigin[2]
                 elif value:
                     # Calculate the position we need to place our block
-                    zPos = (numRows - rowIdx) * blockSizeWithSpacing + currentOrigin[2]
-                    rPos = (colSize - colIdx) * blockSizeWithSpacing + currentOrigin[0]
+                    zPos = -(numRows - rowIdx) * blockSizeWithSpacing + currentOrigin[2]
+                    rPos = -(colSize - colIdx) * blockSizeWithSpacing + currentOrigin[0]
                     placements.insert(0, (rPos, currentOrigin[1], zPos))
 
         return placements
