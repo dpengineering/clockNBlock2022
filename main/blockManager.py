@@ -44,7 +44,7 @@ class BlockManager:
         self.blockPlacementList = self.generateBlockPlacements(buildPos, managerNumber)
         self.blockToPlace = 0
 
-    def getNextBlock(self, currentPos: tuple):
+    def getNextBlock(self, currentPos: tuple, minimumZHeight):
         """Gets the next block
 
         Args:
@@ -55,7 +55,7 @@ class BlockManager:
             tuple: Final position to move, used to check completion of robot's state
         """
         # The head is fairly large, so we need a larger radian offset.
-        waypointList, target = self.pathToTarget(currentPos, self.feederPos, self.radianOffset + 0.1)
+        waypointList, target = self.pathToTarget(currentPos, self.feederPos, self.radianOffset + 0.1, minimumZHeight)
 
         return waypointList, target
 
@@ -77,7 +77,7 @@ class BlockManager:
         self.blockToPlace += 1
         return waypointList, target
 
-    def pathToTarget(self, currentPos: tuple, target: tuple, offset=.25):
+    def pathToTarget(self, currentPos: tuple, target: tuple, offset=.25, minimumZHeight=None):
         """Helper function to generate the path the robot takes to a target position (With radian offset)
 
         Args:
@@ -93,9 +93,10 @@ class BlockManager:
         movingPath = []
         targetR, targetTheta, targetZ = target
         # If we are too low, bring the robot up to over the working height.
-        # waypoint = currentPos[0], currentPos[1], currentPos[2] + 30
-        # currentPos = waypoint
-        # movingPath.append(waypoint)
+        if minimumZHeight is not None and minimumZHeight > currentPos[2]:
+            waypoint = currentPos[0], currentPos[1], minimumZHeight
+            currentPos = waypoint
+            movingPath.append(waypoint)
 
         # Add actual moving points:
 

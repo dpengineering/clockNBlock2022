@@ -80,7 +80,7 @@ class RobotArm:
     # Note: Currently the third build Location  is closer to the center
     #   This is because the robot arms crash into the structure that houses the robot
     #   We will also need to make it so the third buildLocation will never path in from the side
-    buildLocations = [(446, -0.139, -1448.4), (475, -1.685, -1446.9), (479, 3.004, -1447.9), (503, 1.434, -1448.5)]
+    buildLocations = [(466, -0.139, -1447.0), (475, -1.685, -1446.9), (479, 3.004, -1447.9), (523, 1.434, -1448.5)]
 
     # Sets how high the stack of blocks will be
     # stackSize = 6
@@ -94,6 +94,7 @@ class RobotArm:
             magnetSolenoid (int): Solenoid number to extend and retracts the magnet
             rotatingSolenoid (int): Solenoid number to rotate blocks
         """
+        self.minimumZMovingHeight = None
         self.isHomedFlg = False
         self.target = -1, -1, -1
         self.start = None
@@ -112,8 +113,6 @@ class RobotArm:
         # Sets the board numbers for the robot and solenoid board
         self.dpiRobot.setBoardNumber(0)
         self.dpiSolenoid.setBoardNumber(0)
-
-
 
         # initializes robot
         if not self.dpiRobot.initialize():
@@ -187,10 +186,12 @@ class RobotArm:
                     self.setState(self.STATE_WAITING)
                     return
 
-                positionList, self.target = self.blockManagers[self.currentManager].getNextBlock(currentPos)
+                positionList, self.target = \
+                    self.blockManagers[self.currentManager].getNextBlock(currentPos, self.minimumZMovingHeight)
+
                 self.queueWaypoints(positionList, currentPos, self.speed)
                 self.newState = False
-                # print(f"R: {self.target[0]}, theta: {self.target[1]}, z: {self.target[2]}")
+
                 # Sends the pointer hand to the place where the robot is picking a block up
                 self.hands.setSpeed(self.hands.POINTER, self.hands.POINTER_MAX_SPEED)
 
@@ -226,7 +227,7 @@ class RobotArm:
             if self.newState and timer() - self.start > 0.4:
                 # print("moving up")
                 if self.previousState == self.STATE_PICKUP_BLOCK:
-                    self.target = currentPos[0], currentPos[1], currentPos[2] + 150
+                    self.target = currentPos[0], currentPos[1], currentPos[2] + 30
                 else:
                     self.target = currentPos[0], currentPos[1], currentPos[2] + 20
                 self.moveToPosRadians(self.target, self.speed)
@@ -241,6 +242,7 @@ class RobotArm:
                 if self.previousState == self.STATE_PICKUP_BLOCK:
                     self.setState(self.STATE_PLACE_BLOCK)
                 elif self.previousState == self.STATE_PLACE_BLOCK:
+                    self.minimumZMovingHeight = currentPos[2]
                     self.setState(self.STATE_GET_BLOCK)
                 else:
                     raise Exception('Robot Arm States after Move up was something weird')

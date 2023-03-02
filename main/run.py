@@ -45,11 +45,11 @@ def setup():
     hands.dpiStepper.waitUntilMotorStops(1)
     hands.setSpeedBoth(hands.POINTER_BASE_SPEED, round(hands.KNOCKER_BASE_SPEED))
 
+    main()
+
 
 # Main loop where all of the individual state functions are called.
 def main():
-
-    setup()
 
     # print("moving on to loop")
     while robot.isHomedFlg:
@@ -64,8 +64,8 @@ def main():
 
 # Run script
 if __name__ == "__main__":
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-    main()
+    # logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+    setup()
 
 
 
