@@ -32,8 +32,8 @@ class Hands:
 
     KNOCKER_GEAR_REDUCTION = 204  # Gear reduction is 204:1
     KNOCKER_STEPS_PER_REVOLUTION = int(200 * MICROSTEPPING * KNOCKER_GEAR_REDUCTION * 0.998)  # 326400
-    # Base knocker speed, 1 revolution in 33.3 minutes
-    KNOCKER_BASE_SPEED = KNOCKER_STEPS_PER_REVOLUTION / 2000
+    # Base knocker speed, 1 revolution in 16 minutes
+    KNOCKER_BASE_SPEED = KNOCKER_STEPS_PER_REVOLUTION / (16 * 60)
     KNOCKER_MAX_SPEED = 20000
 
     pointerDitherState = 0
