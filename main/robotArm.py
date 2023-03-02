@@ -94,6 +94,7 @@ class RobotArm:
             magnetSolenoid (int): Solenoid number to extend and retracts the magnet
             rotatingSolenoid (int): Solenoid number to rotate blocks
         """
+        self.previousManager = None
         self.minimumZMovingHeight = None
         self.isHomedFlg = False
         self.target = -1, -1, -1
@@ -242,7 +243,6 @@ class RobotArm:
                 if self.previousState == self.STATE_PICKUP_BLOCK:
                     self.setState(self.STATE_PLACE_BLOCK)
                 elif self.previousState == self.STATE_PLACE_BLOCK:
-                    self.minimumZMovingHeight = currentPos[2]
                     self.setState(self.STATE_GET_BLOCK)
                 else:
                     raise Exception('Robot Arm States after Move up was something weird')
@@ -412,9 +412,16 @@ class RobotArm:
             nextManager = (nextManager + 1) % self.NUM_BLOCK_FEEDERS
             if self.blockManagers[nextManager].isReady(minutePos):
                 # Sets the current manager to the next available one
+                self.previousManager = self.currentManager
                 self.currentManager = nextManager
+
+                # Check if we will cross another block tower. Avoid it.
+                if math.dist([self.previousManager], [self.currentManager]) == 2:
+                    self.setMinimumZHeight()
+                else:
+                    self.minimumZMovingHeight = None
+
                 return True
-        # print("No next manager")
         return False
 
     # This function is necessary because we always have to set the rotation to the value that it is not
@@ -492,3 +499,14 @@ class RobotArm:
 
             straightWaypoints.append(nextPoint)
         return straightWaypoints
+
+    def setMinimumZHeight(self):
+
+        # Find middle manager and get the Z height of the last block placed
+        middleManager = (self.previousManager + self.currentManager) / 2
+        heighestBlock = self.blockManagers[middleManager].blockToPlace - 1
+        if heighestBlock == -1:
+            heighestBlock = 0
+        self.minimumZMovingHeight = self.blockManagers[middleManager].blockPlacementList[heighestBlock][2]
+
+        return

@@ -85,6 +85,7 @@ class BlockManager:
             target (tuple): Final position the robot moves to
             offset (float): How far away from final position we want to move down
                 This is so the robot does not crash into potentially stacked blocks
+            minimumZHeight(int) or None: The minimum height we should travel so we don't collide with other towers
 
         Returns:
             list: List of waypoints (tuple) to move the robot to
