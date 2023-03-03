@@ -139,6 +139,9 @@ class RobotArm:
         # Sets first state
         self.rotateBlock()
         self.rotateBlock()
+        for blockManager in self.blockManagers:
+            blockManager.blockToPlace = 0
+
         self.setState(self.STATE_GET_BLOCK)
         # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
 
@@ -228,7 +231,11 @@ class RobotArm:
             if self.newState and timer() - self.start > 0.4:
                 # print("moving up")
                 if self.previousState == self.STATE_PICKUP_BLOCK:
-                    self.target = currentPos[0], currentPos[1], currentPos[2] + 30
+                    highestBlock = self.blockManagers[self.currentManager].blockToPlace
+                    if highestBlock == 0:
+                        highestBlock = 1
+                    self.minimumZMovingHeight = self.blockManagers[self.currentManager].blockPlacementList[highestBlock - 1][2]
+                    self.target = currentPos[0], currentPos[1], self.minimumZMovingHeight + 20
                 else:
                     self.target = currentPos[0], currentPos[1], currentPos[2] + 20
                 self.moveToPosRadians(self.target, self.speed)
@@ -416,7 +423,7 @@ class RobotArm:
                 self.currentManager = nextManager
 
                 # Check if we will cross another block tower. Avoid it.
-                if math.dist([self.previousManager], [self.currentManager]) == 2:
+                if abs(self.previousManager - self.currentManager) == 2:
                     self.setMinimumZHeight()
                 else:
                     self.minimumZMovingHeight = None
@@ -503,9 +510,21 @@ class RobotArm:
     def setMinimumZHeight(self):
 
         # Find middle manager and get the Z height of the last block placed
-        middleManager = (self.previousManager + self.currentManager) / 2
-        heighestBlock = self.blockManagers[middleManager].blockToPlace - 1
-        if heighestBlock == -1:
+        logging.debug(f'Previous manager: {self.previousManager}, Current Manager: {self.currentManager}')
+        if self.previousManager == 0:
+            middleManager = 3
+            heighestBlock = self.blockManagers[middleManager].blockToPlace - 2
+        elif self.previousManager == 1:
+            middleManager = 0
+            heighestBlock = self.blockManagers[middleManager].blockToPlace - 1
+        elif self.previousManager == 2:
+            middleManager = 1
+            heighestBlock = self.blockManagers[middleManager].blockToPlace - 1
+        else:
+            middleManager = 2
+            heighestBlock = self.blockManagers[middleManager].blockToPlace - 1
+
+        if heighestBlock < 0:
             heighestBlock = 0
         self.minimumZMovingHeight = self.blockManagers[middleManager].blockPlacementList[heighestBlock][2]
 
