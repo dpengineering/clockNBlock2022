@@ -74,13 +74,13 @@ class RobotArm:
     NUM_BLOCK_FEEDERS = len(blockFeeders)
 
     # Locations for all the block feeders
-    feederLocations = [(343, -0.906, -1474.6), (340, -2.497, -1478.3), (343, 2.218, -1473.7), (339, 0.648, -1472.2)]
+    feederLocations = [(343, -0.906, -1475.6), (340, -2.497, -1477.3), (343, 2.218, -1473.7), (339, 0.648, -1472.2)]
 
     # Locations for all the build locations
     # Note: Currently the third build Location  is closer to the center
     #   This is because the robot arms crash into the structure that houses the robot
     #   We will also need to make it so the third buildLocation will never path in from the side
-    buildLocations = [(466, -0.139, -1447.0), (475, -1.685, -1446.9), (479, 3.004, -1447.9), (523, 1.434, -1448.5)]
+    buildLocations = [(466, -0.139, -1447.0), (475, -1.685, -1446.9), (479, 3.004, -1446.9), (523, 1.434, -1446.5)]
 
     # Sets how high the stack of blocks will be
     # stackSize = 6
@@ -182,11 +182,12 @@ class RobotArm:
         #   Unpressed and then re-initialize program.
         if self.dpiRobot.getRobotStatus()[1] == self.dpiRobot.STATE_NOT_HOMED or \
                 self.dpiRobot.getRobotStatus()[1] == self.dpiRobot.STATE_E_STOPPED_PRESSED:
+            self.hands.dpiStepper.emergencyStop(0)
+            self.hands.dpiStepper.emergencyStop(1)
             while self.dpiRobot.getRobotStatus()[1] != self.dpiRobot.STATE_NOT_HOMED:
                 sleep(0.1)
             self.isHomedFlg = False
-            self.hands.dpiStepper.emergencyStop(0)
-            self.hands.dpiStepper.emergencyStop(1)
+
 
         if self.state == self.STATE_GET_BLOCK:
             if self.newState:
