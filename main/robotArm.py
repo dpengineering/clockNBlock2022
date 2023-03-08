@@ -49,7 +49,7 @@ class RobotArm:
     STATE_WAITING =      4
 
     MINIMUM_Z = 100
-    speed = 140
+
 
     # pin assignments show how the pistons are wired to the DPiSolenoid board
     #
@@ -103,6 +103,7 @@ class RobotArm:
         self.ROTATING_SOLENOID = rotatingSolenoid
         self.rotationPosition = False
         self.previousState = None
+        self.speed = 140
 
     def setup(self) -> bool:
 
@@ -137,6 +138,7 @@ class RobotArm:
         self.isHomedFlg = True
 
         # Sets first state
+        self.rotationPosition = False
         self.rotateBlock()
         self.rotateBlock()
         for blockManager in self.blockManagers:
@@ -183,6 +185,8 @@ class RobotArm:
             while self.dpiRobot.getRobotStatus()[1] != self.dpiRobot.STATE_NOT_HOMED:
                 sleep(0.1)
             self.isHomedFlg = False
+            self.hands.dpiStepper.emergencyStop(0)
+            self.hands.dpiStepper.emergencyStop(1)
 
         if self.state == self.STATE_GET_BLOCK:
             if self.newState:
@@ -237,7 +241,9 @@ class RobotArm:
                     self.minimumZMovingHeight = self.blockManagers[self.currentManager].blockPlacementList[highestBlock - 1][2]
                     self.target = currentPos[0], currentPos[1], self.minimumZMovingHeight + 20
                 else:
-                    self.target = currentPos[0], currentPos[1], currentPos[2] + 20
+                    self.target = currentPos[0], currentPos[1], currentPos[2] + 25
+                    if self.target[2] > -1275 and self.currentManager == 3:
+                        self.target = currentPos[0], currentPos[1], -1275
                 self.moveToPosRadians(self.target, self.speed)
                 self.newState = False
                 return
@@ -423,8 +429,9 @@ class RobotArm:
                 self.currentManager = nextManager
 
                 # Check if we will cross another block tower. Avoid it.
-                if abs(self.previousManager - self.currentManager) == 2:
-                    self.setMinimumZHeight()
+                if abs(self.previousManager - self.currentManager) == 1:
+                    heighestBlock = self.blockManagers[self.currentManager].blockToPlace
+                    self.minimumZMovingHeight = self.blockManagers[self.currentManager].blockPlacementList[heighestBlock][2]
                 else:
                     self.minimumZMovingHeight = None
 

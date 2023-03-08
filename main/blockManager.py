@@ -36,7 +36,7 @@ class BlockManager:
             buildPos (tuple): Build site location in polar coordinates
             managerNumber (int): Manager number to determine which stack we want
         """
-        self.radianOffset = .25
+        self.radianOffset = -.35
         self.feederPos = feederPos
         self.buildPos = buildPos
         self.MINIMUM_MOVING_HEIGHT = -1480.8 + 200  # feederPos[2] + self._BLOCK_SIZE * 6
@@ -55,7 +55,7 @@ class BlockManager:
             tuple: Final position to move, used to check completion of robot's state
         """
         # The head is fairly large, so we need a larger radian offset.
-        waypointList, target = self.pathToTarget(currentPos, self.feederPos, self.radianOffset + 0.1, minimumZHeight)
+        waypointList, target = self.pathToTarget(currentPos, self.feederPos, self.radianOffset, minimumZHeight)
 
         return waypointList, target
 
@@ -72,7 +72,7 @@ class BlockManager:
         if self.blockToPlace == len(self.blockPlacementList):
             return False
 
-        waypointList, target = self.pathToTarget(currentPos, self.blockPlacementList[self.blockToPlace], self.radianOffset)
+        waypointList, target = self.pathToTarget(currentPos, self.blockPlacementList[self.blockToPlace], -self.radianOffset)
 
         self.blockToPlace += 1
         return waypointList, target
@@ -146,13 +146,14 @@ class BlockManager:
                               [0, 1, 1, 1, 1, 1, 1])
             placements = self.generatePlacementsFromArray(placementArray)
         elif managerNumber == 1:
-            # Funky shape
-            placementArray = ([-self._BLOCK_SIZE/2, 0, 0, 0, 1, 0, 0],
-                              [0                  , 0, 0, 1, 1, 0, 0],
-                              [-self._BLOCK_SIZE/2, 0, 0, 1, 1, 1, 0],
-                              [0                  , 0, 1, 1, 1, 1, 0],
-                              [0                  , 0, 1, 1, 1, 1, 0],
-                              [0                  , 0, 1, 1, 1, 1, 0])
+            # House
+            placementArray = ([0                  , 0, 0, 0, 1, 0, 0],
+                              [-self._BLOCK_SIZE/2, 0, 0, 0, 1, 1, 0],
+                              [0                  , 0, 0, 1, 1, 1, 0],
+                              [-self._BLOCK_SIZE/2, 0, 0, 1, 1, 1, 1],
+                              [0                  , 0, 1, 1, 1, 1, 1],
+                              [0                  , 0, 1, 1, 1, 1, 1],
+                              [0                  , 0, 1, 1, 1, 1, 1])
             placements = self.generatePlacementsFromArray(placementArray)
         elif managerNumber == 2:
             # Regular pyramid
@@ -190,7 +191,7 @@ class BlockManager:
         for rowIdx, row in enumerate(placementArray):
             currentOrigin = self.buildPos
             for colIdx, value in enumerate(row):
-                # If we are at the first column, offset by the
+                # If we are at the first column, offset by the offset value
                 if colIdx == 0:
                     currentOrigin = currentOrigin[0] + value, currentOrigin[1], currentOrigin[2]
                 elif value:
@@ -232,7 +233,7 @@ class BlockManager:
         # print(f"distFeed: {distFeed}, distBuild: {distBuild}")
 
         # Checks if the robot arm is too close to each build site
-        if distFeed < 0.6 or distBuild < 0.6:
+        if distFeed < 0.3 or distBuild < 0.6:
             self.resetStack()
             return False
 
