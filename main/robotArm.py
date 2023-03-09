@@ -103,7 +103,7 @@ class RobotArm:
         self.ROTATING_SOLENOID = rotatingSolenoid
         self.rotationPosition = False
         self.previousState = None
-        self.speed = 140
+        self.speed = 70
 
     def setup(self) -> bool:
 
