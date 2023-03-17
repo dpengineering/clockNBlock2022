@@ -64,7 +64,7 @@ def main():
 
 # Run script
 if __name__ == "__main__":
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+    # logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
     setup()
 
 
