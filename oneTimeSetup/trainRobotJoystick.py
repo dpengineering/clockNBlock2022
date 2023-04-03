@@ -220,6 +220,13 @@ class Training:
     # The trigger saves the location the robot is currently at
     # The middle button on the top of the joystick rehomes the robot
     #
+    # Trigger: Saves the current position of the robot to a file
+    # Button 2: Homes the robot
+    # Button 3: Switches the magnet on or off
+    # Button 4: Rotates the block
+    # Button 5: Toggles whether the robot can move or not
+    # Button 6: Extends all the pistons that push blocks up
+    #    Useful for when you are training the pick-up locations.
     def check_other_buttons(self):
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:

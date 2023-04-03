@@ -126,6 +126,16 @@ class RobotArm:
             print("Communication with the DPiSolenoid board failed.")
             return False
 
+        # Sets first state
+        self.rotationPosition = False
+        self.rotateBlock()
+        self.rotateBlock()
+        for blockManager in self.blockManagers:
+            blockManager.blockToPlace = 0
+
+        self.setState(self.STATE_GET_BLOCK)
+        # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
+
         # Homes robot
         if not self.dpiRobot.homeRobot(True):
             print("Homing failed.")
@@ -136,16 +146,6 @@ class RobotArm:
             return False
 
         self.isHomedFlg = True
-
-        # Sets first state
-        self.rotationPosition = False
-        self.rotateBlock()
-        self.rotateBlock()
-        for blockManager in self.blockManagers:
-            blockManager.blockToPlace = 0
-
-        self.setState(self.STATE_GET_BLOCK)
-        # print(f'Done homing robot, State: {self.state}, newState: {self.newState}')
 
         logging.debug(f'Robot Arm States Key: \n'
                       f'STATE_GET_BLOCK =    0 \n'

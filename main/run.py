@@ -29,6 +29,8 @@ def setup():
     # Call setup functions for each component
     logging.debug(f'Setting up robot arm')
     if not robot.setup():
+        # Just for a debug to see if the robot setup fails
+        [blockFeeder.dpiClockNBlock.toggleArrow(True) for blockFeeder in blockFeeders]
         raise Exception("Robot setup failed")
 
     logging.debug('Setting up hands')
