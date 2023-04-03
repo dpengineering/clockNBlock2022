@@ -121,9 +121,9 @@ class RobotArm:
             return False
 
         # initializes solenoid board
-        if not self.dpiSolenoid.initialize():
-            print("Communication with the DPiSolenoid board failed.")
-            return False
+        # if not self.dpiSolenoid.initialize():
+        #     print("Communication with the DPiSolenoid board failed.")
+        #     return False
 
         # Sets first state
         self.rotationPosition = False
