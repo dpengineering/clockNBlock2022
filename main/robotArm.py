@@ -80,8 +80,7 @@ class RobotArm:
     # Note: Currently the third build Location  is closer to the center
     #   This is because the robot arms crash into the structure that houses the robot
     #   We will also need to make it so the third buildLocation will never path in from the side
-    buildLocations = [(466, -0.139, -1446.0), (475, -1.685, -1446.9), (479, 3.004, -1446.9), (523, 1.434, -1446.5)]
-
+    buildLocations = [(466, -0.139, -1446.0), (475, -1.685, -1444.9), (479, 3.004, -1446.9), (523, 1.434, -1446.5)]
     # Sets how high the stack of blocks will be
     # stackSize = 6
     blockManagers = []
@@ -239,7 +238,7 @@ class RobotArm:
                     highestBlock = self.blockManagers[self.currentManager].blockToPlace
                     if highestBlock == 0:
                         highestBlock = 1
-                    self.minimumZMovingHeight = self.blockManagers[self.currentManager].blockPlacementList[highestBlock - 1][2]
+                    self.minimumZMovingHeight = self.blockManagers[self.currentManager].blockPlacementList[highestBlock][2]
                     self.target = currentPos[0], currentPos[1], self.minimumZMovingHeight + 20
                 else:
                     self.target = currentPos[0], currentPos[1], currentPos[2] + 25
@@ -308,8 +307,8 @@ class RobotArm:
                 # print("homing Robot")
                 logging.debug('homing robot')
                 self.dpiRobot.homeRobot(True)
-                logging.debug('setting hands to idle')
-                self.hands.Idle = True
+                if not self.checkIfAnyTowerIsComplete():
+                    self.hands.Idle = True
                 self.newState = False
                 logging.debug(f'Robot NewState after idle: {self.newState}')
                 return
@@ -537,3 +536,9 @@ class RobotArm:
         self.minimumZMovingHeight = self.blockManagers[middleManager].blockPlacementList[heighestBlock][2]
 
         return
+
+    def checkIfAnyTowerIsComplete(self):
+        for manager in self.blockManagers:
+            if manager.full:
+                return True
+        return False

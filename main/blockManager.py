@@ -42,6 +42,7 @@ class BlockManager:
         self.blockFeeder = blockFeeder
         self.blockPlacementList = self.generateBlockPlacements(buildPos, managerNumber)
         self.blockToPlace = 0
+        self.full = False
 
     def getNextBlock(self, currentPos: tuple, minimumZHeight):
         """Gets the next block
@@ -69,6 +70,7 @@ class BlockManager:
             tuple: Final position to move, used to check completion of robot's state
         """
         if self.blockToPlace == len(self.blockPlacementList):
+            self.full = True
             return False
 
         waypointList, target = self.pathToTarget(currentPos, self.blockPlacementList[self.blockToPlace], -self.radianOffset)
@@ -242,9 +244,11 @@ class BlockManager:
 
         # Check if stack is complete
         if self.blockToPlace == len(self.blockPlacementList):
+            self.full = True
             return False
 
         return True
 
     def resetStack(self):
+        self.full = False
         self.blockToPlace = 0
