@@ -27,21 +27,21 @@ NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
 def setup():
 
     # Call setup functions for each component
+    for i in range(NUM_BLOCK_FEEDERS):
+        logging.debug(f'Setting up blockFeeder {i}')
+        if not blockFeeders[i].setup():
+            raise Exception(f"BlockFeeder {i} setup failed")
+
     logging.debug(f'Setting up robot arm')
     if not robot.setup():
         # Just for a debug to see if the robot setup fails
-        [blockFeeder.dpiClockNBlock.toggleArrow(True) for blockFeeder in blockFeeders]
+        blockFeeders[0].dpiClockNBlock.toggleArrow(True)
         raise Exception("Robot setup failed")
 
     logging.debug('Setting up hands')
     if not hands.setup():
+        blockFeeders[1].dpiClockNBlock.toggleArrow(True)
         raise Exception("Hands setup failed")
-
-    for i in range(NUM_BLOCK_FEEDERS):
-        logging.debug(f'Setting up blockFeeder {i}')
-        # print(f"setup blockfeeder {i}")
-        if not blockFeeders[i].setup():
-            raise Exception(f"BlockFeeder {i} setup failed")
 
     hands.dpiStepper.moveToRelativePositionInSteps(1, 326400, False)
     hands.dpiStepper.waitUntilMotorStops(1)
