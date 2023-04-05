@@ -29,6 +29,11 @@ blockFeederLocations = [(343, -0.906, -1473.6),
                         (343, 2.218, -1472.7),
                         (339, 0.648, -1471.2)]
 
+# Clock Minute Hand Radius
+# The place where we will place a block on the clock's minute hand
+clockMinuteHandRadius = 520
+
+
 
 # DPi Boards
 clockNBlockBoards = []

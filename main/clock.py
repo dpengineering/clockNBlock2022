@@ -135,5 +135,15 @@ class Clock:
         minuteToSteps = minute * self.MINUTE_HAND_STEPS_PER_REVOLUTION // 60 + second * self.MINUTE_HAND_STEPS_PER_REVOLUTION // (60 * 60)
         return hourToSteps, minuteToSteps
 
+    def getPositionDegrees(self):
+        """Gets the position of the hands in degrees"""
+        hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
+        minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
+        
+        hourDegrees = hourPosition / self.HOUR_HAND_STEPS_PER_REVOLUTION * 360
+        minuteDegrees = minutePosition / self.MINUTE_HAND_STEPS_PER_REVOLUTION * 360
+
+        return hourDegrees, minuteDegrees
+
 
 
