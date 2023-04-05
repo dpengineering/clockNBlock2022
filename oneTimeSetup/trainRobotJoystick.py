@@ -6,8 +6,9 @@
 #      *                                                                *
 #      ******************************************************************
 import math
-from time import strftime, gmtime, sleep
+from time import localtime
 
+import numpy as np
 import pygame
 import os
 from dpeaDPi.DPiRobot import DPiRobot
@@ -28,8 +29,8 @@ class Training:
     # and writing the time we are saving the locations.
     #
     locationsFile = open("locations", "a")
-    time = strftime("%Y-%m-%d %H:%M", gmtime())
-    locationsFile.write(f'Locations saved at {time} \n')
+    t = localtime()
+    locationsFile.write(f'Locations saved at {t.tm_hour}:{t.tm_min} \n')
     locationsFile.close()
 
     #
@@ -213,6 +214,7 @@ class Training:
         # Convert to Polar Coords
         r = math.sqrt(x ** 2 + y ** 2)
         theta = math.atan2(y, x)
+        theta = np.rad2deg(theta)
         return r, theta, z
 
     #

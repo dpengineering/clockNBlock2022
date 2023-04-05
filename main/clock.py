@@ -147,5 +147,18 @@ class Clock:
 
         return hourDegrees, minuteDegrees
 
+    def moveToTime(self, hour, minute, second=0, waitFlg=False):
+        """Moves the hands to the given time"""
+        hourToSteps, minuteToSteps = self.convertTimeToSteps(hour, minute, second)
+
+        # Calculate the steps to move
+        _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
+        _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
+
+        hourDifference = hourToSteps - hourPosition % self.HOUR_HAND_STEPS_PER_REVOLUTION
+        minuteDifference = minuteToSteps - minutePosition % self.MINUTE_HAND_STEPS_PER_REVOLUTION
+
+        self.moveToPositionsRelative(hourDifference, minuteDifference, waitFlg)
+
 
 

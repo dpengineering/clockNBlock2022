@@ -27,14 +27,13 @@ def main():
 
     print(clock.getPositionDegrees())
 
-    # print('waiting for 10 seconds')
-    # sleep(10)
-    #
-    #
-    # t = localtime()
-    # print(f'moving to Local time {t.tm_hour}:{t.tm_min}')
-    # hourHandSteps, minuteHandSteps = clock.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
-    # clock.moveToPositionsRelative(hourHandSteps, minuteHandSteps, True)
+    print('waiting for 10 seconds')
+    sleep(10)
+
+
+    t = localtime()
+    print(f'moving to Local time {t.tm_hour}:{t.tm_min}:{t.tm_sec}')
+    clock.moveToTime(t.tm_hour, t.tm_min, t.tm_sec, True)
 
     # while True:
     #     clock.process()
