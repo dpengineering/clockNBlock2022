@@ -13,7 +13,7 @@ class Clock:
     HOUR_HAND_PIN = 0
     HOUR_HAND_GEAR_REDUCTION = 5  # Gear reduction is 5:1
     # I am not sure why there is 300 extra steps for a full rotation.
-    HOUR_HAND_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * HOUR_HAND_GEAR_REDUCTION + 300  # 8300
+    HOUR_HAND_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * HOUR_HAND_GEAR_REDUCTION + 290 # 8300
     # Hour hand base speed, 1 revolution in 12 hours, about 0.19 steps per second
     HOUR_HAND_BASE_SPEED = HOUR_HAND_STEPS_PER_REVOLUTION // (12 * 60 * 60)
     # Hour hand max speed. I don't feel comfortable sending it more than 0.5 rev / sec - 4150 steps/sec
@@ -22,7 +22,7 @@ class Clock:
 
     MINUTE_HAND_PIN = 1
     MINUTE_HAND_GEAR_REDUCTION = 204  # Gear reduction is 204:1
-    MINUTE_HAND_STEPS_PER_REVOLUTION = int(200 * MICROSTEPPING * MINUTE_HAND_GEAR_REDUCTION * 0.998)  # 326400
+    MINUTE_HAND_STEPS_PER_REVOLUTION = int(200 * MICROSTEPPING * MINUTE_HAND_GEAR_REDUCTION * 1.002)  # 326400
     # Base minute hand speed, 1 revolution per hour, about 90.6 steps per second
     MINUTE_HAND_BASE_SPEED = MINUTE_HAND_STEPS_PER_REVOLUTION // (60 * 60)
     MINUTE_HAND_MAX_SPEED = 20000
@@ -38,6 +38,8 @@ class Clock:
             raise Exception("DPi Stepper initialization failed")
 
         self.dpiStepper.setMicrostepping(self.MICROSTEPPING)
+
+        self.dpiStepper.enableMotors(True)
 
     def setup(self):
         """ Sets up the hands so they can be used."""
@@ -67,16 +69,16 @@ class Clock:
         self.dpiStepper.setCurrentPositionInSteps(self.HOUR_HAND_PIN, 0)
         self.dpiStepper.setCurrentPositionInSteps(self.MINUTE_HAND_PIN, 0)
 
-        # Move to current time
-        t = localtime()
-        hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
-        self.moveToPositionsRelative(hourToSteps, minuteToSteps)
-
-        # Set base speeds
-        self.setSpeeds(self.HOUR_HAND_BASE_SPEED, self.MINUTE_HAND_BASE_SPEED)
-
-        # Set them going for an hour
-        self.moveToPositionsRelative(self.HOUR_HAND_STEPS_PER_REVOLUTION, self.MINUTE_HAND_STEPS_PER_REVOLUTION)
+        # # Move to current time
+        # t = localtime()
+        # hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
+        # self.moveToPositionsRelative(hourToSteps, minuteToSteps)
+        #
+        # # Set base speeds
+        # self.setSpeeds(self.HOUR_HAND_BASE_SPEED, self.MINUTE_HAND_BASE_SPEED)
+        #
+        # # Set them going for an hour
+        # self.moveToPositionsRelative(self.HOUR_HAND_STEPS_PER_REVOLUTION, self.MINUTE_HAND_STEPS_PER_REVOLUTION)
 
     def process(self):
         """Processes the clock"""
@@ -92,8 +94,8 @@ class Clock:
         hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
 
         # Get current positions
-        hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
-        minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
+        _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
+        _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
 
         # Calculate the difference between the desired position and the current position
         hourDifference = hourToSteps - hourPosition % self.HOUR_HAND_STEPS_PER_REVOLUTION
@@ -137,8 +139,8 @@ class Clock:
 
     def getPositionDegrees(self):
         """Gets the position of the hands in degrees"""
-        hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
-        minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
+        _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
+        _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
         
         hourDegrees = hourPosition / self.HOUR_HAND_STEPS_PER_REVOLUTION * 360
         minuteDegrees = minutePosition / self.MINUTE_HAND_STEPS_PER_REVOLUTION * 360
