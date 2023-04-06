@@ -215,12 +215,16 @@ class Training:
         # Convert to Polar Coords
         r = np.sqrt(x ** 2 + y ** 2)
         theta = np.arctan2(y, x)
+        print(theta)
         theta = np.rad2deg(theta)
+        print(theta)
 
         # Adjust for negative values
-        if x < 0:
+        if x < 0 < y:
             theta += 180
-        elif y < 0:
+        elif x < 0 and y < 0:
+            theta += 360
+        elif y < 0 < x:
             theta += 360
 
         return r, theta, z

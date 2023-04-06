@@ -20,8 +20,8 @@ if not dpiSolenoid.initialize():
 robot = RobotArm(dpiSolenoid, constants.magnetSolenoid, constants.rotationSolenoid)
 
 buildSites = []
-for location in constants.buildLocations:
-    buildSites.append(BuildSite(location[0], location[1]))
+for idx, location in enumerate(constants.buildLocations):
+    buildSites.append(BuildSite(idx, location[0], location[1]))
 
 blockFeeders = []
 for num, blockFeederInfo in enumerate(zip(constants.blockFeederLocations, constants.blockFeederSolenoids)):
