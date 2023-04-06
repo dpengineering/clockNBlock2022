@@ -214,7 +214,7 @@ class Training:
         x, y, z = position
         # Convert to Polar Coords
         r = np.sqrt(x ** 2 + y ** 2)
-        theta = np.atan2(y, x)
+        theta = np.arctan2(y, x)
         theta = np.rad2deg(theta)
 
         # Adjust for negative values
