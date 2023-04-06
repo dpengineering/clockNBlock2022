@@ -14,8 +14,8 @@ speed = 100
 
 
 def main():
-    robotArm.setup()
-    positionPolar = (343, 308, -1474.6)
+    # robotArm.setup()
+    positionPolar = (325.59941646139356, 307.96449858774173, -1416.5)
     print(f'moving to {positionPolar}')
     print(f'converted to {robotArm.polarToCartesian(positionPolar)}')
     robotArm.movePolar(positionPolar, speed)
