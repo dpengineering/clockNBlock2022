@@ -28,7 +28,7 @@ class Training:
     # manually write these locations down. Here we are creating a text file
     # and writing the time we are saving the locations.
     #
-    locationsFile = open("locations", "a")
+    locationsFile = open("oneTimeSetup/locations", "a")
     t = localtime()
     locationsFile.write(f'Locations saved at {t.tm_hour}:{t.tm_min} \n')
     locationsFile.close()
@@ -75,6 +75,8 @@ class Training:
 
         self.movementFlag = True
         self.pushVal = False
+
+        self.stepSize = 10
 
     #
     # Get the axis (x, y, or z) of the joystick.
@@ -128,10 +130,9 @@ class Training:
     #
     def generate_waypoint(self):
 
-        # Currently, the 3 is an arbitrary number, change it as you wish
-        # However, it limits the step size of the robot to be at max 27 mm
-        translateX = self.num_to_range(self.get_axis('x'), -1, 1, -10, 10)
-        translateY = self.num_to_range(self.get_axis('y'), 1, -1, -10, 10)
+        # Currently, the 10 is an arbitrary number, change it as you wish
+        translateX = self.num_to_range(self.get_axis('x'), -1, 1, -self.stepSize, self.stepSize)
+        translateY = self.num_to_range(self.get_axis('y'), 1, -1, -self.stepSize, self.stepSize)
         joystickZ = self.num_to_range(self.get_axis('z'), 1, -1, self.minZ, self.maxZ)
 
         if self.get_axis('x') == 0:
@@ -236,6 +237,8 @@ class Training:
     # Button 5: Toggles whether the robot can move or not
     # Button 6: Extends all the pistons that push blocks up
     #    Useful for when you are training the pick-up locations.
+    # Button 7: Reduces step size
+    # Button 8: Increases step size
     def check_other_buttons(self):
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
@@ -244,7 +247,7 @@ class Training:
                     r, theta, z = self.cartesianToPolar((x, y, z))
                     if status:
                         print("Write to file")
-                        locationsFile = open("locations", "a")
+                        locationsFile = open("oneTimeSetup/locations", "a")
                         name = input("What point is this? ")
                         locationsFile.write(f'{name}: ({r}, {theta}, {z} \n')
                         locationsFile.close()
@@ -276,6 +279,16 @@ class Training:
                     self.dpiSolenoid.switchDriverOnOrOff(8, self.pushVal)
                     self.dpiSolenoid.switchDriverOnOrOff(1, self.pushVal)
                     self.pushVal = not self.pushVal
+                elif self.joystick.get_button(6):
+                    print('reducing step size by 1')
+                    self.stepSize = self.stepSize - 1
+                    if self.stepSize < 1:
+                        self.stepSize = 1
+                elif self.joystick.get_button(7):
+                    print('increasing step size by 1')
+                    self.stepSize = self.stepSize + 1
+                    if self.stepSize > 20:
+                        self.stepSize = 20
 
 
 # Runs our main loop
