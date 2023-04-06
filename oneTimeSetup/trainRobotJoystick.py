@@ -237,8 +237,8 @@ class Training:
     # Button 5: Toggles whether the robot can move or not
     # Button 6: Extends all the pistons that push blocks up
     #    Useful for when you are training the pick-up locations.
-    # Button 7: Reduces step size
-    # Button 8: Increases step size
+    # Button 10: Reduces step size
+    # Button 11: Increases step size
     def check_other_buttons(self):
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
@@ -279,12 +279,12 @@ class Training:
                     self.dpiSolenoid.switchDriverOnOrOff(8, self.pushVal)
                     self.dpiSolenoid.switchDriverOnOrOff(1, self.pushVal)
                     self.pushVal = not self.pushVal
-                elif self.joystick.get_button(6):
+                elif self.joystick.get_button(9):
                     print('reducing step size by 1')
                     self.stepSize = self.stepSize - 1
                     if self.stepSize < 1:
                         self.stepSize = 1
-                elif self.joystick.get_button(7):
+                elif self.joystick.get_button(10):
                     print('increasing step size by 1')
                     self.stepSize = self.stepSize + 1
                     if self.stepSize > 20:
