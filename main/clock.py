@@ -69,16 +69,16 @@ class Clock:
         self.dpiStepper.setCurrentPositionInSteps(self.HOUR_HAND_PIN, 0)
         self.dpiStepper.setCurrentPositionInSteps(self.MINUTE_HAND_PIN, 0)
 
-        # # Move to current time
-        # t = localtime()
-        # hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
-        # self.moveToPositionsRelative(hourToSteps, minuteToSteps)
-        #
-        # # Set base speeds
-        # self.setSpeeds(self.HOUR_HAND_BASE_SPEED, self.MINUTE_HAND_BASE_SPEED)
-        #
-        # # Set them going for an hour
-        # self.moveToPositionsRelative(self.HOUR_HAND_STEPS_PER_REVOLUTION, self.MINUTE_HAND_STEPS_PER_REVOLUTION)
+        # Move to current time
+        t = localtime()
+        hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
+        self.moveToPositionsRelative(hourToSteps, minuteToSteps)
+
+        # Set base speeds
+        self.setSpeeds(self.HOUR_HAND_BASE_SPEED, self.MINUTE_HAND_BASE_SPEED)
+
+        # Set them going for an hour
+        self.moveToPositionsRelative(self.HOUR_HAND_STEPS_PER_REVOLUTION, self.MINUTE_HAND_STEPS_PER_REVOLUTION)
 
     def process(self):
         """Processes the clock"""
@@ -94,8 +94,8 @@ class Clock:
         hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
 
         # Get current positions
-        _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
-        _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
+        _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN) % self.HOUR_HAND_STEPS_PER_REVOLUTION
+        _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN) % self.MINUTE_HAND_STEPS_PER_REVOLUTION
 
         # Calculate the difference between the desired position and the current position
         hourDifference = hourToSteps - hourPosition % self.HOUR_HAND_STEPS_PER_REVOLUTION

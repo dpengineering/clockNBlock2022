@@ -69,9 +69,17 @@ class RobotArm:
     def cartesianToPolar(self, position: tuple):
         """Converts cartesian coordinates to polar coordinates"""
         x, y, z = position
-        r = np.sqrt(x**2 + y**2)
-        theta = np.arctan2(y, x)
-        theta = round(np.rad2deg(theta), 3)
+        # Convert to Polar Coords
+        r = np.sqrt(x ** 2 + y ** 2)
+        theta = np.atan2(y, x)
+        theta = np.rad2deg(theta)
+
+        # Adjust for negative values
+        if x < 0:
+            theta += 180
+        elif y < 0:
+            theta += 360
+
         return r, theta, z
 
     def polarToCartesian(self, position: tuple):
