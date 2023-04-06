@@ -5,12 +5,12 @@ from dpeaDPi.DPiRobot import DPiRobot
 class RobotArm:
 
     # States
-    STATE_MOVE_TO_FEEDER     = 0
-    STATE_PICKUP_BLOCK       = 1
-    STATE_ROTATE_BLOCK       = 2
-    STATE_MOVE_TO_BUILD_SITE = 3
-    STATE_PLACE_BLOCK        = 4
-    STATE_IDLE               = 5
+    _STATE_MOVE_TO_FEEDER     = 0
+    _STATE_PICKUP_BLOCK       = 1
+    _STATE_ROTATE_BLOCK       = 2
+    _STATE_MOVE_TO_BUILD_SITE = 3
+    _STATE_PLACE_BLOCK        = 4
+    _STATE_IDLE               = 5
 
     def __init__(self, dpiSolenoid, magnetSolenoid, rotationSolenoid):
 
@@ -22,7 +22,7 @@ class RobotArm:
         self.dpiRobot = DPiRobot()
 
         # State machine
-        self.state = self.STATE_IDLE
+        self.state = self._STATE_IDLE
         self.newState = False
 
         # Flags

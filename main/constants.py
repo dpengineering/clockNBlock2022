@@ -1,6 +1,4 @@
 """Constants for all of our objects"""
-from DPi_ClockNBlock_Python.DPiClockNBlock import DPiClockNBlock
-
 
 # Solenoid Values
 # Robot Arm
@@ -33,14 +31,5 @@ blockFeederLocations = [(343, -0.906, -1473.6),
 # The place where we will place a block on the clock's minute hand
 clockMinuteHandRadius = 520
 
-
-
-# DPi Boards
-clockNBlockBoards = []
-
-for i in range(4):
-    dpiClockNBlock = DPiClockNBlock()
-    dpiClockNBlock.setBoardNumber(i)
-    clockNBlockBoards.append(dpiClockNBlock)
 
 

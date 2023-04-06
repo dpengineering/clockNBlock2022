@@ -24,8 +24,8 @@ for location in constants.buildLocations:
     buildSites.append(BuildSite(location[0], location[1]))
 
 blockFeeders = []
-for blockFeederInfo in zip(constants.blockFeederLocations, constants.blockFeederSolenoids, constants.clockNBlockBoards):
-    blockFeeders.append(BlockFeeder(blockFeederInfo[0], blockFeederInfo[1], blockFeederInfo[2]))
+for num, blockFeederInfo in enumerate(zip(constants.blockFeederLocations, constants.blockFeederSolenoids)):
+    blockFeeders.append(BlockFeeder(blockFeederInfo[0], blockFeederInfo[1], num))
 
 
 
