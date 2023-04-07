@@ -146,7 +146,7 @@ class Clock:
         minuteDegrees = minutePosition / self.MINUTE_HAND_STEPS_PER_REVOLUTION * 360
 
         # Subtracting 360 because degrees go the other way than the clock is moving
-        return (hourDegrees % 360) - 360, (minuteDegrees % 360) - 360
+        return abs((hourDegrees % 360) - 360), abs((minuteDegrees % 360) - 360)
 
     def moveToTime(self, hour, minute, second=0, waitFlg=False):
         """Moves the hands to the given time"""

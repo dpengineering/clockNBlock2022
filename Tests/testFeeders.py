@@ -1,19 +1,21 @@
 # Test program that runs all the feeders continuously
+from main.blockFeeder import BlockFeeder
+import main.constants
+from dpeaDPi.DPiSolenoid import DPiSolenoid
 
-# To import from other folders in project
-import sys
-sys.path.insert(0, "..")
+constants = main.constants
 
-from main.robotArm import RobotArm
+dpiSolenoid = DPiSolenoid()
+dpiSolenoid.setBoardNumber(0)
+if not dpiSolenoid.initialize():
+    raise Exception("Solenoid initialization failed")
 
-robotMagnetSolenoid = 11
-robotRotationSolenoid = 10
+blockFeeders = []
+NUM_BLOCK_FEEDERS = 4
 
-robot = RobotArm(robotMagnetSolenoid, robotRotationSolenoid)
-
-blockFeeders = robot.blockFeeders
-
-NUM_BLOCK_FEEDERS = robot.NUM_BLOCK_FEEDERS
+for i in range(NUM_BLOCK_FEEDERS):
+    # The positions don't actually matter
+    blockFeeders.append(BlockFeeder(i, constants.blockFeederSolenoids[i], i, dpiSolenoid))
 
 
 def setup():
@@ -24,9 +26,7 @@ def setup():
 
 
 def main():
-
     setup()
-
     while True:
         for i in range(NUM_BLOCK_FEEDERS):
             print(f'Running blockfeeder {i}')
