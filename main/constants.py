@@ -80,11 +80,11 @@ placementArrays = [placement0, placement1, placement2, placement3]
 
 # Count the number of 1s in placement arrays
 # This will be used to determine how many seconds per block we need to use
-numpyArray = np.array(placementArrays)
-numBlocks = 0
-for value in np.nditer(numpyArray):
-    if value == 1:
-        numBlocks += 1
+# numpyArray = np.array(placementArrays)
+# numBlocks = 0
+# for value in np.nditer(numpyArray):
+#     if value == 1:
+#         numBlocks += 1
 
 
 

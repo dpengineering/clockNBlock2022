@@ -28,9 +28,10 @@ def setup():
 def main():
     setup()
     while True:
-        for i in range(NUM_BLOCK_FEEDERS):
+        for i, blockFeeder in enumerate(blockFeeders):
             print(f'Running blockfeeder {i}')
-            blockFeeders[i].process()
+            blockFeeder.process()
+            print(blockFeeder.state)
 
 
 if __name__ == "__main__":

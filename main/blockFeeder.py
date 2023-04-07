@@ -29,8 +29,8 @@ class BlockFeeder:
         self.isReadyFlg = False
 
         # State machine
-        self.state = None
-        self.newState = False
+        self.state = self._STATE_READY
+        self.newState = True
         self.start = None
 
     def setup(self):
@@ -39,11 +39,11 @@ class BlockFeeder:
         # Check top position
         if self.dpiClockNBlock.readExit():
             self.isReadyFlg = True
-            return
+            return True
 
         # Check if there isn't a block
         if not self.dpiClockNBlock.readFeed_1():
-            return
+            return True
 
         # Otherwise, cycle the blocks.
         # First turn both solenoids off
@@ -79,12 +79,15 @@ class BlockFeeder:
 
             # Set state machine to the ready state
             self.setState(self._STATE_READY)
-            return
+            return True
+
+        return False
 
 
     def process(self, minuteHandPosition=None):
-        # Update the arrow
-        self.dpiClockNBlock.blinkArrow(not self.dpiClockNBlock.readEntrance())
+
+
+        self.dpiClockNBlock.toggleArrow(not self.dpiClockNBlock.readEntrance())
 
         # Update the ready flag
         #   The if else statement is for testing purposes
@@ -121,6 +124,7 @@ class BlockFeeder:
                 # Check if we have a block at feed 1, if not set to idle
                 if not self.dpiClockNBlock.readFeed_1():
                     self.setState(self._STATE_IDLE)
+                    self.dpiClockNBlock.blinkArrow()
                     return
 
                 # Push the block over
@@ -147,8 +151,13 @@ class BlockFeeder:
                 return
 
         if self.state == self._STATE_IDLE:
+            if self.newState:
+                self.dpiClockNBlock.blinkArrow(True, 200)
+                self.newState = False
+                return
             # wait for block
             if self.dpiClockNBlock.readFeed_1():
+                self.dpiClockNBlock.blinkArrow(False)
                 self.setState(self._STATE_PUSH_OVER)
                 return
 
