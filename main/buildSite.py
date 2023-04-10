@@ -1,5 +1,4 @@
 import main.constants as constants
-from sympy import Plane, Point3D, Polygon
 
 
 class BuildSite:
@@ -11,12 +10,12 @@ class BuildSite:
         # Since we are in 3D, we don't have a traditional slope, but our slope can just be the distance
         # in Z over the distance in X and Y.
         self.index = index
-        self.location = location0
+        self.location0 = location0
         # For reference
         self.location1 = location1
 
         # Locations in cartesian coordinates
-        self.locationCartesian = constants.polarToCartesian(self.location)
+        self.location0Cartesian = constants.polarToCartesian(self.location0)
         self.location1Cartesian = constants.polarToCartesian(self.location1)
 
         self.slope = self.calculateSlope(location0, location1)
@@ -24,7 +23,7 @@ class BuildSite:
         self.currentBlock = None
         self.blockPlacements = None
 
-        self.intersectionPlane = None
+        self.intersectionRectangle = None
 
         # Flags
         self.isReadyFlg = False
@@ -33,18 +32,24 @@ class BuildSite:
     def setup(self):
         # Our setup is fairly simple, we just need to find the block placement list we have
         # and reset our counter to 0
-        self.blockPlacements = self.generatePlacementList(constants.placementArrays[self.index], self.location)
+        self.blockPlacements = self.generatePlacementList(constants.placementArrays[self.index], self.location0)
         self.currentBlock = 0
         self.isReadyFlg = True
-        point0 = Point3D(self.locationCartesian)
-        point1 = Point3D(self.location1Cartesian)
-        point2 = Point3D(constants.polarToCartesian(self.blockPlacements[-1]))
-        self.intersectionPlane = Plane(point0, point1, point2)
+
+        corner0 = (self.location0[0] - constants.robotHeadRadius, self.location0[1], self.location0[2])
+        corner0 = constants.polarToCartesian(corner0)
+        corner1 = self.location1Cartesian
+        zHeight = corner0[2] + 10
+        corner2 = (corner0[0], corner1[1], zHeight)
+        corner3 = (corner1[0], corner0[1], zHeight)
+        self.intersectionRectangle = [corner0, corner1, corner2, corner3]
 
 
     def process(self, minuteHandPosition):
         # The state machine for this object is just checking if it is ready.
         self.updateReadyFlg(minuteHandPosition)
+
+        self.updateIntersectionRectangle()
 
 
     def calculateSlope(self, location0, location1):
@@ -89,12 +94,31 @@ class BuildSite:
             self.isReadyFlg = True
 
         # If the minute hand is within 30 degrees of the build site, we are not ready
-        if abs(self.location[1] - minuteHandPosition) < 30:
+        if abs(self.location0[1] - minuteHandPosition) < 30:
             self.isReadyFlg = False
             self.currentBlock = 0
             return
 
         return
+
+
+    def updateIntersectionRectangle(self):
+        """Updates dimensions of the intersection rectangle
+        Only moves the top of the rectangle up or down
+        """
+
+        currentZHeight = self.blockPlacements[self.currentBlock][2] + 10
+        previousZHeight = self.intersectionRectangle[2][2]
+
+        # If the heights are less than 10mm apart, we don't need to update
+        if abs(currentZHeight - previousZHeight) < 10:
+            return
+
+        # Update the top of the rectangle
+        self.intersectionRectangle[2] = (self.intersectionRectangle[2][0], self.intersectionRectangle[2][1], currentZHeight)
+        self.intersectionRectangle[3] = (self.intersectionRectangle[3][0], self.intersectionRectangle[3][1], currentZHeight)
+
+
 
 
 

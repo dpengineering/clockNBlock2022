@@ -121,7 +121,7 @@ class Training:
 
     #
     # Generates target waypoint and speed based on joystick output
-    # The joystick returns a value between -1 and 1 based on the location it is in
+    # The joystick returns a value between -1 and 1 based on the location0 it is in
     # That value is scaled to a range between 0 and 5 which corresponds to the distance the robot will move
     # Then, we represent our joystick values as a vector and calculate the magnitude
     #  of that vector. Then we take the magnitude and scale it from 0 to 100 to get our speed
@@ -231,7 +231,7 @@ class Training:
 
     #
     # Checks if we have pressed other buttons.
-    # The trigger saves the location the robot is currently at
+    # The trigger saves the location0 the robot is currently at
     # The middle button on the top of the joystick rehomes the robot
     #
     # Trigger: Saves the current position of the robot to a file
@@ -302,7 +302,7 @@ def main():
     print("starting")
     joystick = Training()
 
-    # Gets current location and saves it as our previous target.
+    # Gets current location0 and saves it as our previous target.
     # This is for checking if we should add more waypoints to the buffer
     print("getting current position and setting previous target")
     status, currentX, currentY, currentZ = joystick.dpiRobot.getCurrentPosition()

@@ -1,8 +1,7 @@
 # Controls how the robot arm moves
 import numpy as np
-import main.constants as constants
-import main.main
-from sympy import Point3D, Line3D, Plane
+# import main.constants as constants
+# import main.main
 
 
 class RobotManager:
@@ -13,15 +12,15 @@ class RobotManager:
     #
     # We need to make these two actions interesting - have the robot arm do different things each time it goes to the locations.
     # A few of the ways we can move will overlap:
-    #     Move in a zigzag to the location
-    #     Move in a straight line to the location
-    #     Move in a straight polar move to the location.
+    #     Move in a zigzag to the location0
+    #     Move in a straight line to the location0
+    #     Move in a straight polar move to the location0.
     #     Randomly do a spiral
     #
     # There will also be a few specific things that the robot arm will do based on its move
     # To pick up a block, we can choose some random block to pick up. i.e. pick up a block from a tower
     #
-    # To place a block, we can either place a block at an interesting location to be picked up later
+    # To place a block, we can either place a block at an interesting location0 to be picked up later
     # Or we can just go place a block.
     # This is around 7 different things we can do for each placement
     # Also, each of these moves will have to be on average 30 seconds for the whole cycle
@@ -40,15 +39,16 @@ class RobotManager:
     # cartesian wise.
 
     def __init__(self):
-        self.blockFeeders = main.main.blockFeeders
-        self.buildSites = main.main.buildSites
-        self.robotPos = (0, 0, 0)
-
-        # To move to a position from the side, we need to go to a position next to the target value
-        # This is how far away we will be
-        self.offSetAngle = 20
-
-        self.maximumMovingR = constants.maximumMovingRadius
+        pass
+        # self.blockFeeders = main.main.blockFeeders
+        # self.buildSites = main.main.buildSites
+        # self.robotPos = (0, 0, 0)
+        #
+        # # To move to a position from the side, we need to go to a position next to the target value
+        # # This is how far away we will be
+        # self.offSetAngle = 20
+        #
+        # self.maximumMovingR = constants.maximumMovingRadius
 
     def getCommand(self, robotPos, command):
         _STATE_MOVE_TO_FEEDER = 0
@@ -98,7 +98,7 @@ class RobotManager:
             feeder = self.chooseFeeder()
             if feeder is None:
                 return None
-            finalLocation = feeder.location
+            finalLocation = feeder.location0
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
@@ -154,7 +154,7 @@ class RobotManager:
         weights = []
         for index, buildSite in enumerate(readyBuildSites):
             # Get the distance from the clock hand to the build site
-            buildSiteTheta = buildSite.location[1]
+            buildSiteTheta = buildSite.location0[1]
 
             # We only want the distance from one side of the clock hand to the build site.
             # The clock hand's degree value should be GREATER THAN the build site's degree value
@@ -286,15 +286,15 @@ class RobotManager:
         waypoints = []
         currentR, currentTheta, currentZ = currentPos
         targetR, targetTheta, targetZ = targetPos
-        # Move to this location in our polar coordinate system
+        # Move to this location0 in our polar coordinate system
         travelHeight = currentZ + 5
         for buildSite in self.buildSites:
-            buildSiteTheta = buildSite.location[1]
+            buildSiteTheta = buildSite.location0[1]
             if min(currentTheta, targetTheta) < buildSiteTheta < max(currentTheta, targetTheta):
                 # Set travel height to 5mm above the highest block placed so far
                 heighestBlock = buildSite.blockPlacements[buildSite.currentBlock - 1]
                 if buildSite.currentBlock != 0:
-                    travelHeight = heighestBlock.location[2] + 10
+                    travelHeight = heighestBlock.location0[2] + 10
                 break
 
 
@@ -307,17 +307,17 @@ class RobotManager:
             waypoints.append((self.maximumMovingR, currentTheta, travelHeight))
 
 
-        # Then, move next to and above the target location
+        # Then, move next to and above the target location0
         sign = np.random.choice([-1, 1])
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, travelHeight))
 
-        # Go down to 5mm above the target location
+        # Go down to 5mm above the target location0
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, targetZ + 5))
 
-        # Go over the location
+        # Go over the location0
         waypoints.append((targetR, targetTheta, targetZ + 5))
 
-        # Go down to the target location
+        # Go down to the target location0
         waypoints.append((targetR, targetTheta, targetZ))
 
         # Get full waypoints list
@@ -328,7 +328,7 @@ class RobotManager:
         waypoints = []
         currentX, currentY, currentZ = currentPos
         targetX, targetY, targetZ = targetPos
-        # Move to this location in our polar coordinate system
+        # Move to this location0 in our polar coordinate system
         travelHeight = currentZ + 5
 
 
@@ -337,25 +337,44 @@ class RobotManager:
         waypoints.append((currentX, currentY, travelHeight))
 
 
-
-    def checkIntersection(self, initialPoint, finalPoint, plane, polygon):
+    def checkIntersectionCartesian(self, initialPoint, finalPoint, rectangle):
         """Checks if a line intersects a polygon
         Args:
             initialPoint (tuple): The starting point of the line in cartesian coordinates
             finalPoint (tuple): The ending point of the line in cartesian coordinates
-            plane (Plane): The plane the polygon is on
-            polygon (Polygon): The polygon to check for intersection
+            rectangle(list): The rectangle to check for intersection, in the form [point0, point1, point2, point3]
         Returns:
             intersection (bool): True if the line intersects the polygon, False otherwise
         """
-        # Convert our points to a line
-        line = Line3D(Point3D(initialPoint), Point3D(finalPoint))
+        # Implements answer from https://stackoverflow.com/questions/8812073/ray-and-square-rectangle-intersection-in-3d/8862483#8862483
 
-        # Check if the line intersects the plane
-        intersectionPoint = plane.intersection(line)
-        if intersectionPoint and isinstance(intersectionPoint[0], Point3D):
-            # Check if the intersection point is inside the polygon
-            return polygon.is_point_inside(intersectionPoint[0])
+        # Transform our line into a vector of the form v0 + t * d
+        # Where v0 is the initial point, d is the direction vector, and t is the scalar
+        v0 = np.array(initialPoint)
+        d = (np.array(finalPoint) - v0) / np.linalg.norm(np.array(finalPoint) - v0)
+        t = np.linalg.norm(np.array(finalPoint) - v0)
+
+        # Represent our rectangle as an initial point and 2 vectors. r0 is the initial point, s0 and s1 are the vectors
+        # The initial point is the bottom left corner of the rectangle (point0)
+        r0 = np.array(rectangle[0])
+        s0 = np.array(rectangle[1]) - r0
+        s1 = np.array(rectangle[3]) - r0
+
+        # We also need the normal vector of the rectangle
+        n = np.cross(s0, s1)
+
+        # Assuming our intersection point is P; P = v0 + a * d where a is how far away from v0 the intersection is
+        a = ((r0 - v0).dot(n)) / (d.dot(n))
+
+        # All we need to do now is check if our point is within the rectangle
+        # To do this, we project the vector from point0 of the rectangle onto the s0 and s1 vectors
+        rectOriginToIntersection = (v0 + a * d) - r0
+
+        projectionOntoS0 = np.dot(rectOriginToIntersection, s0) / np.linalg.norm(s0)
+        projectionOntoS1 = np.dot(rectOriginToIntersection, s1) / np.linalg.norm(s1)
+
+        if 0 <= np.linalg.norm(projectionOntoS0) <= np.linalg.norm(s0) and 0 <= np.linalg.norm(projectionOntoS1) <= np.linalg.norm(s1):
+            return True
 
         return False
 

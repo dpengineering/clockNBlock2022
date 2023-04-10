@@ -19,7 +19,7 @@ blockFeederSolenoids = [(6, 7),
 # Locations
 
 # Build Sites
-#   Replace second value with the location of the ends of the build sites.
+#   Replace second value with the location0 of the ends of the build sites.
 buildLocations = [[(293.6, 350.570, -1442.8), (480.3, 351.789, -1444.3)],
                   [(285.8, 263.268, -1442.8), (543.6, 262.883, -1442.8)],
                   [(278.8, 172.206, -1444.3), (524.9, 172.340, -1447.4)],
