@@ -1,5 +1,5 @@
 import constants
-import math
+from sympy import Plane, Point3D, Polygon
 
 
 class BuildSite:
@@ -12,10 +12,27 @@ class BuildSite:
         # in Z over the distance in X and Y.
         self.index = index
         self.location = location0
+        # For reference
+        self.location1 = location1
+
+        # Locations in cartesian coordinates
+        self.locationCartesian = constants.polarToCartesian(self.location)
+        self.location1Cartesian = constants.polarToCartesian(self.location1)
+
         self.slope = self.calculateSlope(location0, location1)
 
         self.currentBlock = None
         self.blockPlacements = None
+
+        self.intersectionPlane = None
+
+        # Polygon intersection bounds
+        self.corner0 = None
+        self.corner1 = None
+        self.corner2 = None
+        self.corner3 = None
+        self.intersectionPolygon = None
+
 
         # Flags
         self.isReadyFlg = False
@@ -27,11 +44,34 @@ class BuildSite:
         self.blockPlacements = self.generatePlacementList(constants.placementArrays[self.index], self.location)
         self.currentBlock = 0
         self.isReadyFlg = True
+        point0 = Point3D(self.locationCartesian)
+        point1 = Point3D(self.location1Cartesian)
+        point2 = Point3D(constants.polarToCartesian(self.blockPlacements[-1]))
+        self.intersectionPlane = Plane(point0, point1, point2)
+
+        # Polygon intersection bounds
+        # Lower corners
+        # Closest to center
+        self.corner0 = Point3D(self.locationCartesian[0] - constants.robotHeadWidth, self.locationCartesian[1], self.locationCartesian[2])
+        # Farthest from center
+        self.corner1 = Point3D(self.location1Cartesian[0] + constants.robotHeadWidth, self.location1Cartesian[1], self.location1Cartesian[2])
+
+        # Upper corners
+        # Z Value
+        zHeight = constants.polarToCartesian(self.blockPlacements[self.currentBlock][2]) + 10  # Height of the highest block placed + 10mm
+        # Closest to center
+        self.corner2 = Point3D(self.locationCartesian[0] - constants.robotHeadWidth, self.locationCartesian[1], zHeight)
+        # Farthest from center
+        self.corner3 = Point3D(self.location1Cartesian[0] + constants.robotHeadWidth, self.location1Cartesian, zHeight)
+
+        self.intersectionPolygon = Polygon(self.corner0, self.corner1, self.corner2, self.corner3)
 
 
     def process(self, minuteHandPosition):
         # The state machine for this object is just checking if it is ready.
         self.updateReadyFlg(minuteHandPosition)
+
+        self.updatePolygon()
 
 
     def calculateSlope(self, location0, location1):
@@ -79,5 +119,35 @@ class BuildSite:
         if abs(self.location[1] - minuteHandPosition) < 30:
             self.isReadyFlg = False
             self.currentBlock = 0
+            return
+
+        return
+
+    def updatePolygon(self):
+        # Calculate the Z height
+
+        if self.currentBlock != 0:
+            lastBlockPlaced = self.currentBlock - 1
+        else:
+            lastBlockPlaced = self.currentBlock
+
+        zHeight = self.blockPlacements[lastBlockPlaced][2] + 10
+
+        # Check if zHeight is within 10mm of the last Z height
+        # The last Z height is found by looking at corner2
+
+        previousZHeight = self.corner2.z
+
+        zHeight = constants.polarToCartesian(self.blockPlacements[lastBlockPlaced][2]) + 10
+
+        if abs(zHeight - previousZHeight) > 10:
+            self.corner2.z = zHeight
+            self.corner3.z = zHeight
+            self.intersectionPolygon = Polygon(self.corner0, self.corner1, self.corner2, self.corner3)
+
+        return
+
+
+
 
 

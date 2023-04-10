@@ -69,6 +69,15 @@ class Clock:
         self.dpiStepper.setCurrentPositionInSteps(self.HOUR_HAND_PIN, 0)
         self.dpiStepper.setCurrentPositionInSteps(self.MINUTE_HAND_PIN, 0)
 
+    # This is necessary because the block feeders need to prime which means the clock needs to be out of the way
+    # After that happens we can go to real time.
+    def setupTwo(self):
+        """ Sets up the hands so they can be used."""
+
+        # Set minute hand speed to max
+        self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_MAX_SPEED)
+        # Send minute hand in a full circle
+        self.dpiStepper.moveToRelativePositionInSteps(self.MINUTE_HAND_PIN, self.MINUTE_HAND_STEPS_PER_REVOLUTION, True)
         # Move to current time
         t = localtime()
         hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)

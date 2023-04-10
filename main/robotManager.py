@@ -1,8 +1,8 @@
 # Controls how the robot arm moves
-
 import numpy as np
 import main.constants as constants
 import main.main
+from sympy import Point3D, Line3D, Plane
 
 
 class RobotManager:
@@ -13,12 +13,10 @@ class RobotManager:
     #
     # We need to make these two actions interesting - have the robot arm do different things each time it goes to the locations.
     # A few of the ways we can move will overlap:
-    #     Move in an interesting pattern on the way to the location.
-    #     i.e. move in a circle, square, any polygon,
-    #     Move in a spiral for all the upwards moves
     #     Move in a zigzag to the location
     #     Move in a straight line to the location
     #     Move in a straight polar move to the location.
+    #     Randomly do a spiral
     #
     # There will also be a few specific things that the robot arm will do based on its move
     # To pick up a block, we can choose some random block to pick up. i.e. pick up a block from a tower
@@ -44,7 +42,13 @@ class RobotManager:
     def __init__(self):
         self.blockFeeders = main.main.blockFeeders
         self.buildSites = main.main.buildSites
-        self.robotPos = None
+        self.robotPos = (0, 0, 0)
+
+        # To move to a position from the side, we need to go to a position next to the target value
+        # This is how far away we will be
+        self.offSetAngle = 20
+
+        self.maximumMovingR = constants.maximumMovingRadius
 
     def getCommand(self, robotPos, command):
         _STATE_MOVE_TO_FEEDER = 0
@@ -70,31 +74,43 @@ class RobotManager:
         # Different fun things we can do:
         # TODO: Change these to stuff with more personality - organic movements
         Nothing = 0
-        NothingPolarMove = 1
-        Spiral = 1
+        PolarMove = 1
         ZigZag = 2
-        Circle = 3
-        Square = 4
-        Triangle = 5
-        GetRandomBlock = 6
+        Spiral = 3
+        GetRandomBlock = False
 
         # Choose a fun thing to do
-        funThingToDo = np.random.choice([Nothing, NothingPolarMove, Spiral, ZigZag, Circle, Square, Triangle, GetRandomBlock])
+        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral])
+
+        # Decide if we want to get a random block, this has a 3% chance of happening
+        if np.random.random() < 0.03:
+            GetRandomBlock = True
 
         # Get the feeder to move to
-        if funThingToDo != GetRandomBlock:
-            feeder = self.chooseFeeder()
-            if feeder is None:
-                return None
-            finalLocation = feeder.location
-        else:
-            # Find a build site with a block
+        if GetRandomBlock:
             buildSitesWithBlocks = [buildSite for buildSite in self.buildSites if buildSite.currentBlock != 0]
             buildSite = np.random.choice(buildSitesWithBlocks)
             buildSite.currentBlock -= 1
             finalLocation = buildSite.blockPlacements[buildSite.currentBlock - 1]
 
+        else:
+            # Find a build site with a block
+            feeder = self.chooseFeeder()
+            if feeder is None:
+                return None
+            finalLocation = feeder.location
 
+        # Now that we have our final locations, we plan our route there
+        if funThingToDo == PolarMove:
+            waypoints = self.planPolarMove(robotPos, finalLocation)
+        elif funThingToDo == ZigZag:
+            waypoints = self.planZigZag(robotPos, finalLocation)
+        elif funThingToDo == Spiral:
+            waypoints = self.planSpiral(robotPos, finalLocation)
+        else:
+            waypoints = self.planStraightLine(robotPos, finalLocation)
+
+        return waypoints
 
 
     def chooseFeeder(self):
@@ -188,7 +204,7 @@ class RobotManager:
         """
         # Create our list of waypoints to return
         # Also, add our current position to the list
-        straightWaypoints = [self.getPositionCartesian()]
+        straightWaypoints = []
 
         # Convert our list of waypoints in polar coordinates to a list in cartesian coordinates
 
@@ -264,3 +280,93 @@ class RobotManager:
         straightWaypoints.append(waypoints[-1])
 
         return straightWaypoints
+
+
+    def planPolar(self, currentPos, targetPos):
+        waypoints = []
+        currentR, currentTheta, currentZ = currentPos
+        targetR, targetTheta, targetZ = targetPos
+        # Move to this location in our polar coordinate system
+        travelHeight = currentZ + 5
+        for buildSite in self.buildSites:
+            buildSiteTheta = buildSite.location[1]
+            if min(currentTheta, targetTheta) < buildSiteTheta < max(currentTheta, targetTheta):
+                # Set travel height to 5mm above the highest block placed so far
+                heighestBlock = buildSite.blockPlacements[buildSite.currentBlock - 1]
+                if buildSite.currentBlock != 0:
+                    travelHeight = heighestBlock.location[2] + 10
+                break
+
+
+        # The first move will always be moving up.
+        waypoints.append((currentR, currentTheta, travelHeight))
+
+        # Next, check if we need to move in towards the center
+        if currentR > self.maximumMovingR:
+            # Move in towards the center
+            waypoints.append((self.maximumMovingR, currentTheta, travelHeight))
+
+
+        # Then, move next to and above the target location
+        sign = np.random.choice([-1, 1])
+        waypoints.append((targetR, targetTheta + sign * self.offSetAngle, travelHeight))
+
+        # Go down to 5mm above the target location
+        waypoints.append((targetR, targetTheta + sign * self.offSetAngle, targetZ + 5))
+
+        # Go over the location
+        waypoints.append((targetR, targetTheta, targetZ + 5))
+
+        # Go down to the target location
+        waypoints.append((targetR, targetTheta, targetZ))
+
+        # Get full waypoints list
+        waypoints = self.ensureStraightLinePolar(waypoints)
+        return waypoints
+
+    def planCartesian(self, currentPos, targetPos):
+        waypoints = []
+        currentX, currentY, currentZ = currentPos
+        targetX, targetY, targetZ = targetPos
+        # Move to this location in our polar coordinate system
+        travelHeight = currentZ + 5
+        for buildSite in self.buildSites:
+            buildSiteX = buildSite.location[0]
+            if min(currentX, targetX) < buildSiteX < max(currentX, targetX):
+                # Set travel height to 5mm above the highest block placed so far
+                heighestBlock = buildSite.blockPlacements[buildSite.currentBlock - 1]
+                if buildSite.currentBlock != 0:
+                    travelHeight = heighestBlock.location[2] + 10
+                break
+
+        # The first move will always be moving up.
+        waypoints.append((currentX, currentY, travelHeight))
+
+
+
+    def checkIntersection(self, initialPoint, finalPoint, plane, polygon):
+        """Checks if a line intersects a polygon
+        Args:
+            initialPoint (tuple): The starting point of the line in cartesian coordinates
+            finalPoint (tuple): The ending point of the line in cartesian coordinates
+            plane (Plane): The plane the polygon is on
+            polygon (Polygon): The polygon to check for intersection
+        Returns:
+            intersection (bool): True if the line intersects the polygon, False otherwise
+        """
+        # Convert our points to a line
+        line = Line3D(Point3D(initialPoint), Point3D(finalPoint))
+
+        # Check if the line intersects the plane
+        intersectionPoint = plane.intersection(line)
+        if intersectionPoint and isinstance(intersectionPoint[0], Point3D):
+            # Check if the intersection point is inside the polygon
+            return polygon.is_point_inside(intersectionPoint[0])
+
+        return False
+
+
+
+
+
+

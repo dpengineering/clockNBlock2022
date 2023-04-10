@@ -1,5 +1,5 @@
-import numpy as np
 from dpeaDPi.DPiRobot import DPiRobot
+import constants
 from robotManager import RobotManager
 
 
@@ -67,39 +67,6 @@ class RobotArm:
         self.rotationPositionFlg = not self.rotationPositionFlg
         self.dpiSolenoid.switchDriverOnOrOff(self.ROTATING_SOLENOID, self.rotationPositionFlg)
 
-    def cartesianToPolar(self, position: tuple):
-        """Helper function to change cartesian coordinates to polar
-        Args:
-            position (tuple): Current robot position in cartesian plane
-        Returns:
-            r, theta, z (tuple (float)): Returns the polar coordinates that correspond to the cartesian coordinates
-        """
-        x, y, z = position
-        # Convert to Polar Coords
-        r = np.sqrt(x ** 2 + y ** 2)
-        theta = np.arctan2(y, x)
-        print(theta)
-        theta = np.rad2deg(theta)
-        print(theta)
-
-        # Adjust for negative values
-        if x < 0 < y:
-            theta += 180
-        elif x < 0 and y < 0:
-            theta += 360
-        elif y < 0 < x:
-            theta += 360
-
-        return r, theta, z
-
-    def polarToCartesian(self, position: tuple):
-        """Converts polar coordinates to cartesian coordinates"""
-        r, theta, z = position
-        theta = np.deg2rad(theta)
-        x = r * np.cos(theta)
-        y = r * np.sin(theta)
-        return x, y, z
-
     def moveCartesian(self, position, speed):
         """Moves the robot arm to a cartesian position"""
         x, y, z = position
@@ -107,7 +74,7 @@ class RobotArm:
 
     def movePolar(self, position, speed):
         """Moves the robot arm to a polar position"""
-        x, y, z = self.polarToCartesian(position)
+        x, y, z = constants.polarToCartesian(position)
         self.moveCartesian((x, y, z), speed)
 
     def getPositionCartesian(self):
@@ -118,7 +85,7 @@ class RobotArm:
     def getPositionPolar(self):
         """Returns the current position of the robot arm in radians"""
         x, y, z = self.getPositionCartesian()
-        r, theta, z = self.cartesianToPolar((x, y, z))
+        r, theta, z = constants.cartesianToPolar((x, y, z))
         return r, theta, z
 
     def isAtLocation(self, position, tolerance):
