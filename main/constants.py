@@ -7,7 +7,7 @@ blockSize = 31  # mm
 # Robot Arm
 magnetSolenoid = 11
 rotationSolenoid = 10
-robotHeadWidth = 80  # Major radius of the robot end effector
+robotHeadRadius = 80  # Major radius of the robot end effector
 
 # Feeder solenoids in (side, up) order
 blockFeederSolenoids = [(6, 7),

@@ -212,7 +212,7 @@ class RobotManager:
         #   If this moves us in a straight line, it might be worth refactoring
         #   The code to work in cartesian coordinates
         for waypoint in waypoints:
-            nextPoint = self.polarToCartesian(waypoint)
+            nextPoint = constants.polarToCartesian(waypoint)
             # Calculating the distance between our last point and the next point we need to go to
             distance = abs(np.dist(straightWaypoints[-1], nextPoint))
 
@@ -330,14 +330,8 @@ class RobotManager:
         targetX, targetY, targetZ = targetPos
         # Move to this location in our polar coordinate system
         travelHeight = currentZ + 5
-        for buildSite in self.buildSites:
-            buildSiteX = buildSite.location[0]
-            if min(currentX, targetX) < buildSiteX < max(currentX, targetX):
-                # Set travel height to 5mm above the highest block placed so far
-                heighestBlock = buildSite.blockPlacements[buildSite.currentBlock - 1]
-                if buildSite.currentBlock != 0:
-                    travelHeight = heighestBlock.location[2] + 10
-                break
+
+
 
         # The first move will always be moving up.
         waypoints.append((currentX, currentY, travelHeight))
@@ -366,7 +360,45 @@ class RobotManager:
         return False
 
 
+    def dodgeAround(self, initialPoint, finalPoint, intersectionPoint, polygon, direction):
+        """Dodge around an obstacle represented by a polygon
+        Args:
+            initialPoint (tuple): The starting point of the line in cartesian coordinates
+            finalPoint (tuple): The ending point of the line in cartesian coordinates
+            polygon (Polygon): The polygon to dodge around
+            direction (bool): The direction to dodge around the polygon True -> up, False -> around
+        Returns:
+            waypoints (list): List of waypoints to dodge around the polygon in polar coordinates
+        """
 
+        waypoints = []
+        waypoints.append(initialPoint)
 
+        # Find where to stop before the obstacle
+        initialCartesian = constants.polarToCartesian(initialPoint)
+        finalCartesian = constants.polarToCartesian(finalPoint)
+
+        # Move our intersection point to the robotHeadRadius away from the obstacle
+
+        slopeXY = (finalCartesian[1] - initialCartesian[1]) / (finalCartesian[0] - initialCartesian[0])
+        # If the slope is infinite, we can't use the equation for a line
+        # For now, I will just return None and deal with it later.
+        if slopeXY == float('inf'):
+            return None
+
+        # Otherwise, we set our two points up on the line
+        point1 = (intersectionPoint[0] + constants.robotHeadRadius / np.sqrt(1 + slopeXY ** 2), intersectionPoint[1] + slopeXY * constants.robotHeadRadius / np.sqrt(1 + slopeXY ** 2), intersectionPoint[2])
+        point2 = (intersectionPoint[0] - constants.robotHeadRadius / np.sqrt(1 + slopeXY ** 2), intersectionPoint[1] - slopeXY * constants.robotHeadRadius / np.sqrt(1 + slopeXY ** 2), intersectionPoint[2])
+
+        # Check which point is closer to the initial point
+        if np.linalg.norm(np.array(initialCartesian) - np.array(point1)) < np.linalg.norm(np.array(initialCartesian) - np.array(point2)):
+            waypoints.append(constants.cartesianToPolar(point1))
+        else:
+            waypoints.append(constants.cartesianToPolar(point2))
+
+        # Based on direction, we will either move around or over the obstacle
+        if direction:
+            # Move up
+            pass
 
 
