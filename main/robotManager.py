@@ -1,7 +1,7 @@
 # Controls how the robot arm moves
 import numpy as np
-# import main.constants as constants
-# import main.main
+import main.constants as constants
+import main.main
 
 
 class RobotManager:
@@ -12,15 +12,15 @@ class RobotManager:
     #
     # We need to make these two actions interesting - have the robot arm do different things each time it goes to the locations.
     # A few of the ways we can move will overlap:
-    #     Move in a zigzag to the location0
-    #     Move in a straight line to the location0
-    #     Move in a straight polar move to the location0.
+    #     Move in a zigzag to the location
+    #     Move in a straight line to the location
+    #     Move in a straight polar move to the location.
     #     Randomly do a spiral
     #
     # There will also be a few specific things that the robot arm will do based on its move
     # To pick up a block, we can choose some random block to pick up. i.e. pick up a block from a tower
     #
-    # To place a block, we can either place a block at an interesting location0 to be picked up later
+    # To place a block, we can either place a block at an interesting location to be picked up later
     # Or we can just go place a block.
     # This is around 7 different things we can do for each placement
     # Also, each of these moves will have to be on average 30 seconds for the whole cycle
@@ -39,16 +39,15 @@ class RobotManager:
     # cartesian wise.
 
     def __init__(self):
-        pass
-        # self.blockFeeders = main.main.blockFeeders
-        # self.buildSites = main.main.buildSites
-        # self.robotPos = (0, 0, 0)
-        #
-        # # To move to a position from the side, we need to go to a position next to the target value
-        # # This is how far away we will be
-        # self.offSetAngle = 20
-        #
-        # self.maximumMovingR = constants.maximumMovingRadius
+        self.blockFeeders = main.main.blockFeeders
+        self.buildSites = main.main.buildSites
+        self.robotPos = (0, 0, 0)
+
+        # To move to a position from the side, we need to go to a position next to the target value
+        # This is how far away we will be
+        self.offSetAngle = 20
+
+        self.maximumMovingR = constants.maximumMovingRadius
 
     def getCommand(self, robotPos, command):
         _STATE_MOVE_TO_FEEDER = 0
@@ -65,7 +64,7 @@ class RobotManager:
         """Moves to a feeder
 
         Args:
-            robotPos (tuple): (x, y) position of the robot arm
+            robotPos (tuple): (r, theta, z) position of the robot arm
 
         Returns:
             waypoints (list): List of waypoints for the robot arm to follow
@@ -98,17 +97,19 @@ class RobotManager:
             feeder = self.chooseFeeder()
             if feeder is None:
                 return None
-            finalLocation = feeder.location0
+            finalLocation = feeder.location
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
-            waypoints = self.planPolarMove(robotPos, finalLocation)
+            waypoints = self.planMove(robotPos, finalLocation)
+            waypoints = self.ensureStraightLinePolar(waypoints)
         elif funThingToDo == ZigZag:
             waypoints = self.planZigZag(robotPos, finalLocation)
         elif funThingToDo == Spiral:
             waypoints = self.planSpiral(robotPos, finalLocation)
         else:
-            waypoints = self.planStraightLine(robotPos, finalLocation)
+            waypoints = self.planMove(robotPos, finalLocation)
+            waypoints = self.ensureStraightLineCartesian(waypoints)
 
         return waypoints
 
@@ -282,21 +283,19 @@ class RobotManager:
         return straightWaypoints
 
 
-    def planPolar(self, currentPos, targetPos):
+    def planMove(self, currentPos, targetPos):
+        """ Plans a path from the current position to the target position
+        Args:
+            currentPos (tuple): Current position of the robot
+            targetPos (tuple): Target position of the robot
+        Returns:
+            waypoints (list): List of waypoints to travel to
+        """
         waypoints = []
         currentR, currentTheta, currentZ = currentPos
         targetR, targetTheta, targetZ = targetPos
-        # Move to this location0 in our polar coordinate system
-        travelHeight = currentZ + 5
-        for buildSite in self.buildSites:
-            buildSiteTheta = buildSite.location0[1]
-            if min(currentTheta, targetTheta) < buildSiteTheta < max(currentTheta, targetTheta):
-                # Set travel height to 5mm above the highest block placed so far
-                heighestBlock = buildSite.blockPlacements[buildSite.currentBlock - 1]
-                if buildSite.currentBlock != 0:
-                    travelHeight = heighestBlock.location0[2] + 10
-                break
-
+        # Move to this location in our polar coordinate system
+        travelHeight = currentZ + 20
 
         # The first move will always be moving up.
         waypoints.append((currentR, currentTheta, travelHeight))
@@ -307,52 +306,56 @@ class RobotManager:
             waypoints.append((self.maximumMovingR, currentTheta, travelHeight))
 
 
-        # Then, move next to and above the target location0
+        # Then, move next to and above the target location
         sign = np.random.choice([-1, 1])
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, travelHeight))
 
-        # Go down to 5mm above the target location0
+        # Go down to 5mm above the target location
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, targetZ + 5))
 
-        # Go over the location0
+        # Go over the location
         waypoints.append((targetR, targetTheta, targetZ + 5))
 
-        # Go down to the target location0
+        # Go down to the target location
         waypoints.append((targetR, targetTheta, targetZ))
 
-        # Get full waypoints list
-        waypoints = self.ensureStraightLinePolar(waypoints)
+        # Check if we are intersecting any obstacles
+        dodgeDict = {}
+        for building in self.buildSites:
+            obstacle = building.intersectionRectangle
+            for i in range(len(waypoints) - 1):
+                # Check if the line intersects the obstacle
+                intersection, point = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
+                if intersection:
+                    # If it does, we need to dodge it
+                    dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point)
+
+        for key in dodgeDict:
+            waypoints = waypoints[:key] + dodgeDict[key] + waypoints[key + 1:]
+
         return waypoints
 
-    def planCartesian(self, currentPos, targetPos):
-        waypoints = []
-        currentX, currentY, currentZ = currentPos
-        targetX, targetY, targetZ = targetPos
-        # Move to this location0 in our polar coordinate system
-        travelHeight = currentZ + 5
 
-
-
-        # The first move will always be moving up.
-        waypoints.append((currentX, currentY, travelHeight))
-
-
-    def checkIntersectionCartesian(self, initialPoint, finalPoint, rectangle):
+    def checkIntersection(self, initialPoint, finalPoint, rectangle):
         """Checks if a line intersects a polygon
         Args:
-            initialPoint (tuple): The starting point of the line in cartesian coordinates
-            finalPoint (tuple): The ending point of the line in cartesian coordinates
+            initialPoint (tuple): The starting point of the line in polar coordinates
+            finalPoint (tuple): The ending point of the line in polar coordinates
             rectangle(list): The rectangle to check for intersection, in the form [point0, point1, point2, point3]
         Returns:
             intersection (bool): True if the line intersects the polygon, False otherwise
         """
         # Implements answer from https://stackoverflow.com/questions/8812073/ray-and-square-rectangle-intersection-in-3d/8862483#8862483
 
+        # First, we need to convert our points to cartesian coordinates
+        initialPoint = constants.polarToCartesian(initialPoint)
+        finalPoint = constants.polarToCartesian(finalPoint)
+
         # Transform our line into a vector of the form v0 + t * d
         # Where v0 is the initial point, d is the direction vector, and t is the scalar
-        v0 = np.array(initialPoint)
-        d = (np.array(finalPoint) - v0) / np.linalg.norm(np.array(finalPoint) - v0)
-        t = np.linalg.norm(np.array(finalPoint) - v0)
+        vectorInitial = np.array(initialPoint)
+        d = (np.array(finalPoint) - vectorInitial) / np.linalg.norm(np.array(finalPoint) - vectorInitial)
+        t = np.linalg.norm(np.array(finalPoint) - vectorInitial)
 
         # Represent our rectangle as an initial point and 2 vectors. r0 is the initial point, s0 and s1 are the vectors
         # The initial point is the bottom left corner of the rectangle (point0)
@@ -364,60 +367,107 @@ class RobotManager:
         n = np.cross(s0, s1)
 
         # Assuming our intersection point is P; P = v0 + a * d where a is how far away from v0 the intersection is
-        a = ((r0 - v0).dot(n)) / (d.dot(n))
+        a = ((r0 - vectorInitial).dot(n)) / (d.dot(n))
 
         # All we need to do now is check if our point is within the rectangle
         # To do this, we project the vector from point0 of the rectangle onto the s0 and s1 vectors
-        rectOriginToIntersection = (v0 + a * d) - r0
+        rectOriginToIntersection = (vectorInitial + a * d) - r0
 
         projectionOntoS0 = np.dot(rectOriginToIntersection, s0) / np.linalg.norm(s0)
         projectionOntoS1 = np.dot(rectOriginToIntersection, s1) / np.linalg.norm(s1)
 
         if 0 <= np.linalg.norm(projectionOntoS0) <= np.linalg.norm(s0) and 0 <= np.linalg.norm(projectionOntoS1) <= np.linalg.norm(s1):
-            return True
+            return True, (vectorInitial + a * d)
 
-        return False
+        return False, None
 
 
-    def dodgeAround(self, initialPoint, finalPoint, intersectionPoint, polygon, direction):
-        """Dodge around an obstacle represented by a polygon
+    def dodgeObstacle(self, initialPoint, finalPoint, obstacle, intersectionPoint):
+        """Dodge over an obstacle represented by a polygon - does not append initial or final points
         Args:
-            initialPoint (tuple): The starting point of the line in cartesian coordinates
-            finalPoint (tuple): The ending point of the line in cartesian coordinates
-            polygon (Polygon): The polygon to dodge around
-            direction (bool): The direction to dodge around the polygon True -> up, False -> around
+            initialPoint (tuple): The starting point of the line in polar coordinates
+            finalPoint (tuple): The ending point of the line in polar coordinates
+            obstacle (list): The obstacle to dodge around, in the form [point0, point1, point2, point3]
+            intersectionPoint (tuple): The point where the line intersects the obstacle
         Returns:
             waypoints (list): List of waypoints to dodge around the polygon in polar coordinates
         """
 
         waypoints = []
-        waypoints.append(initialPoint)
 
-        # Find where to stop before the obstacle
-        initialCartesian = constants.polarToCartesian(initialPoint)
-        finalCartesian = constants.polarToCartesian(finalPoint)
+        # Convert the points to cartesian coordinates
+        initialPoint = constants.polarToCartesian(initialPoint)
+        finalPoint = constants.polarToCartesian(finalPoint)
 
-        # Move our intersection point to the robotHeadRadius away from the obstacle
+        # Calculate vector from initial point to intersection point
+        vectorInitial = np.array(initialPoint)
 
-        slopeXY = (finalCartesian[1] - initialCartesian[1]) / (finalCartesian[0] - initialCartesian[0])
-        # If the slope is infinite, we can't use the equation for a line
-        # For now, I will just return None and deal with it later.
-        if slopeXY == float('inf'):
-            return None
+        # Split this vector up into the form v0 + t * d
+        # Where v0 is the initial point, d is the direction vector, and t is the scalar that corresponds to the length of the vector
+        d = (np.array(intersectionPoint) - vectorInitial) / np.linalg.norm(np.array(intersectionPoint) - vectorInitial)
+        t = np.linalg.norm(np.array(intersectionPoint) - vectorInitial)
 
-        # Otherwise, we set our two points up on the line
-        point1 = (intersectionPoint[0] + constants.robotHeadRadius / np.sqrt(1 + slopeXY ** 2), intersectionPoint[1] + slopeXY * constants.robotHeadRadius / np.sqrt(1 + slopeXY ** 2), intersectionPoint[2])
-        point2 = (intersectionPoint[0] - constants.robotHeadRadius / np.sqrt(1 + slopeXY ** 2), intersectionPoint[1] - slopeXY * constants.robotHeadRadius / np.sqrt(1 + slopeXY ** 2), intersectionPoint[2])
+        # Find the point where we want to stop the robot in order to dodge the obstacle
+        # To do this, we will shorten the distance, t by the robotHeadRadius + blockSize / 2 + 10mm
+        # The 10mm is just padding to make sure we don't hit the obstacle
 
-        # Check which point is closer to the initial point
-        if np.linalg.norm(np.array(initialCartesian) - np.array(point1)) < np.linalg.norm(np.array(initialCartesian) - np.array(point2)):
-            waypoints.append(constants.cartesianToPolar(point1))
-        else:
-            waypoints.append(constants.cartesianToPolar(point2))
+        # First, calculate the distance we need to shorten the vector by
+        distanceToShorten = constants.robotHeadRadius + constants.blockSize / 2 + 10
 
-        # Based on direction, we will either move around or over the obstacle
-        if direction:
-            # Move up
-            pass
+        # Do the same thing as above, but with the final point
+        vectorFinal = np.array(finalPoint)
+        dFinal = (np.array(intersectionPoint) - vectorFinal) / np.linalg.norm(np.array(intersectionPoint) - vectorFinal)
+        tFinal = np.linalg.norm(np.array(intersectionPoint) - vectorFinal)
+
+        # Calculate the distance we need to shorten the vector by
+        distanceToShortenFinal = constants.robotHeadRadius + constants.blockSize / 2 + 10
+
+
+        # Then, calculate the new vector
+        if distanceToShorten > t or distanceToShortenFinal > tFinal:
+            # If the distance is greater than the length of the vector, we can't dodge the obstacle
+            # So, we will just go straight up and around it.
+            # This case should never actually happen, but it's here just in case
+            zHeight = obstacle[2][2] + 10
+
+            waypoints.append((initialPoint[0], initialPoint[1], zHeight))
+            # Then just go over and above the final point
+            waypoints.append((finalPoint[0], finalPoint[1], zHeight))
+            # Then go down to the final point
+            waypoints.append(finalPoint)
+            return waypoints
+
+        # Calculate the new vector
+        initialStoppingPoint = vectorInitial + (t - distanceToShorten) * d
+        finalStoppingPoint = vectorFinal + (tFinal - distanceToShortenFinal) * dFinal
+
+        # Go to this point
+        waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], initialStoppingPoint[2]))
+
+        # Go up and around the obstacle
+        waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], initialStoppingPoint[2]))
+
+        zHeight = obstacle[2][2] + 10
+
+        # Go up
+        waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], zHeight))
+
+        # Go over and above the finalStoppingPoint
+        waypoints.append((finalStoppingPoint[0], finalStoppingPoint[1], zHeight))
+
+        # Go down to the finalStoppingPoint
+        waypoints.append((finalStoppingPoint[0], finalStoppingPoint[1], finalStoppingPoint[2]))
+
+        # Convert all the waypoints to polar coordinates
+        for i, waypoint in enumerate(waypoints):
+            waypoints[i] = constants.cartesianToPolar(waypoint)
+
+        return waypoints
+
+
+
+
+
+
 
 

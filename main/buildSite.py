@@ -23,6 +23,7 @@ class BuildSite:
         self.currentBlock = None
         self.blockPlacements = None
 
+        # Intersection rectangle in cartesian coordinates
         self.intersectionRectangle = None
 
         # Flags
@@ -36,6 +37,7 @@ class BuildSite:
         self.currentBlock = 0
         self.isReadyFlg = True
 
+        # Intersection rectangle in cartesian coordinates
         corner0 = (self.location0[0] - constants.robotHeadRadius, self.location0[1], self.location0[2])
         corner0 = constants.polarToCartesian(corner0)
         corner1 = self.location1Cartesian
