@@ -11,7 +11,6 @@ class BuildSite:
         # in Z over the distance in X and Y.
         self.index = index
         self.location0 = location0
-        # For reference
         self.location1 = location1
 
         # Locations in cartesian coordinates
@@ -39,8 +38,7 @@ class BuildSite:
 
         # Intersection rectangle in cartesian coordinates
         corner0 = (self.location0[0] - constants.robotHeadRadius, self.location0[1], self.location0[2])
-        corner0 = constants.polarToCartesian(corner0)
-        corner1 = self.location1Cartesian
+        corner1 = self.location1
         zHeight = corner0[2] + 10
         corner2 = (corner0[0], corner1[1], zHeight)
         corner3 = (corner1[0], corner0[1], zHeight)
@@ -69,7 +67,12 @@ class BuildSite:
             Since we would like to have some rows "offset" from each other, the first column will be reserved
             For setting the offset of the next row in mm. The origin will be at the bottom - back corner
             of the stack and the positions will be calculated from there.
-            blockSpacing (int): How far the blocks get placed from each other in mm
+            Args:
+                placementArray (list): A list of lists that denote where to place blocks
+                startLocation (tuple): The location of the bottom - front corner of the stack
+                blockSpacing (int): How far the blocks get placed from each other in mm
+            Returns:
+                list: A list of tuples that denote where to place blocks
             """
         placements = []
         blockSizeWithSpacing = constants.blockSize + blockSpacing

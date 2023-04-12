@@ -62,10 +62,8 @@ class RobotManager:
 
     def moveToFeeder(self, robotPos):
         """Moves to a feeder
-
         Args:
             robotPos (tuple): (r, theta, z) position of the robot arm
-
         Returns:
             waypoints (list): List of waypoints for the robot arm to follow
         """
@@ -81,8 +79,8 @@ class RobotManager:
         # Choose a fun thing to do
         funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral])
 
-        # Decide if we want to get a random block, this has a 3% chance of happening
-        if np.random.random() < 0.03:
+        # Decide if we want to get a random block, this has a 5% chance of happening
+        if np.random.random() < 0.05:
             GetRandomBlock = True
 
         # Get the feeder to move to
@@ -91,7 +89,6 @@ class RobotManager:
             buildSite = np.random.choice(buildSitesWithBlocks)
             buildSite.currentBlock -= 1
             finalLocation = buildSite.blockPlacements[buildSite.currentBlock - 1]
-
         else:
             # Find a build site with a block
             feeder = self.chooseFeeder()
@@ -101,14 +98,14 @@ class RobotManager:
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
-            waypoints = self.planMove(robotPos, finalLocation)
+            waypoints = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
         elif funThingToDo == ZigZag:
-            waypoints = self.planZigZag(robotPos, finalLocation)
+            waypoints = self.planZigZagMove(robotPos, finalLocation)
         elif funThingToDo == Spiral:
             waypoints = self.planSpiral(robotPos, finalLocation)
         else:
-            waypoints = self.planMove(robotPos, finalLocation)
+            waypoints = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
         return waypoints
@@ -199,9 +196,9 @@ class RobotManager:
         This makes the robot move in a straight line for cartesian coordinates. (As in no arcs)
 
         Args:
-            waypoints (list): List of waypoints with possible long moves
+            waypoints (list): List of polar waypoints with possible long moves
         Returns:
-            straightWaypoints (list): List of waypoints with long moves broken up
+            straightWaypoints (list): List of waypoints with long moves broken up in polar coordinates
         """
         # Create our list of waypoints to return
         # Also, add our current position to the list
@@ -235,6 +232,10 @@ class RobotManager:
                     straightWaypoints.append((xSteps[i], ySteps[i], zSteps[i]))
 
             straightWaypoints.append(nextPoint)
+
+        # Convert our list of waypoints in cartesian coordinates to a list in polar coordinates
+        straightWaypoints = [constants.cartesianToPolar(waypoint) for waypoint in straightWaypoints]
+
         return straightWaypoints
 
 
@@ -242,9 +243,9 @@ class RobotManager:
         """Ensures a straight line move in polar coordinates
         This will cause the robot to move in an arc and in a straight line on the polar plane
         Args:
-            waypoints (list): List of waypoints with possible long moves
+            waypoints (list): List of polar waypoints with possible long moves
         Returns:
-            straightWaypoints (list): List of waypoints with long moves broken up
+            straightWaypoints (list): List of waypoints with long moves broken up in polar coordinates
         """
         straightWaypoints = []
 
@@ -283,7 +284,7 @@ class RobotManager:
         return straightWaypoints
 
 
-    def planMove(self, currentPos, targetPos):
+    def planStraightMove(self, currentPos, targetPos):
         """ Plans a path from the current position to the target position
         Args:
             currentPos (tuple): Current position of the robot
@@ -335,13 +336,29 @@ class RobotManager:
 
         return waypoints
 
+    def planZigZagMove(self, currentPos, targetPos):
+        """ Plans a zig-zagging path from the current position to the target position
+        Args:
+            currentPos (tuple): Current position of the robot
+            targetPos (tuple): Target position of the robot
+        Returns:
+            waypoints (list): List of waypoints to travel to
+        """
+
+        # As this is a zig-zag, we just need to alter all the straight moves
+        # Get the waypoints for a straight move
+        waypoints = self.planStraightMove(currentPos, targetPos)
+
+
+
+
 
     def checkIntersection(self, initialPoint, finalPoint, rectangle):
         """Checks if a line intersects a polygon
         Args:
             initialPoint (tuple): The starting point of the line in polar coordinates
             finalPoint (tuple): The ending point of the line in polar coordinates
-            rectangle(list): The rectangle to check for intersection, in the form [point0, point1, point2, point3]
+            rectangle(list): The rectangle to check for intersection, in the form [point0, point1, point2, point3], All in polar coordinates
         Returns:
             intersection (bool): True if the line intersects the polygon, False otherwise
         """
@@ -355,7 +372,12 @@ class RobotManager:
         # Where v0 is the initial point, d is the direction vector, and t is the scalar
         vectorInitial = np.array(initialPoint)
         d = (np.array(finalPoint) - vectorInitial) / np.linalg.norm(np.array(finalPoint) - vectorInitial)
+
+        # The t is never used, just there for completeness
         t = np.linalg.norm(np.array(finalPoint) - vectorInitial)
+
+        # Converto to cartesian coordinates
+        rectangle = [constants.polarToCartesian(point) for point in rectangle]
 
         # Represent our rectangle as an initial point and 2 vectors. r0 is the initial point, s0 and s1 are the vectors
         # The initial point is the bottom left corner of the rectangle (point0)
@@ -382,13 +404,14 @@ class RobotManager:
         return False, None
 
 
-    def dodgeObstacle(self, initialPoint, finalPoint, obstacle, intersectionPoint):
+    def dodgeObstacle(self, initialPoint, finalPoint, obstacle, intersectionPoint, direction=True):
         """Dodge over an obstacle represented by a polygon - does not append initial or final points
         Args:
             initialPoint (tuple): The starting point of the line in polar coordinates
             finalPoint (tuple): The ending point of the line in polar coordinates
-            obstacle (list): The obstacle to dodge around, in the form [point0, point1, point2, point3]
+            obstacle (list): The obstacle to dodge around, in the form [point0, point1, point2, point3]. All points are in polar coordinates
             intersectionPoint (tuple): The point where the line intersects the obstacle
+            direction (bool): The direction we are dodging the obstacle: True -> up, False -> around
         Returns:
             waypoints (list): List of waypoints to dodge around the polygon in polar coordinates
         """
@@ -444,23 +467,24 @@ class RobotManager:
         # Go to this point
         waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], initialStoppingPoint[2]))
 
-        # Go up and around the obstacle
-        waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], initialStoppingPoint[2]))
+        if direction:
+            zHeight = obstacle[2][2] + 10
 
-        zHeight = obstacle[2][2] + 10
+            # Go up
+            waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], zHeight))
 
-        # Go up
-        waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], zHeight))
+            # Go over and above the finalStoppingPoint
+            waypoints.append((finalStoppingPoint[0], finalStoppingPoint[1], zHeight))
 
-        # Go over and above the finalStoppingPoint
-        waypoints.append((finalStoppingPoint[0], finalStoppingPoint[1], zHeight))
+            # Go down to the finalStoppingPoint
+            waypoints.append((finalStoppingPoint[0], finalStoppingPoint[1], finalStoppingPoint[2]))
 
-        # Go down to the finalStoppingPoint
-        waypoints.append((finalStoppingPoint[0], finalStoppingPoint[1], finalStoppingPoint[2]))
-
-        # Convert all the waypoints to polar coordinates
-        for i, waypoint in enumerate(waypoints):
-            waypoints[i] = constants.cartesianToPolar(waypoint)
+            # Convert all the waypoints to polar coordinates
+            for i, waypoint in enumerate(waypoints):
+                waypoints[i] = constants.cartesianToPolar(waypoint)
+        else:
+            # TODO: Implement dodging around the obstacle
+            pass
 
         return waypoints
 
