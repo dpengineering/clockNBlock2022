@@ -69,6 +69,8 @@ class Clock:
         self.dpiStepper.setCurrentPositionInSteps(self.HOUR_HAND_PIN, 0)
         self.dpiStepper.setCurrentPositionInSteps(self.MINUTE_HAND_PIN, 0)
 
+        return True
+
     # This is necessary because the block feeders need to prime which means the clock needs to be out of the way
     # After that happens we can go to real time.
     def setup2(self):
@@ -88,6 +90,8 @@ class Clock:
 
         # Set them going for an hour
         self.moveToPositionsRelative(self.HOUR_HAND_STEPS_PER_REVOLUTION, self.MINUTE_HAND_STEPS_PER_REVOLUTION)
+
+        return True
 
     def process(self):
         """Processes the clock"""

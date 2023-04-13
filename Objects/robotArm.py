@@ -68,6 +68,8 @@ class RobotArm:
         if not self.rotationPositionFlg:
             self.rotate()
 
+        return True
+
 
     def process(self, minuteHandPosition):
 
