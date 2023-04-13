@@ -1,6 +1,5 @@
 import time
 from time import sleep
-
 from DPi_ClockNBlock_Python.DPiClockNBlock import DPiClockNBlock
 
 

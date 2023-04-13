@@ -1,6 +1,6 @@
-from main.robotArm import RobotArm
+from Objects.robotArm import RobotArm
 from dpeaDPi.DPiSolenoid import DPiSolenoid
-import main.constants as constants
+import Objects.constants as constants
 
 
 # Constants for setup

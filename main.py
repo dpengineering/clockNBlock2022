@@ -1,13 +1,13 @@
-""" Main file for the project. Sets up all global objects and runs the main loop."""
+""" Main file for the project. Sets up all global objects and runs the Objects loop."""
 from time import sleep
 
 from dpeaDPi.DPiSolenoid import DPiSolenoid
 
-import constants
-from robotArm import RobotArm
-from buildSite import BuildSite
-from blockFeeder import BlockFeeder
-from clock import Clock
+import Objects.constants as constants
+from Objects.robotArm import RobotArm
+from Objects.buildSite import BuildSite
+from Objects.blockFeeder import BlockFeeder
+from Objects.clock import Clock
 
 
 # Create the DPiSolenoid object since it is referenced by multiple objects

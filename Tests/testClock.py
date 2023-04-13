@@ -1,4 +1,4 @@
-from main.clock import Clock
+from Objects.clock import Clock
 from time import sleep, localtime
 
 clock = Clock()

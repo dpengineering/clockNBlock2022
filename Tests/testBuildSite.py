@@ -1,5 +1,5 @@
-from main.buildSite import BuildSite
-import main.constants as constants
+from Objects.buildSite import BuildSite
+import Objects.constants as constants
 import numpy as np
 from sympy import Point3D, Polygon, Plane
 

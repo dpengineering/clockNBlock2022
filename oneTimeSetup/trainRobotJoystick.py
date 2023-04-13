@@ -295,7 +295,7 @@ class Training:
                         self.stepSize = 20
 
 
-# Runs our main loop
+# Runs our Objects loop
 def main():
 
     # Creating out joystick object
@@ -310,7 +310,7 @@ def main():
     previousTarget = currentX, currentY, currentZ
     print(f'Status: {status}, CurrentPos: {currentX}, {currentY}, {currentZ}')
     print((joystick.dpiRobot.addWaypoint(previousTarget[0], previousTarget[1], previousTarget[2], 100)))
-    # Loop through our main function
+    # Loop through our Objects function
     while True:
 
         # First checks if we have inputted any more moves

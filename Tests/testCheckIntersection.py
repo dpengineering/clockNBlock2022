@@ -1,6 +1,6 @@
 import time
 
-from main.robotManager import RobotManager
+from Objects.robotManager import RobotManager
 
 robotArm = RobotManager()
 
