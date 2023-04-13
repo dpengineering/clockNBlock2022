@@ -297,7 +297,7 @@ class RobotManager:
             # If the distance is greater than 20mm, split our moves up into 20mm segments
             if distance > 20:
                 # Number of steps to split our line into
-                numSteps = distance // 5
+                numSteps = int(distance / 25)
 
                 # To generate the intermediary waypoints, np.linspace() is used on r, theta, and z values individually
                 #   We create the points by merging the same index of each array into a tuple, and add it to our list
