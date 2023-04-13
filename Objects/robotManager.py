@@ -88,7 +88,7 @@ class RobotManager:
             feeder = self.chooseFeeder()
             if feeder is None:
                 return None
-            finalLocation = feeder.location
+            finalLocation = feeder.feederLocation
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
