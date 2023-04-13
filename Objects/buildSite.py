@@ -44,6 +44,8 @@ class BuildSite:
         corner3 = (corner1[0], corner0[1], zHeight)
         self.intersectionRectangle = [corner0, corner1, corner2, corner3]
 
+        return True
+
 
     def process(self, minuteHandPosition):
         # The state machine for this object is just checking if it is ready.

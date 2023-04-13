@@ -52,6 +52,12 @@ def setup():
         if not blockFeeder.setup():
             raise Exception("Block feeder setup failed")
 
+    # Set up build sites
+    for buildSite in buildSites:
+        print('setting up build site')
+        if not buildSite.setup():
+            raise Exception("Build site setup failed")
+
     # Set up clock part 2
     print('Setting up clock 2')
     if not clock.setup2():
@@ -65,12 +71,16 @@ def main():
         # Process all  the loops
         if robot.isHomedFlg:
             clock.process()
+            print('clock processed')
             hourPos, minutePos = clock.getPositionDegrees()
 
             robot.process(minutePos)
+            print('robot processed')
 
             [blockFeeder.process(minutePos) for blockFeeder in blockFeeders]
+            print('block feeders processed')
             [buildSite.process(minutePos) for buildSite in buildSites]
+            print('build sites processed')
 
         # Read for when the E-Stop gets released
         elif robot.dpiRobot.getRobotStatus()[1] != robot.dpiRobot.STATE_NOT_HOMED:
