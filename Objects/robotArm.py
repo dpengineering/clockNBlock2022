@@ -87,8 +87,9 @@ class RobotArm:
                 # Try getting a block 3 times.
                 for _ in range(3):
                     waypoints = self.robotManager.moveToFeeder(currentPosition)
-                    if waypoints is not None:
+                    if waypoints is not None or not waypoints:
                         self.queueWaypoints(waypoints, robotState=robotState)
+                        print(f'waypoints again {waypoints}')
                         self.target = waypoints[-1]
                         self.newState = False
                         self.start = time.time()
@@ -101,24 +102,28 @@ class RobotArm:
             # In this state, we will need to rotate the block before we pick it up
             # This does break our method for having the states be do something -> wait -> next state
             # But this also saves us from having to create a whole new state to rotate the block
-            elif time.time() - self.start > 1 and self.rotationPositionFlg:
+            elif time.time() - self.start > 1 and not self.rotationPositionFlg:
                 self.rotate()
+                print('rotated')
+                return
 
             elif self.isAtLocation(self.target) and robotState == self.dpiRobot.STATE_STOPPED:
                 self.setState(self._STATE_PICKUP_BLOCK)
+                print('at location')
                 return
 
-        if self.state == self._STATE_PICKUP_BLOCK:
+        elif self.state == self._STATE_PICKUP_BLOCK:
             if self.newState:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, True)
                 self.start = time.time()
                 self.newState = False
+                return
 
             elif time.time() - self.start > 0.5:
                 self.setState(self._STATE_MOVE_TO_BUILD_SITE)
                 return
 
-        if self.state == self._STATE_MOVE_TO_BUILD_SITE:
+        elif self.state == self._STATE_MOVE_TO_BUILD_SITE:
             if self.newState:
                 # Try placing a block 3 times.
                 for _ in range(3):
@@ -136,7 +141,7 @@ class RobotArm:
             # In this state, we will need to rotate the block after it clear the hole
             # This does break our method for having the states be do something -> wait -> next state
             # But this also saves us from having to create a whole new state to rotate the block
-            elif time.time() - self.start > 1 and not self.rotationPositionFlg:
+            elif time.time() - self.start > 1 and self.rotationPositionFlg:
                 self.rotate()
                 return
 
@@ -144,17 +149,18 @@ class RobotArm:
                 self.setState(self._STATE_PLACE_BLOCK)
                 return
 
-        if self._STATE_PLACE_BLOCK:
+        elif self._STATE_PLACE_BLOCK:
             if self.newState:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, False)
                 self.start = time.time()
                 self.newState = False
+                return
 
             elif time.time() - self.start > 0.5:
                 self.setState(self._STATE_MOVE_TO_FEEDER)
                 return
 
-        if self.state == self._STATE_IDLE:
+        elif self.state == self._STATE_IDLE:
             if self.newState:
                 self.dpiRobot.homeRobot(True)
                 if self.rotationPositionFlg:
@@ -162,6 +168,7 @@ class RobotArm:
 
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, False)
                 self.newState = False
+                return
 
             elif self.robotManager.moveToFeeder(currentPosition) is not None:
                 self.setState(self._STATE_MOVE_TO_FEEDER)
@@ -202,9 +209,17 @@ class RobotArm:
             True if the robot arm is within the tolerance of the position
         """
         x, y, z = self.getPositionCartesian()
+        position = constants.polarToCartesian(position)
         x1, y1, z1 = position
 
-        return abs(x - x1) < tolerance and abs(y - y1) < tolerance and abs(z - z1) < tolerance
+        print('checking location')
+
+        arrived = abs(x - x1) < tolerance and abs(y - y1) < tolerance and abs(z - z1) < tolerance
+        print(f'arrived: {arrived}')
+        print(f'dX {abs(x-x1)}')
+        print(f'dY {abs(y-y1)}')
+        print(f'dZ {abs(z-z1)}')
+        return arrived
 
     def setState(self, state):
         """Sets the state of the robot arm"""
@@ -222,6 +237,7 @@ class RobotArm:
             none
         """
         if robotState == self.dpiRobot.STATE_STOPPED:
+            print('queueing movements')
             self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
             [self.movePolar(waypoint, speed) for waypoint in waypoints]
             self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)

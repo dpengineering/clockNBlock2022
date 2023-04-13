@@ -136,7 +136,7 @@ class RobotManager:
         # If there are no build sites, return None
         if buildSite is None:
             return None
-        finalLocation = buildSite.location
+        finalLocation = buildSite.location0
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
@@ -190,7 +190,7 @@ class RobotManager:
             buildSite (BuildSite): Build site to move to
         """
         # Get a list of all the build sites that are ready
-        readyBuildSites = [buildSite for buildSite in self.buildSites if buildSite.isReady()]
+        readyBuildSites = [buildSite for buildSite in self.buildSites if buildSite.isReadyFlg]
 
         # If there are no ready build sites, return None
         if len(readyBuildSites) == 0:
@@ -262,8 +262,10 @@ class RobotManager:
         for waypoint in waypoints:
             nextPoint = constants.polarToCartesian(waypoint)
             # Calculating the distance between our last point and the next point we need to go to
-            if waypoints:
-                distance = abs(math.dist(straightWaypoints[-1], nextPoint))
+            if not straightWaypoints:
+                continue
+
+            distance = abs(math.dist(straightWaypoints[-1], nextPoint))
 
             # If the distance is greater than 25mm, split the move into many steps
             if distance > 25:
