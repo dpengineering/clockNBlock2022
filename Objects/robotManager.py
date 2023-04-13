@@ -1,6 +1,7 @@
 # Controls how the robot arm moves
 import numpy as np
 import Objects.constants as constants
+import math
 
 
 class RobotManager:
@@ -250,7 +251,7 @@ class RobotManager:
         for waypoint in waypoints:
             nextPoint = constants.polarToCartesian(waypoint)
             # Calculating the distance between our last point and the next point we need to go to
-            distance = abs(np.dist(straightWaypoints[-1], nextPoint))
+            distance = abs(math.dist(straightWaypoints[-1], nextPoint))
 
             # If the distance is greater than 25mm, split the move into many steps
             if distance > 25:
