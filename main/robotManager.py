@@ -49,16 +49,6 @@ class RobotManager:
 
         self.maximumMovingR = constants.maximumMovingRadius
 
-    def getCommand(self, robotPos, command):
-        _STATE_MOVE_TO_FEEDER = 0
-        _STATE_MOVE_TO_BUILD_SITE = 3
-
-        if command == _STATE_MOVE_TO_FEEDER:
-            return self.moveToFeeder(robotPos)
-        elif command == _STATE_MOVE_TO_BUILD_SITE:
-            return self.moveToBuildSite(robotPos)
-        else:
-            return None
 
     def moveToFeeder(self, robotPos):
         """Moves to a feeder
@@ -72,25 +62,30 @@ class RobotManager:
         # TODO: Change these to stuff with more personality - organic movements
         Nothing = 0
         PolarMove = 1
-        ZigZag = 2
-        Spiral = 3
+        # ZigZag = 2
+        # Spiral = 3
         GetRandomBlock = False
 
         # Choose a fun thing to do
-        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral])
-
+        # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral])
+        funThingToDo = np.random.choice([Nothing, PolarMove])
         # Decide if we want to get a random block, this has a 5% chance of happening
         if np.random.random() < 0.05:
             GetRandomBlock = True
 
-        # Get the feeder to move to
+        # Get the buildSite to move to
         if GetRandomBlock:
             buildSitesWithBlocks = [buildSite for buildSite in self.buildSites if buildSite.currentBlock != 0]
+
+            # Check if list is empty
+            if not buildSitesWithBlocks:
+                return None
+
             buildSite = np.random.choice(buildSitesWithBlocks)
             buildSite.currentBlock -= 1
             finalLocation = buildSite.blockPlacements[buildSite.currentBlock - 1]
         else:
-            # Find a build site with a block
+            # Find a feeder with blocks
             feeder = self.chooseFeeder()
             if feeder is None:
                 return None
@@ -100,10 +95,54 @@ class RobotManager:
         if funThingToDo == PolarMove:
             waypoints = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
-        elif funThingToDo == ZigZag:
-            waypoints = self.planZigZagMove(robotPos, finalLocation)
-        elif funThingToDo == Spiral:
-            waypoints = self.planSpiral(robotPos, finalLocation)
+        # elif funThingToDo == ZigZag:
+        #     waypoints = self.planZigZagMove(robotPos, finalLocation)
+        # elif funThingToDo == Spiral:
+        #     waypoints = self.planSpiral(robotPos, finalLocation)
+        else:
+            waypoints = self.planStraightMove(robotPos, finalLocation)
+            waypoints = self.ensureStraightLineCartesian(waypoints)
+
+        return waypoints
+
+
+    def moveToBuildSite(self, robotPos, clockPos):
+        """Moves to a build site
+        Args:
+            robotPos (tuple): (r, theta, z) position of the robot arm
+        Returns:
+            waypoints (list): List of waypoints for the robot arm to follow
+        """
+
+        # Different fun things we can do:
+        Nothing = 0
+        PolarMove = 1
+        # ZigZag = 2
+        # Spiral = 3
+        # FakePlacement = 4
+
+        # Choose a fun thing to do
+        # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral, FakePlacement])
+        funThingToDo = np.random.choice([Nothing, PolarMove])
+
+        # Get the buildSite to move to
+        buildSite = self.chooseBuildSite(clockPos)
+
+        # If there are no build sites, return None
+        if buildSite is None:
+            return None
+        finalLocation = buildSite.location
+
+        # Now that we have our final locations, we plan our route there
+        if funThingToDo == PolarMove:
+            waypoints = self.planStraightMove(robotPos, finalLocation)
+            waypoints = self.ensureStraightLinePolar(waypoints)
+        # elif funThingToDo == ZigZag:
+        #     waypoints = self.planZigZagMove(robotPos, finalLocation)
+        # elif funThingToDo == Spiral:
+        #     waypoints = self.planSpiral(robotPos, finalLocation)
+        # elif funThingToDo == FakePlacement:
+        #     waypoints = self.planFakePlacement(robotPos, finalLocation)
         else:
             waypoints = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
@@ -483,7 +522,10 @@ class RobotManager:
             for i, waypoint in enumerate(waypoints):
                 waypoints[i] = constants.cartesianToPolar(waypoint)
         else:
-            # TODO: Implement dodging around the obstacle
+            # Dodge around the obstacle by moving towards the center
+            dodgingRadius = obstacle[0][0] - constants.robotHeadRadius - 10
+
+
             pass
 
         return waypoints

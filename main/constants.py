@@ -8,6 +8,8 @@ blockSize = 31  # mm
 magnetSolenoid = 11
 rotationSolenoid = 10
 robotHeadRadius = 80  # Major radius of the robot end effector
+robotSpeed = 140
+rotationHeight = -1430
 
 # Feeder solenoids in (side, up) order
 blockFeederSolenoids = [(6, 7),

@@ -71,7 +71,7 @@ class Clock:
 
     # This is necessary because the block feeders need to prime which means the clock needs to be out of the way
     # After that happens we can go to real time.
-    def setupTwo(self):
+    def setup2(self):
         """ Sets up the hands so they can be used."""
 
         # Set minute hand speed to max
@@ -146,7 +146,7 @@ class Clock:
         minuteToSteps = minute * self.MINUTE_HAND_STEPS_PER_REVOLUTION // 60 + second * self.MINUTE_HAND_STEPS_PER_REVOLUTION // (60 * 60)
         return hourToSteps, minuteToSteps
 
-    def getPositionDegrees(self):
+    def getPositionDegrees(self) -> tuple:
         """Gets the position of the hands in degrees"""
         _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
         _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
@@ -169,6 +169,13 @@ class Clock:
         minuteDifference = minuteToSteps - minutePosition % self.MINUTE_HAND_STEPS_PER_REVOLUTION
 
         self.moveToPositionsRelative(hourDifference, minuteDifference, waitFlg)
+
+
+    def emergencyStop(self):
+        """Stops both hands"""
+        self.dpiStepper.emergencyStop(self.HOUR_HAND_PIN)
+        self.dpiStepper.emergencyStop(self.MINUTE_HAND_PIN)
+
 
 
 
