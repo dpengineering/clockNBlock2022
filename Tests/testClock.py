@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, "..")
+
 from Objects.clock import Clock
 from time import sleep, localtime
 

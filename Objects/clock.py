@@ -107,8 +107,10 @@ class Clock:
         hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
 
         # Get current positions
-        _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN) % self.HOUR_HAND_STEPS_PER_REVOLUTION
-        _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN) % self.MINUTE_HAND_STEPS_PER_REVOLUTION
+        _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
+        hourPosition = hourPosition % self.HOUR_HAND_STEPS_PER_REVOLUTION
+        _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
+        minutePosition = minutePosition % self.MINUTE_HAND_STEPS_PER_REVOLUTION
 
         # Calculate the difference between the desired position and the current position
         hourDifference = hourToSteps - hourPosition % self.HOUR_HAND_STEPS_PER_REVOLUTION
