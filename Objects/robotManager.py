@@ -1,6 +1,6 @@
 # Controls how the robot arm moves
 import numpy as np
-import constants as constants
+import Objects.constants as constants
 
 
 class RobotManager:
