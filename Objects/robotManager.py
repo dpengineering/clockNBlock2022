@@ -93,17 +93,20 @@ class RobotManager:
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
-            waypoints = self.planStraightMove(robotPos, finalLocation)
-            waypoints = self.ensureStraightLinePolar(waypoints)
             print('Robot arm polar move to feeder')
+            waypoints = self.planStraightMove(robotPos, finalLocation)
+            print(waypoints)
+            waypoints = self.ensureStraightLinePolar(waypoints)
+
         # elif funThingToDo == ZigZag:
         #     waypoints = self.planZigZagMove(robotPos, finalLocation)
         # elif funThingToDo == Spiral:
         #     waypoints = self.planSpiral(robotPos, finalLocation)
         else:
-            waypoints = self.planStraightMove(robotPos, finalLocation)
-            waypoints = self.ensureStraightLineCartesian(waypoints)
             print('Robot arm straight move to feeder')
+            waypoints = self.planStraightMove(robotPos, finalLocation)
+            print(waypoints)
+            waypoints = self.ensureStraightLineCartesian(waypoints)
 
         return waypoints
 
@@ -137,9 +140,11 @@ class RobotManager:
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
-            waypoints = self.planStraightMove(robotPos, finalLocation)
-            waypoints = self.ensureStraightLinePolar(waypoints)
             print('Robot arm polar move to build site')
+            waypoints = self.planStraightMove(robotPos, finalLocation)
+            print(waypoints)
+            waypoints = self.ensureStraightLinePolar(waypoints)
+
         # elif funThingToDo == ZigZag:
         #     waypoints = self.planZigZagMove(robotPos, finalLocation)
         # elif funThingToDo == Spiral:
@@ -147,9 +152,11 @@ class RobotManager:
         # elif funThingToDo == FakePlacement:
         #     waypoints = self.planFakePlacement(robotPos, finalLocation)
         else:
-            waypoints = self.planStraightMove(robotPos, finalLocation)
-            waypoints = self.ensureStraightLineCartesian(waypoints)
             print('Robot arm straight move to build site')
+            waypoints = self.planStraightMove(robotPos, finalLocation)
+            print(waypoints)
+            waypoints = self.ensureStraightLineCartesian(waypoints)
+
 
         return waypoints
 
@@ -255,7 +262,8 @@ class RobotManager:
         for waypoint in waypoints:
             nextPoint = constants.polarToCartesian(waypoint)
             # Calculating the distance between our last point and the next point we need to go to
-            distance = abs(math.dist(straightWaypoints[-1], nextPoint))
+            if waypoints:
+                distance = abs(math.dist(straightWaypoints[-1], nextPoint))
 
             # If the distance is greater than 25mm, split the move into many steps
             if distance > 25:
@@ -426,7 +434,7 @@ class RobotManager:
         # The initial point is the bottom left corner of the rectangle (point0)
         r0 = np.array(rectangle[0])
         s0 = np.array(rectangle[1]) - r0
-        s1 = np.array(rectangle[3]) - r0
+        s1 = np.array(rectangle[2]) - r0
 
         # We also need the normal vector of the rectangle
         n = np.cross(s0, s1)
