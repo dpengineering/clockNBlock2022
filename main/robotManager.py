@@ -1,7 +1,6 @@
 # Controls how the robot arm moves
 import numpy as np
 import main.constants as constants
-import main.main
 
 
 class RobotManager:
@@ -38,9 +37,9 @@ class RobotManager:
     # Also, the robot arm will always move to polar coordinates. Even if it is going in a straight line
     # cartesian wise.
 
-    def __init__(self):
-        self.blockFeeders = main.main.blockFeeders
-        self.buildSites = main.main.buildSites
+    def __init__(self, buildSites, blockFeeders):
+        self.blockFeeders = blockFeeders
+        self.buildSites = buildSites
         self.robotPos = (0, 0, 0)
 
         # To move to a position from the side, we need to go to a position next to the target value

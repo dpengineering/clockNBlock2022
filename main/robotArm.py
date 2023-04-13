@@ -15,13 +15,13 @@ class RobotArm:
     _STATE_PLACE_BLOCK        = 4
     _STATE_IDLE               = 5
 
-    def __init__(self, dpiSolenoid, magnetSolenoid, rotationSolenoid):
+    def __init__(self, dpiSolenoid, magnetSolenoid, rotationSolenoid, buildSites, blockFeeders):
 
         self.dpiSolenoid = dpiSolenoid
         self.MAGNET_SOLENOID = magnetSolenoid
         self.ROTATING_SOLENOID = rotationSolenoid
 
-        self.robotManager = RobotManager()
+        self.robotManager = RobotManager(buildSites, blockFeeders)
 
         # Create our dpiRobot object
         self.dpiRobot = DPiRobot()

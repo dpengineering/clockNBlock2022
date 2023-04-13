@@ -18,8 +18,6 @@ dpiSolenoid.setBoardNumber(0)
 if not dpiSolenoid.initialize():
     raise Exception("Solenoid initialization failed")
 
-# Create the robot arm object
-robot = RobotArm(dpiSolenoid, constants.magnetSolenoid, constants.rotationSolenoid)
 
 buildSites = []
 for idx, location in enumerate(constants.buildLocations):
@@ -32,6 +30,9 @@ for num, blockFeederInfo in enumerate(zip(constants.blockFeederLocations, consta
 
 clock = Clock()
 
+
+# Create the robot arm object
+robot = RobotArm(dpiSolenoid, constants.magnetSolenoid, constants.rotationSolenoid, buildSites, blockFeeders)
 
 def setup():
     robot.setup()
