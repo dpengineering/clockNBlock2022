@@ -95,9 +95,7 @@ def cartesianToPolar(position: tuple):
     # Convert to Polar Coords
     r = np.sqrt(x ** 2 + y ** 2)
     theta = np.arctan2(y, x)
-    print(theta)
     theta = np.rad2deg(theta)
-    print(theta)
 
     # Adjust for negative values
     if x < 0 < y:
