@@ -170,7 +170,9 @@ class BlockFeeder:
         if self.state == self._STATE_READY:
             self.isReadyFlg = True
 
-        if abs(minuteHandPosition - self.feederLocation) < 30:
+        feederTheta = self.feederLocation[1]
+
+        if abs(minuteHandPosition - feederTheta) < 30:
             self.isReadyFlg = False
 
 

@@ -95,6 +95,7 @@ class RobotManager:
         if funThingToDo == PolarMove:
             waypoints = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
+            print('Robot arm polar move to feeder')
         # elif funThingToDo == ZigZag:
         #     waypoints = self.planZigZagMove(robotPos, finalLocation)
         # elif funThingToDo == Spiral:
@@ -102,6 +103,7 @@ class RobotManager:
         else:
             waypoints = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
+            print('Robot arm straight move to feeder')
 
         return waypoints
 
@@ -137,6 +139,7 @@ class RobotManager:
         if funThingToDo == PolarMove:
             waypoints = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
+            print('Robot arm polar move to build site')
         # elif funThingToDo == ZigZag:
         #     waypoints = self.planZigZagMove(robotPos, finalLocation)
         # elif funThingToDo == Spiral:
@@ -146,6 +149,7 @@ class RobotManager:
         else:
             waypoints = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
+            print('Robot arm straight move to build site')
 
         return waypoints
 
