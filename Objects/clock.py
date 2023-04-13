@@ -83,7 +83,7 @@ class Clock:
         # Move to current time
         t = localtime()
         hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
-        self.moveToPositionsRelative(hourToSteps, minuteToSteps)
+        self.moveToPositionsRelative(hourToSteps, minuteToSteps, waitFlg=True)
 
         # Set base speeds
         self.setSpeeds(self.HOUR_HAND_BASE_SPEED, self.MINUTE_HAND_BASE_SPEED)

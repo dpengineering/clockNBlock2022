@@ -158,7 +158,7 @@ class RobotManager:
             feeder (Feeder): Feeder to move to
         """
         # Get a list of all the feeders that are ready
-        readyFeeders = [feeder for feeder in self.blockFeeders if feeder.isReady()]
+        readyFeeders = [feeder for feeder in self.blockFeeders if feeder.isReadyFlg]
 
         # If there are no ready feeders, return None
         if len(readyFeeders) == 0:

@@ -37,19 +37,23 @@ robot = RobotArm(dpiSolenoid, constants.magnetSolenoid, constants.rotationSoleno
 
 def setup():
 
+    print('Setting up robot')
     if not robot.setup():
         raise Exception("Robot setup failed")
 
     # Set up part 1 of the clock
+    print('Setting up clock')
     if not clock.setup():
         raise Exception("Clock setup failed")
 
     # Set up block feeders
     for blockFeeder in blockFeeders:
+        print('setting up block feeder')
         if not blockFeeder.setup():
             raise Exception("Block feeder setup failed")
 
     # Set up clock part 2
+    print('Setting up clock 2')
     if not clock.setup2():
         raise Exception("Clock setup 2 failed")
 
