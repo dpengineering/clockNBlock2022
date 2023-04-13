@@ -68,6 +68,8 @@ class RobotArm:
         if not self.rotationPositionFlg:
             self.rotate()
 
+        self.setState(self._STATE_MOVE_TO_FEEDER)
+
         return True
 
 
@@ -90,7 +92,9 @@ class RobotArm:
                         self.target = waypoints[-1]
                         self.newState = False
                         self.start = time.time()
+                        print('Found feeder')
                         return
+                print('no blocks found')
                 self.setState(self._STATE_IDLE)
                 return
 
