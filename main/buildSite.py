@@ -1,4 +1,4 @@
-import main.constants as constants
+import constants as constants
 
 
 class BuildSite:
