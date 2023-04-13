@@ -2,7 +2,7 @@ import time
 
 from dpeaDPi.DPiRobot import DPiRobot
 import Objects.constants as constants
-from robotManager import RobotManager
+from Objects.robotManager import RobotManager
 
 
 class RobotArm:
