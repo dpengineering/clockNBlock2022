@@ -157,6 +157,7 @@ class RobotManager:
             print(waypoints)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
+
         return waypoints
 
 
@@ -189,7 +190,7 @@ class RobotManager:
             buildSite (BuildSite): Build site to move to
         """
         # Get a list of all the build sites that are ready
-        readyBuildSites = [buildSite for buildSite in self.buildSites if buildSite.isReady()]
+        readyBuildSites = [buildSite for buildSite in self.buildSites if buildSite.isReadyFlg]
 
         # If there are no ready build sites, return None
         if len(readyBuildSites) == 0:
@@ -258,27 +259,30 @@ class RobotManager:
         # Note: this operation is fairly slow because of the nested for loops.
         #   If this moves us in a straight line, it might be worth refactoring
         #   The code to work in cartesian coordinates
-        for point in range(len(waypoints) - 1):
-            x1, y1, z1 = constants.polarToCartesian(waypoints[point])
-            x2, y2, z2 = constants.polarToCartesian(waypoints[point + 1])
-
+        for waypoint in waypoints:
+            nextPoint = constants.polarToCartesian(waypoint)
             # Calculating the distance between our last point and the next point we need to go to
-            distance = abs(math.dist((x1, y1, z1), (x2, y2, z2)))
+            if waypoints:
+                distance = abs(math.dist(straightWaypoints[-1], nextPoint))
 
-            # If the distance is greater than 20mm, split the move into many steps
-            if distance > 20:
-                numSteps = int(distance / 20)
+            # If the distance is greater than 25mm, split the move into many steps
+            if distance > 25:
+                numSteps = int(distance / 25)
+                # Current x, y, z values
+                cX, cY, cZ = straightWaypoints[-1]
+                # target x, y, z
+                tX, tY, tZ = nextPoint
 
                 # Split our move into a bunch of steps
-                xSteps = np.linspace(x1, x2, numSteps, False)
-                ySteps = np.linspace(y1, y2, numSteps, False)
-                zSteps = np.linspace(z1, z2, numSteps, False)
+                xSteps = np.linspace(cX, tX, numSteps, False)
+                ySteps = np.linspace(cY, tY, numSteps, False)
+                zSteps = np.linspace(cZ, tZ, numSteps, False)
 
                 # Add these points to our list
                 for i in range(len(xSteps)):
                     straightWaypoints.append((xSteps[i], ySteps[i], zSteps[i]))
 
-            straightWaypoints.append((x2, y2, z2))
+            straightWaypoints.append(nextPoint)
 
         # Convert our list of waypoints in cartesian coordinates to a list in polar coordinates
         straightWaypoints = [constants.cartesianToPolar(waypoint) for waypoint in straightWaypoints]
