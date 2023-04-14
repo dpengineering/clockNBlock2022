@@ -1,7 +1,7 @@
 """Constants for all of our objects"""
 import numpy as np
 
-blockSize = 31  # mm
+blockSize = 31  # in mm
 
 # Solenoid Values
 # Robot Arm

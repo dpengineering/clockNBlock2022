@@ -1,9 +1,8 @@
 # Test program that runs all the feeders continuously
 from Objects.blockFeeder import BlockFeeder
-import Objects.constants
+import Objects.constants as constants
 from dpeaDPi.DPiSolenoid import DPiSolenoid
 
-constants = Objects.constants
 
 dpiSolenoid = DPiSolenoid()
 dpiSolenoid.setBoardNumber(0)
