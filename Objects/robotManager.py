@@ -344,7 +344,7 @@ class RobotManager:
         currentR, currentTheta, currentZ = currentPos
         targetR, targetTheta, targetZ = targetPos
         # Move to this location in our polar coordinate system
-        travelHeight = currentZ + 20
+        travelHeight = currentZ + 50
 
         # The first move will always be moving up.
         waypoints.append((currentR, currentTheta, travelHeight))

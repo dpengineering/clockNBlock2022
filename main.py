@@ -74,13 +74,15 @@ def main():
             print('clock processed')
             hourPos, minutePos = clock.getPositionDegrees()
 
-            robot.process(minutePos)
-            print('robot processed')
-
             [blockFeeder.process(minutePos) for blockFeeder in blockFeeders]
             print('block feeders processed')
             [buildSite.process(minutePos) for buildSite in buildSites]
             print('build sites processed')
+
+            robot.process(minutePos)
+            print('robot processed')
+
+
 
         # Read for when the E-Stop gets released
         elif robot.dpiRobot.getRobotStatus()[1] != robot.dpiRobot.STATE_NOT_HOMED:

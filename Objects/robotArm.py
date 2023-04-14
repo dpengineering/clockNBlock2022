@@ -88,7 +88,7 @@ class RobotArm:
                 for _ in range(3):
                     waypoints = self.robotManager.moveToFeeder(currentPosition)
                     print(f'waypoints before check {waypoints}')
-                    if waypoints is not None or not waypoints:
+                    if waypoints is not None and waypoints:
                         self.queueWaypoints(waypoints, robotState=robotState)
                         print(f'waypoints again {waypoints}')
                         self.target = waypoints[-1]
@@ -150,7 +150,7 @@ class RobotArm:
                 self.setState(self._STATE_PLACE_BLOCK)
                 return
 
-        elif self._STATE_PLACE_BLOCK:
+        elif self.state == self._STATE_PLACE_BLOCK:
             if self.newState:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, False)
                 self.start = time.time()

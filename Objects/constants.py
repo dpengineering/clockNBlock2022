@@ -21,17 +21,17 @@ blockFeederSolenoids = [(6, 7),
 # Locations
 
 # Build Sites
-#   Replace second value with the location0 of the ends of the build sites.
+#   Replace second value with the location of the ends of the build sites.
 buildLocations = [[(293.6, 350.570, -1441.8), (480.3, 351.789, -1443.3)],
                   [(285.8, 263.268, -1441.8), (543.6, 262.883, -1441.8)],
                   [(278.8, 172.206, -1443.3), (524.9, 172.340, -1446.4)],
                   [(280.1, 82.162, -1446.4), (414.2, 82.032, -1448.0)]]
 
 # Block Feeders
-blockFeederLocations = [(343.0, 308.000, -1472.6),
-                        (340.8, 217.512, -1471.7),
-                        (338.6, 127.862, -1471.2),
-                        (341.2, 37.535, -1468.6)]
+blockFeederLocations = [(343.0, 308.000, -1470.6),
+                        (340.8, 217.512, -1469.7),
+                        (338.6, 127.862, -1469.2),
+                        (341.2, 37.535, -1466.6)]
 
 # Clock Minute Hand Radius
 # The place where we will place a block on the clock's minute hand
