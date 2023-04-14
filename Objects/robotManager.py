@@ -95,7 +95,6 @@ class RobotManager:
         if funThingToDo == PolarMove:
             print('Robot arm polar move to feeder')
             waypoints = self.planStraightMove(robotPos, finalLocation)
-            print(waypoints)
             waypoints = self.ensureStraightLinePolar(waypoints)
 
         # elif funThingToDo == ZigZag:
@@ -105,7 +104,6 @@ class RobotManager:
         else:
             print('Robot arm straight move to feeder')
             waypoints = self.planStraightMove(robotPos, finalLocation)
-            print(waypoints)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
         return waypoints
@@ -136,7 +134,7 @@ class RobotManager:
         # If there are no build sites, return None
         if buildSite is None:
             return None
-        finalLocation = buildSite.location
+        finalLocation = buildSite.location0
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
@@ -242,9 +240,7 @@ class RobotManager:
         """Ensures that the robot arm moves in a straight line
         This ensures that the robot will travel in a straight line as it does not do so with a long move.
         Check DPi_Robot firmware to see why. Alternatively, google how linear delta arms work.
-
         This makes the robot move in a straight line for cartesian coordinates. (As in no arcs)
-
         Args:
             waypoints (list): List of polar waypoints with possible long moves
         Returns:
@@ -259,30 +255,27 @@ class RobotManager:
         # Note: this operation is fairly slow because of the nested for loops.
         #   If this moves us in a straight line, it might be worth refactoring
         #   The code to work in cartesian coordinates
-        for waypoint in waypoints:
-            nextPoint = constants.polarToCartesian(waypoint)
-            # Calculating the distance between our last point and the next point we need to go to
-            if waypoints:
-                distance = abs(math.dist(straightWaypoints[-1], nextPoint))
+        for point in range(len(waypoints) - 1):
+            x1, y1, z1 = constants.polarToCartesian(waypoints[point])
+            x2, y2, z2 = constants.polarToCartesian(waypoints[point + 1])
 
-            # If the distance is greater than 25mm, split the move into many steps
-            if distance > 25:
-                numSteps = int(distance / 25)
-                # Current x, y, z values
-                cX, cY, cZ = straightWaypoints[-1]
-                # target x, y, z
-                tX, tY, tZ = nextPoint
+            # Calculating the distance between our last point and the next point we need to go to
+            distance = abs(math.dist((x1, y1, z1), (x2, y2, z2)))
+
+            # If the distance is greater than 20mm, split the move into many steps
+            if distance > 20:
+                numSteps = int(distance / 20)
 
                 # Split our move into a bunch of steps
-                xSteps = np.linspace(cX, tX, numSteps, False)
-                ySteps = np.linspace(cY, tY, numSteps, False)
-                zSteps = np.linspace(cZ, tZ, numSteps, False)
+                xSteps = np.linspace(x1, x2, numSteps, False)
+                ySteps = np.linspace(y1, y2, numSteps, False)
+                zSteps = np.linspace(z1, z2, numSteps, False)
 
                 # Add these points to our list
                 for i in range(len(xSteps)):
                     straightWaypoints.append((xSteps[i], ySteps[i], zSteps[i]))
 
-            straightWaypoints.append(nextPoint)
+            straightWaypoints.append((x2, y2, z2))
 
         # Convert our list of waypoints in cartesian coordinates to a list in polar coordinates
         straightWaypoints = [constants.cartesianToPolar(waypoint) for waypoint in straightWaypoints]

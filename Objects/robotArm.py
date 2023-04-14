@@ -87,6 +87,7 @@ class RobotArm:
                 # Try getting a block 3 times.
                 for _ in range(3):
                     waypoints = self.robotManager.moveToFeeder(currentPosition)
+                    print(f'waypoints before check {waypoints}')
                     if waypoints is not None or not waypoints:
                         self.queueWaypoints(waypoints, robotState=robotState)
                         print(f'waypoints again {waypoints}')
@@ -214,12 +215,7 @@ class RobotArm:
 
         print('checking location')
 
-        arrived = abs(x - x1) < tolerance and abs(y - y1) < tolerance and abs(z - z1) < tolerance
-        print(f'arrived: {arrived}')
-        print(f'dX {abs(x-x1)}')
-        print(f'dY {abs(y-y1)}')
-        print(f'dZ {abs(z-z1)}')
-        return arrived
+        return abs(x - x1) < tolerance and abs(y - y1) < tolerance and abs(z - z1) < tolerance
 
     def setState(self, state):
         """Sets the state of the robot arm"""
@@ -238,9 +234,11 @@ class RobotArm:
         """
         if robotState == self.dpiRobot.STATE_STOPPED:
             print('queueing movements')
+            print(f'waypoints before queue {waypoints}')
             self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
             [self.movePolar(waypoint, speed) for waypoint in waypoints]
             self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
+            print(f'waypoints after queue {waypoints}')
             return True
         else:
             print('Robot is not stopped')
