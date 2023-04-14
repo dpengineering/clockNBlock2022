@@ -134,7 +134,10 @@ class RobotManager:
         # If there are no build sites, return None
         if buildSite is None:
             return None
-        finalLocation = buildSite.location0
+
+        finalLocation = buildSite.placeNextBlock()
+        if finalLocation is None:
+            return None
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
@@ -337,6 +340,7 @@ class RobotManager:
             waypoints (list): List of waypoints to travel to
         """
         waypoints = []
+        checkWaypointsUpUntil = 0
         currentR, currentTheta, currentZ = currentPos
         targetR, targetTheta, targetZ = targetPos
         # Move to this location in our polar coordinate system
@@ -355,6 +359,9 @@ class RobotManager:
         sign = np.random.choice([-1, 1])
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, travelHeight))
 
+        # So we don't check waypoints that will place a block.
+        checkWaypointsUpUntil = len(waypoints)
+
         # Go down to 5mm above the target location
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, targetZ + 5))
 
@@ -368,7 +375,7 @@ class RobotManager:
         dodgeDict = {}
         for building in self.buildSites:
             obstacle = building.intersectionRectangle
-            for i in range(len(waypoints) - 1):
+            for i in range(checkWaypointsUpUntil - 1):
                 # Check if the line intersects the obstacle
                 intersection, point = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
                 if intersection:

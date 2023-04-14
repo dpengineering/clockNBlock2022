@@ -126,6 +126,15 @@ class BuildSite:
         self.intersectionRectangle[3] = (self.intersectionRectangle[3][0], self.intersectionRectangle[3][1], currentZHeight)
 
 
+    def placeNextBlock(self):
+        """Places the next block in the list of placements"""
+        if self.currentBlock < len(self.blockPlacements):
+            self.currentBlock += 1
+            return self.blockPlacements[self.currentBlock - 1]
+        else:
+            return None
+
+
 
 
 
