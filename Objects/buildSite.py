@@ -62,7 +62,6 @@ class BuildSite:
         # calculate and return slope
         return deltaZ / deltaR
 
-
     def generatePlacementList(self, placementArray, startLocation, blockSpacing=1):
         """Creates a list of where to place blocks dependent on an array passed in.
             Each 1 in the array will denote where to place a block and the 0's are empty space
@@ -79,7 +78,7 @@ class BuildSite:
         placements = []
         blockSizeWithSpacing = constants.blockSize + blockSpacing
         numRows = len(placementArray)
-        colSize = len(placementArray[1]) - 1
+
         for rowIdx, row in enumerate(placementArray):
             currentOrigin = startLocation
             for colIdx, value in enumerate(row):
@@ -88,10 +87,10 @@ class BuildSite:
                     currentOrigin = currentOrigin[0] + value, currentOrigin[1], currentOrigin[2]
                 elif value:
                     # Calculate the position we need to place our block
-                    currentRow = numRows - rowIdx - 1
-                    currentCol = -colSize + colIdx - 1
-                    zPos = currentRow * blockSizeWithSpacing + currentOrigin[2] + currentCol * self.slope * blockSizeWithSpacing
-                    rPos = currentCol * blockSizeWithSpacing + currentOrigin[0]
+                    currentRow = numRows - (rowIdx + 1)
+                    currentCol = colIdx - 1
+                    zPos = currentRow * blockSizeWithSpacing + currentOrigin[2] + currentCol * self.slope
+                    rPos = currentOrigin[0] + currentCol * blockSizeWithSpacing
                     placements.insert(0, (rPos, currentOrigin[1], zPos))
 
         return placements

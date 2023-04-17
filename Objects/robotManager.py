@@ -360,7 +360,7 @@ class RobotManager:
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, travelHeight))
 
         # So we don't check waypoints that will place a block.
-        checkWaypointsUpUntil = len(waypoints)
+        checkWaypointsUpUntil = len(waypoints) - 1
 
         # Go down to 5mm above the target location
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, targetZ + 5))
@@ -375,7 +375,7 @@ class RobotManager:
         dodgeDict = {}
         for building in self.buildSites:
             obstacle = building.intersectionRectangle
-            for i in range(checkWaypointsUpUntil - 1):
+            for i in range(checkWaypointsUpUntil):
                 # Check if the line intersects the obstacle
                 intersection, point = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
                 if intersection:
@@ -396,9 +396,33 @@ class RobotManager:
             waypoints (list): List of waypoints to travel to
         """
 
+        zigZagThreshold = 50  # The threshold for when to zig-zag
+        zigZagAngleRange = (30, 60)  # The angle to zig-zag at
+        zigZagAngle = np.random.randint(zigZagAngleRange[0], zigZagAngleRange[1])  # The angle to zig-zag at
+
         # As this is a zig-zag, we just need to alter all the straight moves
         # Get the waypoints for a straight move
         waypoints = self.planStraightMove(currentPos, targetPos)
+
+        # Loop through the waypoints and alter the moves
+        for i in range(len(waypoints) - 1):
+            # Get the current and next waypoint in polar coordinates and cartesian
+            currentR, currentTheta, currentZ = waypoints[i]
+            currentX, currentY, currentZ = constants.polarToCartesian(waypoints[i])
+
+            nextR, nextTheta, nextZ = waypoints[i + 1]
+            nextX, nextY, nextZ = constants.polarToCartesian(waypoints[i + 1])
+
+            # If the move is over the threshold in the XY plane, zig-zag
+            if np.sqrt((nextX - currentX) ** 2 + (nextY - currentY) ** 2) > zigZagThreshold:
+                # Get the angle between the current and next waypoint
+                angle = np.rad2deg(np.arctan2(nextY - currentY, nextX - currentX))
+
+                # Get the angle to zig-zag at
+                sign = np.random.choice([-1, 1])
+                angle += sign * zigZagAngle
+
+
 
 
 
@@ -482,11 +506,11 @@ class RobotManager:
         t = np.linalg.norm(np.array(intersectionPoint) - vectorInitial)
 
         # Find the point where we want to stop the robot in order to dodge the obstacle
-        # To do this, we will shorten the distance, t by the robotHeadRadius + blockSize / 2 + 10mm
+        # To do this, we will shorten the distance, t by the robotHeadRadius + blockSize / 2 + robotMovingPadding
         # The 10mm is just padding to make sure we don't hit the obstacle
 
         # First, calculate the distance we need to shorten the vector by
-        distanceToShorten = constants.robotHeadRadius + constants.blockSize / 2 + 10
+        distanceToShorten = constants.robotHeadRadius + constants.blockSize / 2 + constants.robotMovingPadding
 
         # Do the same thing as above, but with the final point
         vectorFinal = np.array(finalPoint)
@@ -494,7 +518,7 @@ class RobotManager:
         tFinal = np.linalg.norm(np.array(intersectionPoint) - vectorFinal)
 
         # Calculate the distance we need to shorten the vector by
-        distanceToShortenFinal = constants.robotHeadRadius + constants.blockSize / 2 + 10
+        distanceToShortenFinal = constants.robotHeadRadius + constants.blockSize / 2 + constants.robotMovingPadding
 
 
         # Then, calculate the new vector
@@ -534,11 +558,23 @@ class RobotManager:
             for i, waypoint in enumerate(waypoints):
                 waypoints[i] = constants.cartesianToPolar(waypoint)
         else:
+
+            # Convert to polar coordinates
+            initialStoppingPoint = constants.cartesianToPolar(initialStoppingPoint)
+            finalPoint = constants.cartesianToPolar(finalPoint)
+
             # Dodge around the obstacle by moving towards the center
-            dodgingRadius = obstacle[0][0] - constants.robotHeadRadius - 10
+            waypoints.append((obstacle[0][0] + constants.robotMovingPadding, initialStoppingPoint[1], initialStoppingPoint[2]))
 
+            # Go over
+            waypoints.append((obstacle[0][0] + constants.robotMovingPadding, initialStoppingPoint[1] + constants.degreesPerBlock, initialStoppingPoint[2]))
 
-            pass
+            # Go back
+            waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1] + constants.degreesPerBlock, initialStoppingPoint[2]))
+
+            # Go to final point
+            waypoints.append(finalPoint)
+
 
         return waypoints
 

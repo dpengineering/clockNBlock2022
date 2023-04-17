@@ -2,6 +2,7 @@
 import numpy as np
 
 blockSize = 31  # in mm
+blockPadding = 1 # in mm
 
 # Solenoid Values
 # Robot Arm
@@ -10,6 +11,8 @@ rotationSolenoid = 10
 robotHeadRadius = 80  # Major radius of the robot end effector
 robotSpeed = 140
 rotationHeight = -1430
+robotMovingPadding = 10  # Padding for robot arm to move around blocks
+degreesPerBlock = 360 / blockSize + blockPadding  # Degrees per block
 
 # Feeder solenoids in (side, up) order
 blockFeederSolenoids = [(6, 7),
