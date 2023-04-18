@@ -71,16 +71,12 @@ def main():
         # Process all  the loops
         if robot.isHomedFlg:
             clock.process()
-            print('clock processed')
             hourPos, minutePos = clock.getPositionDegrees()
 
             [blockFeeder.process(minutePos) for blockFeeder in blockFeeders]
-            print('block feeders processed')
             [buildSite.process(minutePos) for buildSite in buildSites]
-            print('build sites processed')
 
             robot.process(minutePos)
-            print('robot processed')
 
 
 
