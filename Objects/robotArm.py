@@ -87,16 +87,12 @@ class RobotArm:
                 # Try getting a block 3 times.
                 for _ in range(3):
                     waypoints = self.robotManager.moveToFeeder(currentPosition)
-                    print(f'waypoints before check {waypoints}')
                     if waypoints is not None and waypoints:
                         self.queueWaypoints(waypoints, robotState=robotState)
-                        print(f'waypoints again {waypoints}')
                         self.target = waypoints[-1]
                         self.newState = False
                         self.start = time.time()
-                        print('Found feeder')
                         return
-                print('no blocks found')
                 self.setState(self._STATE_IDLE)
                 return
 
