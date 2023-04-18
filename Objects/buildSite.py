@@ -33,6 +33,7 @@ class BuildSite:
         # Our setup is fairly simple, we just need to find the block placement list we have
         # and reset our counter to 0
         self.blockPlacements = self.generatePlacementList(constants.placementArrays[self.index], self.location0)
+        print(f'Placement List: {self.blockPlacements}, buildSite: {self.index}')
         self.currentBlock = 0
         self.isReadyFlg = True
 
