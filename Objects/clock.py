@@ -13,7 +13,7 @@ class Clock:
     HOUR_HAND_PIN = 0
     HOUR_HAND_GEAR_REDUCTION = 5  # Gear reduction is 5:1
     # I am not sure why there is 300 extra steps for a full rotation.
-    HOUR_HAND_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * HOUR_HAND_GEAR_REDUCTION + 290 # 8300
+    HOUR_HAND_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * HOUR_HAND_GEAR_REDUCTION + 290  # 8300
     # Hour hand base speed, 1 revolution in 12 hours, about 0.19 steps per second
     HOUR_HAND_BASE_SPEED = HOUR_HAND_STEPS_PER_REVOLUTION // (12 * 60 * 60)
     # Hour hand max speed. I don't feel comfortable sending it more than 0.5 rev / sec - 4150 steps/sec

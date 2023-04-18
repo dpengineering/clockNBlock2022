@@ -213,8 +213,6 @@ class RobotArm:
         position = constants.polarToCartesian(position)
         x1, y1, z1 = position
 
-        print('checking location')
-
         return abs(x - x1) < tolerance and abs(y - y1) < tolerance and abs(z - z1) < tolerance
 
     def setState(self, state):
