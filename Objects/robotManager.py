@@ -577,11 +577,3 @@ class RobotManager:
 
 
         return waypoints
-
-
-
-
-
-
-
-

@@ -175,7 +175,3 @@ class BlockFeeder:
         if abs(minuteHandPosition - feederTheta) < 30:
             self.isReadyFlg = False
 
-
-
-
-

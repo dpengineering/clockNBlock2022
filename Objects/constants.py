@@ -118,6 +118,3 @@ def polarToCartesian(position: tuple):
     x = r * np.cos(theta)
     y = r * np.sin(theta)
     return x, y, z
-
-
-

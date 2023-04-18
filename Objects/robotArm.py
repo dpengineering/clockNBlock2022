@@ -243,10 +243,3 @@ class RobotArm:
         else:
             print('Robot is not stopped')
             return False
-
-
-
-
-
-
-

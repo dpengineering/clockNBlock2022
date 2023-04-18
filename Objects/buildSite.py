@@ -132,8 +132,3 @@ class BuildSite:
             return self.blockPlacements[self.currentBlock - 1]
         else:
             return None
-
-
-
-
-

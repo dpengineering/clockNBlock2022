@@ -102,6 +102,13 @@ class Clock:
         # or something along those lines. However, this will be fixed fairly quickly because it will only speed up for around
         # 1 second and then slow down again. This needs to be tested though
 
+        # If the clock is stopped, send it going for a revolution
+        if self.dpiStepper.getStepperStatus(self.HOUR_HAND_PIN)[1]:
+            self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, self.HOUR_HAND_STEPS_PER_REVOLUTION, False)
+
+        if self.dpiStepper.getStepperStatus(self.MINUTE_HAND_PIN)[1]:
+            self.dpiStepper.moveToRelativePositionInSteps(self.MINUTE_HAND_PIN, self.MINUTE_HAND_STEPS_PER_REVOLUTION, False)
+
         # Get current time
         t = localtime()
         hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
@@ -118,13 +125,17 @@ class Clock:
 
         # If the difference is greater than 5% of total steps, adjust the speed
         if abs(hourDifference) > self.HOUR_HAND_STEPS_PER_REVOLUTION * 0.05:
+            print(f'speeding up hour hand by {hourDifference * 0.01} steps')
             self.dpiStepper.setSpeedInStepsPerSecond(self.HOUR_HAND_PIN, self.HOUR_HAND_BASE_SPEED + hourDifference * 0.01)
         else:
+            print(f'setting hour hand speed to {self.HOUR_HAND_BASE_SPEED}')
             self.dpiStepper.setSpeedInStepsPerSecond(self.HOUR_HAND_PIN, self.HOUR_HAND_BASE_SPEED)
 
         if abs(minuteDifference) > self.MINUTE_HAND_STEPS_PER_REVOLUTION * 0.05:
+            print(f'speeding up minute hand by {minuteDifference * 0.01} steps')
             self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_BASE_SPEED + minuteDifference * 0.01)
         else:
+            print(f'setting minute hand speed to {self.MINUTE_HAND_BASE_SPEED}')
             self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_BASE_SPEED)
 
 
@@ -181,7 +192,3 @@ class Clock:
         """Stops both hands"""
         self.dpiStepper.emergencyStop(self.HOUR_HAND_PIN)
         self.dpiStepper.emergencyStop(self.MINUTE_HAND_PIN)
-
-
-
-
