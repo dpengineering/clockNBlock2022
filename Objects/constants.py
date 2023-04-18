@@ -2,15 +2,16 @@
 import numpy as np
 
 blockSize = 31  # in mm
-blockPadding = 1 # in mm
+blockPadding = 1  # in mm
 
 # Solenoid Values
 # Robot Arm
 magnetSolenoid = 11
 rotationSolenoid = 10
 robotHeadRadius = 80  # Major radius of the robot end effector
-robotSpeed = 140
+robotSpeed = 100
 rotationHeight = -1430
+maximumMovingRadius = 400  # mm
 robotMovingPadding = 10  # Padding for robot arm to move around blocks
 degreesPerBlock = 360 / blockSize + blockPadding  # Degrees per block
 
@@ -82,9 +83,6 @@ placement3 = [[- blockSize / 2, 0, 1, 0, 0, 0, 0],
               [0              , 1, 1, 0, 0, 0, 0]]
 
 placementArrays = [placement0, placement1, placement2, placement3]
-
-# This is the point where the robot arm will start hitting the side posts and crashing
-maximumMovingRadius = 414.2  # mm
 
 
 def cartesianToPolar(position: tuple):

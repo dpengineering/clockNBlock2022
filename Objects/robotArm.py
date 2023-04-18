@@ -118,10 +118,12 @@ class RobotArm:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, True)
                 self.start = time.time()
                 self.newState = False
+                print('picking up block')
                 return
 
             elif time.time() - self.start > 0.5:
                 self.setState(self._STATE_MOVE_TO_BUILD_SITE)
+                print('moving to build site')
                 return
 
         elif self.state == self._STATE_MOVE_TO_BUILD_SITE:
@@ -144,10 +146,12 @@ class RobotArm:
             # But this also saves us from having to create a whole new state to rotate the block
             elif time.time() - self.start > 1 and self.rotationPositionFlg:
                 self.rotate()
+                print('rotated')
                 return
 
             elif self.isAtLocation(self.target) and robotState == self.dpiRobot.STATE_STOPPED:
                 self.setState(self._STATE_PLACE_BLOCK)
+                print('at location')
                 return
 
         elif self.state == self._STATE_PLACE_BLOCK:
@@ -155,10 +159,12 @@ class RobotArm:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, False)
                 self.start = time.time()
                 self.newState = False
+                print('placing block')
                 return
 
             elif time.time() - self.start > 0.5:
                 self.setState(self._STATE_MOVE_TO_FEEDER)
+                print('moving to feeder')
                 return
 
         elif self.state == self._STATE_IDLE:
