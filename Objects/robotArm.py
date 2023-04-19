@@ -87,16 +87,12 @@ class RobotArm:
                 # Try getting a block 3 times.
                 for _ in range(3):
                     waypoints = self.robotManager.moveToFeeder(currentPosition)
-                    print(f'waypoints before check {waypoints}')
                     if waypoints is not None and waypoints:
                         self.queueWaypoints(waypoints, robotState=robotState)
-                        print(f'waypoints again {waypoints}')
                         self.target = waypoints[-1]
                         self.newState = False
                         self.start = time.time()
-                        print('Found feeder')
                         return
-                print('no blocks found')
                 self.setState(self._STATE_IDLE)
                 return
 
@@ -118,10 +114,12 @@ class RobotArm:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, True)
                 self.start = time.time()
                 self.newState = False
+                print('picking up block')
                 return
 
             elif time.time() - self.start > 0.5:
                 self.setState(self._STATE_MOVE_TO_BUILD_SITE)
+                print('moving to build site')
                 return
 
         elif self.state == self._STATE_MOVE_TO_BUILD_SITE:
@@ -144,10 +142,12 @@ class RobotArm:
             # But this also saves us from having to create a whole new state to rotate the block
             elif time.time() - self.start > 1 and self.rotationPositionFlg:
                 self.rotate()
+                print('rotated')
                 return
 
             elif self.isAtLocation(self.target) and robotState == self.dpiRobot.STATE_STOPPED:
                 self.setState(self._STATE_PLACE_BLOCK)
+                print('at location')
                 return
 
         elif self.state == self._STATE_PLACE_BLOCK:
@@ -155,10 +155,12 @@ class RobotArm:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, False)
                 self.start = time.time()
                 self.newState = False
+                print('placing block')
                 return
 
             elif time.time() - self.start > 0.5:
                 self.setState(self._STATE_MOVE_TO_FEEDER)
+                print('moving to feeder')
                 return
 
         elif self.state == self._STATE_IDLE:
@@ -212,8 +214,6 @@ class RobotArm:
         x, y, z = self.getPositionCartesian()
         position = constants.polarToCartesian(position)
         x1, y1, z1 = position
-
-        print('checking location')
 
         return abs(x - x1) < tolerance and abs(y - y1) < tolerance and abs(z - z1) < tolerance
 

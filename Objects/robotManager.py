@@ -343,8 +343,9 @@ class RobotManager:
         checkWaypointsUpUntil = 0
         currentR, currentTheta, currentZ = currentPos
         targetR, targetTheta, targetZ = targetPos
+
         # Move to this location in our polar coordinate system
-        travelHeight = currentZ + 50
+        travelHeight = currentZ + 30
 
         # The first move will always be moving up.
         waypoints.append((currentR, currentTheta, travelHeight))
@@ -375,10 +376,11 @@ class RobotManager:
         dodgeDict = {}
         for building in self.buildSites:
             obstacle = building.intersectionRectangle
-            for i in range(checkWaypointsUpUntil):
+            for i in range(checkWaypointsUpUntil - 1):
                 # Check if the line intersects the obstacle
                 intersection, point = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
                 if intersection:
+                    print("Found intersection")
                     # If it does, we need to dodge it
                     dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point)
 
@@ -474,6 +476,7 @@ class RobotManager:
         projectionOntoS1 = np.dot(rectOriginToIntersection, s1) / np.linalg.norm(s1)
 
         if 0 <= np.linalg.norm(projectionOntoS0) <= np.linalg.norm(s0) and 0 <= np.linalg.norm(projectionOntoS1) <= np.linalg.norm(s1):
+            print(f'Intersection at {vectorInitial + a * d}')
             return True, (vectorInitial + a * d)
 
         return False, None
