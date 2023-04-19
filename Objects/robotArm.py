@@ -126,7 +126,7 @@ class RobotArm:
             if self.newState:
                 # Try placing a block 3 times.
                 for _ in range(3):
-                    waypoints = self.robotManager.moveToBuildSite(currentPosition, minuteHandPosition)
+                    waypoints = self.robotManager.moveToBuildSite(currentPosition)
                     if waypoints is not None:
                         self.queueWaypoints(waypoints, robotState=robotState)
                         self.target = waypoints[-1]

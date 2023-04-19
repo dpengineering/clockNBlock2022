@@ -56,6 +56,7 @@ class RobotManager:
         # Get the buildSite to move to
         buildSite = self.chooseBuildSite()
 
+
         # If there are no build sites, return None
         if buildSite is None:
             return None
@@ -65,7 +66,6 @@ class RobotManager:
             return None
 
         waypoints = self.planMove(robotPos, finalLocation)
-        print(waypoints)
         waypoints = self.ensureStraightLineCartesian(waypoints)
 
         return waypoints

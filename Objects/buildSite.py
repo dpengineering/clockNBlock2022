@@ -130,6 +130,7 @@ class BuildSite:
         """Places the next block in the list of placements"""
         if self.currentBlock < len(self.blockPlacements):
             self.currentBlock += 1
+            print(f'moving to {self.currentBlock} on build site {self.index}')
             return self.blockPlacements[self.currentBlock - 1]
         else:
             return None
