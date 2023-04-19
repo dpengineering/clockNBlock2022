@@ -129,8 +129,10 @@ class BuildSite:
     def placeNextBlock(self):
         """Places the next block in the list of placements"""
         if self.currentBlock < len(self.blockPlacements):
-            self.currentBlock += 1
             print(f'moving to {self.currentBlock} on build site {self.index}')
-            return self.blockPlacements[self.currentBlock - 1]
+            self.currentBlock += 1
+            location = self.blockPlacements[self.currentBlock - 1]
+            print(f'Location of build site is {location}')
+            return location
         else:
             return None

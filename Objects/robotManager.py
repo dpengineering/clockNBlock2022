@@ -81,7 +81,7 @@ class RobotManager:
         """
         # Get a list of all the feeders that are ready
         readyFeeders = [feeder for feeder in self.blockFeeders if feeder.isReadyFlg]
-        print([feeder.index for feeder in readyFeeders])
+        print(f'Ready Feeders {[feeder.index for feeder in readyFeeders]}')
 
         # If there are no ready feeders, return None
         if len(readyFeeders) == 0:
@@ -102,7 +102,7 @@ class RobotManager:
         """
         # Get a list of all the build sites that are ready
         readyBuildSites = [buildSite for buildSite in self.buildSites if buildSite.isReadyFlg]
-        print([buildSite.index for buildSite in readyBuildSites])
+        print(f'Ready Build Site {[buildSite.index for buildSite in readyBuildSites]}')
 
         # If there are no ready build sites, return None
         if len(readyBuildSites) == 0:
@@ -174,7 +174,7 @@ class RobotManager:
         targetR, targetTheta, targetZ = targetPos
 
         # Move to this location in our polar coordinate system
-        travelHeight = currentZ + 30
+        travelHeight = currentZ + 100
 
         # The first move will always be moving up.
         waypoints.append((currentR, currentTheta, travelHeight))

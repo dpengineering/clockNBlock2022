@@ -15,13 +15,15 @@ class RobotArm:
     _STATE_PLACE_BLOCK        = 4
     _STATE_IDLE               = 5
 
-    def __init__(self, dpiSolenoid, magnetSolenoid, rotationSolenoid, buildSites, blockFeeders):
+    def __init__(self, dpiSolenoid, magnetSolenoid, rotationSolenoid, buildSites=None, blockFeeders=None):
 
         self.dpiSolenoid = dpiSolenoid
         self.MAGNET_SOLENOID = magnetSolenoid
         self.ROTATING_SOLENOID = rotationSolenoid
 
-        self.robotManager = RobotManager(buildSites, blockFeeders)
+        # For testing purposes
+        if buildSites is not None or blockFeeders is not None:
+            self.robotManager = RobotManager(buildSites, blockFeeders)
 
         # Create our dpiRobot object
         self.dpiRobot = DPiRobot()
@@ -92,7 +94,7 @@ class RobotArm:
                         self.target = waypoints[-1]
                         self.newState = False
                         self.start = time.time()
-                        return self.target
+                        return self.target[1]
                 self.setState(self._STATE_IDLE)
                 return None
 
@@ -132,7 +134,7 @@ class RobotArm:
                         self.target = waypoints[-1]
                         self.newState = False
                         self.start = time.time()
-                        return self.target
+                        return self.target[1]
 
                 self.setState(self._STATE_IDLE)
                 return None
@@ -234,11 +236,10 @@ class RobotArm:
         """
         if robotState == self.dpiRobot.STATE_STOPPED:
             print('queueing movements')
-            print(f'waypoints before queue {waypoints}')
+            print(f'Waypoints List {waypoints}')
             self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
             [self.movePolar(waypoint, speed) for waypoint in waypoints]
             self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
-            print(f'waypoints after queue {waypoints}')
             return True
         else:
             print('Robot is not stopped')
