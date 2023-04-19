@@ -20,6 +20,9 @@ class Clock:
     HOUR_HAND_MAX_SPEED = int(HOUR_HAND_STEPS_PER_REVOLUTION / 2)
     HOUR_HAND_ACCELERATION = HOUR_HAND_MAX_SPEED // 4
 
+    # Hour Hand offset, not sure why this is needed...
+    HOUR_HAND_OFFSET = 6.3  # degrees
+
     MINUTE_HAND_PIN = 1
     MINUTE_HAND_GEAR_REDUCTION = 204  # Gear reduction is 204:1
     MINUTE_HAND_STEPS_PER_REVOLUTION = int(200 * MICROSTEPPING * MINUTE_HAND_GEAR_REDUCTION * 1.002)  # 326400
@@ -161,7 +164,7 @@ class Clock:
 
     def convertTimeToSteps(self, hour, minute, second=0):
         """Converts the given time to steps"""
-        hourToSteps = hour * self.HOUR_HAND_STEPS_PER_REVOLUTION // 12 + minute * self.HOUR_HAND_STEPS_PER_REVOLUTION // (12 * 60)
+        hourToSteps = hour * self.HOUR_HAND_STEPS_PER_REVOLUTION // 12 + minute * self.HOUR_HAND_STEPS_PER_REVOLUTION // (12 * 60) + self.HOUR_HAND_OFFSET
         minuteToSteps = minute * self.MINUTE_HAND_STEPS_PER_REVOLUTION // 60 + second * self.MINUTE_HAND_STEPS_PER_REVOLUTION // (60 * 60)
         return hourToSteps, minuteToSteps
 
