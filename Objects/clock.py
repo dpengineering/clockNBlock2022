@@ -14,18 +14,20 @@ class Clock:
     HOUR_HAND_GEAR_REDUCTION = 5  # Gear reduction is 5:1
     # I am not sure why there is 300 extra steps for a full rotation.
     HOUR_HAND_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * HOUR_HAND_GEAR_REDUCTION + 290  # 8300
-    # Hour hand base speed, 1 revolution in 12 hours, about 0.19 steps per second
-    HOUR_HAND_BASE_SPEED = HOUR_HAND_STEPS_PER_REVOLUTION // (12 * 60 * 60)
+    # Hour hand base speed
+    HOUR_HAND_BASE_SPEED = int(HOUR_HAND_STEPS_PER_REVOLUTION / 2)
     # Hour hand max speed. I don't feel comfortable sending it more than 0.5 rev / sec - 4150 steps/sec
     HOUR_HAND_MAX_SPEED = int(HOUR_HAND_STEPS_PER_REVOLUTION / 2)
     HOUR_HAND_ACCELERATION = HOUR_HAND_MAX_SPEED // 4
 
+    # Offset for the hour hand, not sure why this is necessary...
+    HOUR_HAND_OFFSET = 6.3
+
     MINUTE_HAND_PIN = 1
     MINUTE_HAND_GEAR_REDUCTION = 204  # Gear reduction is 204:1
     MINUTE_HAND_STEPS_PER_REVOLUTION = int(200 * MICROSTEPPING * MINUTE_HAND_GEAR_REDUCTION * 1.002)  # 326400
-    # Base minute hand speed, 1 revolution per hour, about 90.6 steps per second
-    MINUTE_HAND_BASE_SPEED = MINUTE_HAND_STEPS_PER_REVOLUTION // (60 * 60)
-    MINUTE_HAND_MAX_SPEED = 20000
+    MINUTE_HAND_BASE_SPEED = MINUTE_HAND_STEPS_PER_REVOLUTION // (20 * 60)
+    MINUTE_HAND_MAX_SPEED = 15000
     MINUTE_HAND_ACCELERATION = MINUTE_HAND_MAX_SPEED // 4
 
     def __init__(self):
@@ -80,66 +82,25 @@ class Clock:
         self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_MAX_SPEED)
         # Send minute hand in a full circle
         self.dpiStepper.moveToRelativePositionInSteps(self.MINUTE_HAND_PIN, self.MINUTE_HAND_STEPS_PER_REVOLUTION, True)
-        # Move to current time
-        t = localtime()
-        hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
-        self.moveToPositionsRelative(hourToSteps, minuteToSteps, waitFlg=True)
 
         # Set base speeds
         self.setSpeeds(self.HOUR_HAND_BASE_SPEED, self.MINUTE_HAND_BASE_SPEED)
 
-        # Set them going for an hour
-        self.moveToPositionsRelative(self.HOUR_HAND_STEPS_PER_REVOLUTION, self.MINUTE_HAND_STEPS_PER_REVOLUTION)
+        # Set minute hand going for a revolution
+        self.moveToPositionsRelative(minuteHandPosition=self.MINUTE_HAND_STEPS_PER_REVOLUTION)
 
         return True
 
-    def process(self):
+    def process(self, hourHandPosition=None):
         """Processes the clock"""
-        # This just basically includes checking how far off from the desired position the hands are
-        # if they are too far away, then speed/slow them down to get them back to the desired position
 
-        # Note: One case where this will be off is when there is a transfer from 11:59 to 12:00
-        # or something along those lines. However, this will be fixed fairly quickly because it will only speed up for around
-        # 1 second and then slow down again. This needs to be tested though
-
-        # If the clock is stopped, send it going for a revolution
-        if self.dpiStepper.getStepperStatus(self.HOUR_HAND_PIN)[1]:
-            self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, self.HOUR_HAND_STEPS_PER_REVOLUTION, False)
+        # If the minute hand is stopped, send it going for a revolution
 
         if self.dpiStepper.getStepperStatus(self.MINUTE_HAND_PIN)[1]:
             self.dpiStepper.moveToRelativePositionInSteps(self.MINUTE_HAND_PIN, self.MINUTE_HAND_STEPS_PER_REVOLUTION, False)
 
-        # Get current time
-        t = localtime()
-        hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
-
-        # Get current positions
-        _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
-        hourPosition = hourPosition % self.HOUR_HAND_STEPS_PER_REVOLUTION
-        _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
-        minutePosition = minutePosition % self.MINUTE_HAND_STEPS_PER_REVOLUTION
-
-        # Calculate the difference between the desired position and the current position
-        hourDifference = hourToSteps - hourPosition
-        minuteDifference = minuteToSteps - minutePosition
-
-        print(f'Hour difference: {hourDifference}')
-
-        # If the difference is greater than 5% of total steps, adjust the speed
-        if abs(hourDifference) > self.HOUR_HAND_STEPS_PER_REVOLUTION * 0.0:
-            print(f'speeding up hour hand by {hourDifference * 0.01} steps')
-            self.dpiStepper.setSpeedInStepsPerSecond(self.HOUR_HAND_PIN, self.HOUR_HAND_BASE_SPEED + hourDifference * 0.01)
-        else:
-            print(f'setting hour hand speed to {self.HOUR_HAND_BASE_SPEED}')
-            self.dpiStepper.setSpeedInStepsPerSecond(self.HOUR_HAND_PIN, self.HOUR_HAND_BASE_SPEED)
-
-        if abs(minuteDifference) > self.MINUTE_HAND_STEPS_PER_REVOLUTION * 0.1:
-            print(f'speeding up minute hand by {minuteDifference * 0.01} steps')
-            self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_BASE_SPEED + minuteDifference * 0.01)
-        else:
-            print(f'setting minute hand speed to {self.MINUTE_HAND_BASE_SPEED}')
-            self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_BASE_SPEED)
-
+        if hourHandPosition is not None:
+            self.moveToPositionDegrees(hourHandPosition + self.HOUR_HAND_OFFSET)
 
 
     #--------------------------------    Helper functions    --------------------------------#
@@ -150,10 +111,13 @@ class Clock:
         self.dpiStepper.setSpeedInStepsPerSecond(self.HOUR_HAND_PIN, hourHandSpeed)
         self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, minuteHandSpeed)
 
-    def moveToPositionsRelative(self, hourHandPosition, minuteHandPosition, waitFlg=False):
+    def moveToPositionsRelative(self, hourHandPosition=None, minuteHandPosition=None, waitFlg=False):
         """Moves the hands to the given positions"""
-        self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, hourHandPosition, False)
-        self.dpiStepper.moveToRelativePositionInSteps(self.MINUTE_HAND_PIN, minuteHandPosition, False)
+        if hourHandPosition is not None:
+            self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, hourHandPosition, False)
+
+        if minuteHandPosition is not None:
+            self.dpiStepper.moveToRelativePositionInSteps(self.MINUTE_HAND_PIN, minuteHandPosition, False)
 
         if waitFlg:
             while not self.dpiStepper.getAllMotorsStopped():
@@ -194,3 +158,14 @@ class Clock:
         """Stops both hands"""
         self.dpiStepper.emergencyStop(self.HOUR_HAND_PIN)
         self.dpiStepper.emergencyStop(self.MINUTE_HAND_PIN)
+
+
+    def moveToPositionDegrees(self, hourDegrees=None, minuteDegrees=None, waitFlg=False):
+        """Moves the hands to the given positions in degrees"""
+        if hourDegrees is not None:
+            hourToSteps = hourDegrees / 360 * self.HOUR_HAND_STEPS_PER_REVOLUTION
+            self.dpiStepper.moveToAbsolutePositionInSteps(self.HOUR_HAND_PIN, int(hourToSteps), waitFlg)
+        if minuteDegrees is not None:
+            minuteToSteps = minuteDegrees / 360 * self.MINUTE_HAND_STEPS_PER_REVOLUTION
+            self.dpiStepper.moveToAbsolutePositionInSteps(self.MINUTE_HAND_PIN, int(minuteToSteps), waitFlg)
+

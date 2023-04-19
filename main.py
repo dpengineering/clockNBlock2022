@@ -67,16 +67,18 @@ def setup():
 
 
 def main():
+    hourHandPosition = None
     while True:
         # Process all  the loops
         if robot.isHomedFlg:
-            clock.process()
+            clock.process(hourHandPosition=hourHandPosition)
             hourPos, minutePos = clock.getPositionDegrees()
 
             [blockFeeder.process(minutePos) for blockFeeder in blockFeeders]
             [buildSite.process(minutePos) for buildSite in buildSites]
 
-            robot.process(minutePos)
+            hourHandPosition = robot.process()
+
 
 
 

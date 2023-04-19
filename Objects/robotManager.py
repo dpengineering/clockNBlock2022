@@ -40,7 +40,7 @@ class RobotManager:
         finalLocation = feeder.location
 
         waypoints = self.planMove(robotPos, finalLocation)
-        waypoints = self.ensureStraightLineCartesian(waypoints)
+        waypoints = self.ensureStraightLine(waypoints)
 
         return waypoints
 
@@ -66,7 +66,7 @@ class RobotManager:
             return None
 
         waypoints = self.planMove(robotPos, finalLocation)
-        waypoints = self.ensureStraightLineCartesian(waypoints)
+        waypoints = self.ensureStraightLine(waypoints)
 
         return waypoints
 
@@ -81,6 +81,7 @@ class RobotManager:
         """
         # Get a list of all the feeders that are ready
         readyFeeders = [feeder for feeder in self.blockFeeders if feeder.isReadyFlg]
+        print([feeder.index for feeder in readyFeeders])
 
         # If there are no ready feeders, return None
         if len(readyFeeders) == 0:
@@ -101,6 +102,7 @@ class RobotManager:
         """
         # Get a list of all the build sites that are ready
         readyBuildSites = [buildSite for buildSite in self.buildSites if buildSite.isReadyFlg]
+        print([buildSite.index for buildSite in readyBuildSites])
 
         # If there are no ready build sites, return None
         if len(readyBuildSites) == 0:
@@ -111,7 +113,7 @@ class RobotManager:
 
         return buildSite
 
-    def ensureStraightLineCartesian(self, waypoints: list) -> list:
+    def ensureStraightLine(self, waypoints: list) -> list:
         """Ensures that the robot arm moves in a straight line
         This ensures that the robot will travel in a straight line as it does not do so with a long move.
         Check DPi_Robot firmware to see why. Alternatively, google how linear delta arms work.
