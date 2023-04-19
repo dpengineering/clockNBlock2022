@@ -13,7 +13,7 @@ class BlockFeeder:
     _STATE_IDLE          = 4
 
     def __init__(self, feederLocation, solenoidNumbers, dpiClockNBlockNumber, dpiSolenoid):
-        self.feederLocation = feederLocation
+        self.location = feederLocation
         self.sidePiston = solenoidNumbers[0]
         self.upPiston = solenoidNumbers[1]
         self.dpiClockNBlock = DPiClockNBlock()
@@ -170,7 +170,7 @@ class BlockFeeder:
         if self.state == self._STATE_READY:
             self.isReadyFlg = True
 
-        feederTheta = self.feederLocation[1]
+        feederTheta = self.location[1]
 
         if abs(minuteHandPosition - feederTheta) < 30:
             self.isReadyFlg = False
