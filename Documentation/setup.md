@@ -10,7 +10,8 @@ The first thing that needs to be set up are the constants held in the robot boar
 To do this, connect your computer to the raspberry pi and run a program such as the LinearDeltaRobotSetup.py. Our constants are all held
 in that file and on the DPi_Robot board itself through its menus. Use the touchscreen on the board to access those.  
 Also, go through and test each motor, limit switch, homing method, driver type, and the dip switches on the motor drivers.  
-Dip switches set current limits and microstepping. Switches **a, b, c, d** should be down
+Dip switches set current limits and microstepping. Switches **a, b, c, d** should be down.  
+Detailed Setup Guide for constants: [Robot Arm Setup](robotArmSetup.md)
 
     
 Next, important points need to be set up on the robot arm. These points are the home position, the position where the arm is ready to pick up a block, and the position where the arm is ready to place a block.  
