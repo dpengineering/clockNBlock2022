@@ -98,13 +98,7 @@ def cartesianToPolar(position: tuple):
     theta = np.arctan2(y, x)
     theta = np.rad2deg(theta)
 
-    # Adjust for negative values
-    if x < 0 < y:
-        theta += 180
-    elif x < 0 and y < 0:
-        theta += 360
-    elif y < 0 < x:
-        theta += 360
+    theta = (theta + 360) % 360
 
     return r, theta, z
 

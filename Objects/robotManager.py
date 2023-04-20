@@ -15,7 +15,13 @@ class RobotManager:
     # Also, the robot arm will always move to polar coordinates. Even if it is going in a straight line
     # cartesian wise.
 
-    def __init__(self, buildSites, blockFeeders):
+    def __init__(self, buildSites=None, blockFeeders=None):
+        """Initializes the robot manager
+        Args:
+            buildSites (list): List of build sites
+            blockFeeders (list): List of block feeders
+        """
+
         self.blockFeeders = blockFeeders
         self.buildSites = buildSites
         self.robotPos = (0, 0, 0)
@@ -149,10 +155,11 @@ class RobotManager:
                 zSteps = np.linspace(z1, z2, numSteps, False)
 
                 # Add these points to our list
-                for i in range(len(xSteps)):
-                    straightWaypoints.append((xSteps[i], ySteps[i], zSteps[i]))
+                [straightWaypoints.append(point) for point in zip(xSteps, ySteps, zSteps)]
 
             straightWaypoints.append((x2, y2, z2))
+
+        [print(f'index: {idx}, xyz: {point}') for idx, point in enumerate(straightWaypoints)]
 
         # Convert our list of waypoints in cartesian coordinates to a list in polar coordinates
         straightWaypoints = [constants.cartesianToPolar(waypoint) for waypoint in straightWaypoints]
@@ -202,23 +209,24 @@ class RobotManager:
         waypoints.append((targetR, targetTheta, targetZ))
 
         # Check if we are intersecting any obstacles
-        maxZ = -np.inf
-        for building in self.buildSites:
-            obstacle = building.intersectionRectangle
-            for i in range(checkWaypointsUpUntil - 1):
-                # Check if the line intersects the obstacle
-                intersection, zHeight = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
-                if intersection:
-                    print("Found intersection")
-                    if zHeight > maxZ:
-                        maxZ = zHeight
+        if self.buildSites is not None:
+            maxZ = -np.inf
+            for building in self.buildSites:
+                obstacle = building.intersectionRectangle
+                for i in range(checkWaypointsUpUntil - 1):
+                    # Check if the line intersects the obstacle
+                    intersection, zHeight = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
+                    if intersection:
+                        print("Found intersection")
+                        if zHeight > maxZ:
+                            maxZ = zHeight
 
 
-        # If we found an intersection, change all the waypoints that move at travelHeight to move at maxZ
-        if maxZ != -np.inf:
-            for i in range(len(waypoints)):
-                if waypoints[i][2] == travelHeight:
-                    waypoints[i] = (waypoints[i][0], waypoints[i][1], maxZ)
+            # If we found an intersection, change all the waypoints that move at travelHeight to move at maxZ
+            if maxZ != -np.inf:
+                for i in range(len(waypoints)):
+                    if waypoints[i][2] == travelHeight:
+                        waypoints[i] = (waypoints[i][0], waypoints[i][1], maxZ)
 
 
         return waypoints

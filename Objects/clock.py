@@ -99,7 +99,7 @@ class Clock:
             self.dpiStepper.moveToRelativePositionInSteps(self.MINUTE_HAND_PIN, self.MINUTE_HAND_STEPS_PER_REVOLUTION, False)
 
         if hourHandPosition is not None:
-            self.moveToPositionDegrees(hourHandPosition)
+            self.moveToPositionDegrees(hourDegrees=hourHandPosition, waitFlg=False)
 
 
 
