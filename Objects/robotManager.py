@@ -159,8 +159,6 @@ class RobotManager:
 
             straightWaypoints.append((x2, y2, z2))
 
-        [print(f'index: {idx}, xyz: {point}') for idx, point in enumerate(straightWaypoints)]
-
         # Convert our list of waypoints in cartesian coordinates to a list in polar coordinates
         straightWaypoints = [constants.cartesianToPolar(waypoint) for waypoint in straightWaypoints]
 

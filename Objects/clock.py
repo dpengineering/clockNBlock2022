@@ -174,15 +174,12 @@ class Clock:
     def moveToPositionDegrees(self, hourDegrees=None, minuteDegrees=None, waitFlg=True):
         """Moves the hands to the given positions in degrees"""
         self.refreshSteps()
-        currentHourDegrees, currentMinuteDegrees = self.getPositionDegrees()
 
         if hourDegrees is not None:
-            hourDegrees = (hourDegrees - currentHourDegrees) % 360
             hourToSteps = self.degreesToSteps(hourDegrees, self.HOUR_HAND_PIN)
-            self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, int(hourToSteps), waitFlg)
+            self.dpiStepper.moveToAbsolutePositionInSteps(self.HOUR_HAND_PIN, int(hourToSteps), waitFlg)
 
         if minuteDegrees is not None:
-            minuteDegrees = (minuteDegrees - currentMinuteDegrees) % 360
             minuteToSteps = self.degreesToSteps(minuteDegrees, self.MINUTE_HAND_PIN)
             self.dpiStepper.moveToAbsolutePositionInSteps(self.MINUTE_HAND_PIN, int(minuteToSteps), waitFlg)
 
