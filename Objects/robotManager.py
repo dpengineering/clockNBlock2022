@@ -431,7 +431,7 @@ class RobotManager:
 
 
     def checkIntersection(self, initialPoint, finalPoint, rectangle):
-        """Checks if a line intersects a polygon
+        """Checks if a line intersects a polygon, read docs for detailed explanation
         Args:
             initialPoint (tuple): The starting point of the line in polar coordinates
             finalPoint (tuple): The ending point of the line in polar coordinates
@@ -439,7 +439,6 @@ class RobotManager:
         Returns:
             intersection (bool): True if the line intersects the polygon, False otherwise
         """
-        # Implements answer from https://stackoverflow.com/questions/8812073/ray-and-square-rectangle-intersection-in-3d/8862483#8862483
 
         # First, we need to convert our points to cartesian coordinates
         initialPoint = constants.polarToCartesian(initialPoint)
