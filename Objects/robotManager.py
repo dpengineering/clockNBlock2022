@@ -182,7 +182,7 @@ class RobotManager:
 
         # Move to this location in our polar coordinate system
         if currentZ < -1400:
-            travelHeight = currentZ + 50
+            travelHeight = currentZ + 100
         else:
             travelHeight = currentZ + 20
 

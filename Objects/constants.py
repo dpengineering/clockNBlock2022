@@ -51,12 +51,12 @@ clockMinuteHandZHeight = -1416.5
 # The first column in each array will be reserved for the amount of offset the next row should have from the first
 
 # Build 0 has room for 5 blocks on the base.
-placement0 = [ [0, 0, 0, 0, 0, 0, 0],
-               [0, 0, 1, 0, 0, 0, 0],
-               [0, 0, 1, 1, 0, 0, 0],
-               [0, 0, 1, 1, 1, 0, 0],
-               [0, 0, 1, 1, 1, 1, 0],
-               [0, 0, 1, 1, 1, 1, 1]]
+placement0 = [ [0, 1, 0, 0, 0, 0, 0],
+               [0, 1, 1, 0, 0, 0, 0],
+               [0, 1, 1, 1, 0, 0, 0],
+               [0, 1, 1, 1, 1, 0, 0],
+               [0, 1, 1, 1, 1, 1, 0],
+               [0, 1, 1, 1, 1, 1, 1]]
 
 # Build 1 has room for 8 blocks on the base.
 placement1 = [[- blockSize / 2, 0, 0, 0, 0, 1, 0, 0, 0],

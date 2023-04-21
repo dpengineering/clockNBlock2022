@@ -21,7 +21,7 @@ class Clock:
     HOUR_HAND_ACCELERATION = HOUR_HAND_MAX_SPEED // 4
 
     # Offset for pointing, not sure why this is necessary
-    HOUR_HAND_OFFSET = 6.3  # degrees
+    HOUR_HAND_OFFSET = 6.5  # degrees
 
 
     MINUTE_HAND_PIN = 1
