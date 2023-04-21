@@ -97,8 +97,6 @@ class BuildSite:
         return placements
 
     def updateReadyFlg(self, minuteHandPosition: float):
-        if self.currentBlock < len(self.blockPlacements):
-            self.isReadyFlg = True
 
         # If the minute hand is within 30 degrees of the build site, we are not ready
         if abs(self.location0[1] - minuteHandPosition) < 30:
@@ -106,7 +104,14 @@ class BuildSite:
             self.currentBlock = 0
             return
 
-        return
+        elif self.currentBlock < len(self.blockPlacements):
+            self.isReadyFlg = True
+            return
+
+        # The last case is if we have placed all the blocks
+        else:
+            self.isReadyFlg = False
+            return
 
 
     def updateIntersectionRectangle(self):

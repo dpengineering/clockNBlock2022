@@ -167,11 +167,24 @@ class BlockFeeder:
         self.newState = True
 
     def updateReadyFlg(self, minuteHandPosition: float):
-        if self.state == self._STATE_READY:
-            self.isReadyFlg = True
 
         feederTheta = self.feederLocation[1]
 
         if abs(minuteHandPosition - feederTheta) < 30:
             self.isReadyFlg = False
+            return
+
+        elif self.state == self._STATE_READY:
+            self.isReadyFlg = True
+            return
+
+        else:
+            self.isReadyFlg = False
+            return
+
+
+
+
+
+
 
