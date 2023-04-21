@@ -1,4 +1,4 @@
-# Software
+# Software OUTDATED
 
 The software has been written in an object-oriented style because I am a Java guy
 and this is how I code. Feel free to change this though.  
