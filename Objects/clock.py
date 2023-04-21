@@ -33,6 +33,7 @@ class Clock:
 
     def __init__(self):
         self.initialize()
+        self.robotIdleFlg = False
 
     def initialize(self):
 
@@ -95,14 +96,18 @@ class Clock:
     def process(self, hourHandPosition=None):
         """Processes the clock"""
 
-        # If the minute hand is stopped, send it going for a revolution
-        self.refreshSteps()
+        if self.robotIdleFlg:
+            # Stop the clock, could write normal stopping method, but this works for now
+            self.emergencyStop()
+        else:
+            # If the minute hand is stopped, send it going for a revolution
+            self.refreshSteps()
 
-        if self.dpiStepper.getStepperStatus(self.MINUTE_HAND_PIN)[1]:
-            self.dpiStepper.moveToRelativePositionInSteps(self.MINUTE_HAND_PIN, self.MINUTE_HAND_STEPS_PER_REVOLUTION, False)
+            if self.dpiStepper.getStepperStatus(self.MINUTE_HAND_PIN)[1]:
+                self.dpiStepper.moveToRelativePositionInSteps(self.MINUTE_HAND_PIN, self.MINUTE_HAND_STEPS_PER_REVOLUTION, False)
 
-        if hourHandPosition is not None:
-            self.moveToPositionDegrees(hourDegrees=hourHandPosition, waitFlg=False)
+            if hourHandPosition is not None:
+                self.moveToPositionDegrees(hourDegrees=hourHandPosition, waitFlg=False)
 
 
 

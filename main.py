@@ -79,6 +79,11 @@ def main():
 
             hourHandPosition = robot.process()
 
+            if robot.state == robot.STATE_IDLE:
+                clock.robotIdleFlg = True
+            else:
+                clock.robotIdleFlg = False
+
 
 
 

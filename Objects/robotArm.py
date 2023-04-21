@@ -8,12 +8,12 @@ from Objects.robotManager import RobotManager
 class RobotArm:
 
     # States
-    _STATE_MOVE_TO_FEEDER     = 0
-    _STATE_PICKUP_BLOCK       = 1
-    _STATE_ROTATE_BLOCK       = 2
-    _STATE_MOVE_TO_BUILD_SITE = 3
-    _STATE_PLACE_BLOCK        = 4
-    _STATE_IDLE               = 5
+    STATE_MOVE_TO_FEEDER     = 0
+    STATE_PICKUP_BLOCK       = 1
+    STATE_ROTATE_BLOCK       = 2
+    STATE_MOVE_TO_BUILD_SITE = 3
+    STATE_PLACE_BLOCK        = 4
+    STATE_IDLE               = 5
 
     def __init__(self, dpiSolenoid, magnetSolenoid, rotationSolenoid, buildSites=None, blockFeeders=None):
 
@@ -29,7 +29,7 @@ class RobotArm:
         self.dpiRobot = DPiRobot()
 
         # State machine
-        self.state = self._STATE_IDLE
+        self.state = self.STATE_IDLE
         self.newState = False
         self.target = None
         self.start = None
@@ -70,7 +70,7 @@ class RobotArm:
         if not self.rotationPositionFlg:
             self.rotate()
 
-        self.setState(self._STATE_MOVE_TO_FEEDER)
+        self.setState(self.STATE_MOVE_TO_FEEDER)
 
         return True
 
@@ -84,7 +84,7 @@ class RobotArm:
 
         currentPosition = self.getPositionPolar()
 
-        if self.state == self._STATE_MOVE_TO_FEEDER:
+        if self.state == self.STATE_MOVE_TO_FEEDER:
             if self.newState:
                 # Try getting a block 3 times.
                 for _ in range(3):
@@ -95,7 +95,7 @@ class RobotArm:
                         self.newState = False
                         self.start = time.time()
                         return self.target[1]
-                self.setState(self._STATE_IDLE)
+                self.setState(self.STATE_IDLE)
                 return None
 
             # In this state, we will need to rotate the block before we pick it up
@@ -107,11 +107,11 @@ class RobotArm:
                 return None
 
             elif self.isAtLocation(self.target) and robotState == self.dpiRobot.STATE_STOPPED:
-                self.setState(self._STATE_PICKUP_BLOCK)
+                self.setState(self.STATE_PICKUP_BLOCK)
                 print('at location')
                 return None
 
-        elif self.state == self._STATE_PICKUP_BLOCK:
+        elif self.state == self.STATE_PICKUP_BLOCK:
             if self.newState:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, True)
                 self.start = time.time()
@@ -120,10 +120,10 @@ class RobotArm:
                 return None
 
             elif time.time() - self.start > 0.5:
-                self.setState(self._STATE_MOVE_TO_BUILD_SITE)
+                self.setState(self.STATE_MOVE_TO_BUILD_SITE)
                 return None
 
-        elif self.state == self._STATE_MOVE_TO_BUILD_SITE:
+        elif self.state == self.STATE_MOVE_TO_BUILD_SITE:
             if self.newState:
                 # Try placing a block 3 times.
                 for _ in range(3):
@@ -135,7 +135,7 @@ class RobotArm:
                         self.start = time.time()
                         return self.target[1]
 
-                self.setState(self._STATE_IDLE)
+                self.setState(self.STATE_IDLE)
                 return None
 
             # In this state, we will need to rotate the block after it clear the hole
@@ -147,11 +147,11 @@ class RobotArm:
                 return None
 
             elif self.isAtLocation(self.target) and robotState == self.dpiRobot.STATE_STOPPED:
-                self.setState(self._STATE_PLACE_BLOCK)
+                self.setState(self.STATE_PLACE_BLOCK)
                 print('at location')
                 return None
 
-        elif self.state == self._STATE_PLACE_BLOCK:
+        elif self.state == self.STATE_PLACE_BLOCK:
             if self.newState:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, False)
                 self.start = time.time()
@@ -160,10 +160,10 @@ class RobotArm:
                 return None
 
             elif time.time() - self.start > 0.5:
-                self.setState(self._STATE_MOVE_TO_FEEDER)
+                self.setState(self.STATE_MOVE_TO_FEEDER)
                 return None
 
-        elif self.state == self._STATE_IDLE:
+        elif self.state == self.STATE_IDLE:
             if self.newState:
                 self.dpiRobot.homeRobot(True)
                 if self.rotationPositionFlg:
@@ -174,7 +174,7 @@ class RobotArm:
                 return None
 
             elif self.robotManager.moveToFeeder(currentPosition) is not None:
-                self.setState(self._STATE_MOVE_TO_FEEDER)
+                self.setState(self.STATE_MOVE_TO_FEEDER)
                 return None
 
 
