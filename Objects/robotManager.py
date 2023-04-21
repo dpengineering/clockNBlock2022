@@ -191,7 +191,8 @@ class RobotManager:
 
 
         # Then, move next to and above the target location
-        sign = np.random.choice([-1, 1])
+        sign = 1 if targetTheta > currentTheta else -1
+
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, travelHeight))
 
         # So we don't check waypoints that will place a block.

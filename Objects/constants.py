@@ -26,10 +26,10 @@ blockFeederSolenoids = [(6, 7),
 
 # Build Sites
 #   Replace second value with the location of the ends of the build sites.
-buildLocations = [[(293.6, 350.570, -1442.8), (480.3, 351.789, -1444.3)],
-                  [(285.8, 263.268, -1442.8), (543.6, 262.883, -1442.8)],
-                  [(278.8, 172.206, -1444.3), (524.9, 172.340, -1447.4)],
-                  [(280.1, 82.162, -1447.4), (414.2, 82.032, -1449.0)]]
+buildLocations = [[(303.6, 350.570, -1442.8), (480.3, 351.789, -1444.3)],
+                  [(295.8, 263.268, -1442.8), (543.6, 262.883, -1442.8)],
+                  [(288.8, 172.206, -1444.3), (524.9, 172.340, -1447.4)],
+                  [(290.1, 82.162, -1447.4), (414.2, 82.032, -1449.0)]]
 
 # Block Feeders
 blockFeederLocations = [(343.0, 308.000, -1472.6),
@@ -47,13 +47,13 @@ clockMinuteHandZHeight = -1416.5
 # These arrays hold the arrangement of blocks to build on the building site
 # The first column in each array will be reserved for the amount of offset the next row should have from the first
 
-# Build 0 has room for 6 blocks on the base.
-placement0 = [ [0, 1, 0, 0, 0, 0, 0],
-               [0, 1, 1, 0, 0, 0, 0],
-               [0, 1, 1, 1, 0, 0, 0],
-               [0, 1, 1, 1, 1, 0, 0],
-               [0, 1, 1, 1, 1, 1, 0],
-               [0, 1, 1, 1, 1, 1, 1]]
+# Build 0 has room for 5 blocks on the base.
+placement0 = [ [0, 0, 0, 0, 0, 0, 0],
+               [0, 0, 1, 0, 0, 0, 0],
+               [0, 0, 1, 1, 0, 0, 0],
+               [0, 0, 1, 1, 1, 0, 0],
+               [0, 0, 1, 1, 1, 1, 0],
+               [0, 0, 1, 1, 1, 1, 1]]
 
 # Build 1 has room for 8 blocks on the base.
 placement1 = [[- blockSize / 2, 0, 0, 0, 0, 1, 0, 0, 0],
@@ -98,6 +98,7 @@ def cartesianToPolar(position: tuple):
     theta = np.arctan2(y, x)
     theta = np.rad2deg(theta)
 
+    # Make sure theta is between 0 and 360
     theta = (theta + 360) % 360
 
     return r, theta, z
