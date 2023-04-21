@@ -1,6 +1,7 @@
 import time
 from time import sleep
 from DPi_ClockNBlock_Python.DPiClockNBlock import DPiClockNBlock
+import Objects.constants as constants
 
 
 class BlockFeeder:
@@ -171,7 +172,7 @@ class BlockFeeder:
 
         feederTheta = self.location[1]
 
-        if abs(minuteHandPosition - feederTheta) < 30:
+        if abs(minuteHandPosition - feederTheta) < constants.clockDeadZone:
             self.isReadyFlg = False
             return
 

@@ -20,6 +20,9 @@ class Clock:
     HOUR_HAND_MAX_SPEED = int(HOUR_HAND_STEPS_PER_REVOLUTION / 2)
     HOUR_HAND_ACCELERATION = HOUR_HAND_MAX_SPEED // 4
 
+    # Offset for pointing, not sure why this is necessary
+    HOUR_HAND_OFFSET = 6.3  # degrees
+
 
     MINUTE_HAND_PIN = 1
     MINUTE_HAND_GEAR_REDUCTION = 204  # Gear reduction is 204:1
@@ -145,10 +148,10 @@ class Clock:
         """Converts degrees to steps"""
         if hand == self.HOUR_HAND_PIN:
             # Since degrees go counterclockwise and the clock goes clockwise, we need to subtract the degrees from 360
-            return (360 - degrees) / 360 * self.HOUR_HAND_STEPS_PER_REVOLUTION
+            return (360 - degrees) * self.HOUR_HAND_STEPS_PER_REVOLUTION / 360 % self.HOUR_HAND_STEPS_PER_REVOLUTION
 
         elif hand == self.MINUTE_HAND_PIN:
-            return (360 - degrees) / 360 * self.MINUTE_HAND_STEPS_PER_REVOLUTION
+            return (360 - degrees) * self.MINUTE_HAND_STEPS_PER_REVOLUTION / 360 % self.MINUTE_HAND_STEPS_PER_REVOLUTION
 
 
     def moveToTime(self, hour, minute, second=0, waitFlg=False):
@@ -170,13 +173,12 @@ class Clock:
         self.dpiStepper.emergencyStop(self.HOUR_HAND_PIN)
         self.dpiStepper.emergencyStop(self.MINUTE_HAND_PIN)
 
-
     def moveToPositionDegrees(self, hourDegrees=None, minuteDegrees=None, waitFlg=True):
         """Moves the hands to the given positions in degrees"""
         self.refreshSteps()
 
         if hourDegrees is not None:
-            hourToSteps = self.degreesToSteps(hourDegrees, self.HOUR_HAND_PIN)
+            hourToSteps = self.degreesToSteps(hourDegrees + self.HOUR_HAND_OFFSET, self.HOUR_HAND_PIN)
             self.dpiStepper.moveToAbsolutePositionInSteps(self.HOUR_HAND_PIN, int(hourToSteps), waitFlg)
 
         if minuteDegrees is not None:

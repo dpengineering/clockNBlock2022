@@ -121,7 +121,6 @@ class RobotArm:
 
             elif time.time() - self.start > 0.5:
                 self.setState(self._STATE_MOVE_TO_BUILD_SITE)
-                print('moving to build site')
                 return None
 
         elif self.state == self._STATE_MOVE_TO_BUILD_SITE:
@@ -162,7 +161,6 @@ class RobotArm:
 
             elif time.time() - self.start > 0.5:
                 self.setState(self._STATE_MOVE_TO_FEEDER)
-                print('moving to feeder')
                 return None
 
         elif self.state == self._STATE_IDLE:
@@ -235,8 +233,6 @@ class RobotArm:
             none
         """
         if robotState == self.dpiRobot.STATE_STOPPED:
-            print('queueing movements')
-            print(f'Waypoints List {waypoints}')
             self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
             [self.movePolar(waypoint, speed) for waypoint in waypoints]
             self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)

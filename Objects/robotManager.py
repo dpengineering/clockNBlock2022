@@ -43,6 +43,9 @@ class RobotManager:
 
         # Choose a feeder to move to
         feeder = self.chooseFeeder()
+        if feeder is None:
+            return None
+        print(f'Moving to feeder {feeder.index}')
         finalLocation = feeder.location
 
         waypoints = self.planMove(robotPos, finalLocation)
@@ -174,12 +177,15 @@ class RobotManager:
             waypoints (list): List of waypoints to travel to
         """
         waypoints = []
-        checkWaypointsUpUntil = 0
         currentR, currentTheta, currentZ = currentPos
         targetR, targetTheta, targetZ = targetPos
 
         # Move to this location in our polar coordinate system
-        travelHeight = currentZ + 100
+        if currentZ < -1400:
+            travelHeight = currentZ + 50
+        else:
+            travelHeight = currentZ + 20
+
 
         # The first move will always be moving up.
         waypoints.append((currentR, currentTheta, travelHeight))
@@ -191,12 +197,12 @@ class RobotManager:
 
 
         # Then, move next to and above the target location
-        sign = 1 if targetTheta > currentTheta else -1
+        sign = 1 if currentTheta > targetTheta else -1
 
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, travelHeight))
 
         # So we don't check waypoints that will place a block.
-        checkWaypointsUpUntil = len(waypoints) - 1
+        checkWaypointsUpUntil = len(waypoints)
 
         # Go down to 5mm above the target location
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, targetZ + 5))
