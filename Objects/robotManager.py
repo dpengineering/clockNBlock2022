@@ -45,7 +45,7 @@ class RobotManager:
         feeder = self.chooseFeeder()
         if feeder is None:
             return None
-        print(f'Moving to feeder {feeder.index}')
+        # print(f'Moving to feeder {feeder.index}')
         finalLocation = feeder.location
 
         waypoints = self.planMove(robotPos, finalLocation)
@@ -90,7 +90,7 @@ class RobotManager:
         """
         # Get a list of all the feeders that are ready
         readyFeeders = [feeder for feeder in self.blockFeeders if feeder.isReadyFlg]
-        print(f'Ready Feeders {[feeder.index for feeder in readyFeeders]}')
+        # print(f'Ready Feeders {[feeder.index for feeder in readyFeeders]}')
 
         # If there are no ready feeders, return None
         if len(readyFeeders) == 0:
@@ -111,7 +111,7 @@ class RobotManager:
         """
         # Get a list of all the build sites that are ready
         readyBuildSites = [buildSite for buildSite in self.buildSites if buildSite.isReadyFlg]
-        print(f'Ready Build Site {[buildSite.index for buildSite in readyBuildSites]}')
+        # print(f'Ready Build Site {[buildSite.index for buildSite in readyBuildSites]}')
 
         # If there are no ready build sites, return None
         if len(readyBuildSites) == 0:
@@ -222,7 +222,7 @@ class RobotManager:
                     # Check if the line intersects the obstacle
                     intersection, zHeight = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
                     if intersection:
-                        print("Found intersection")
+                        # print("Found intersection")
                         if zHeight > maxZ:
                             maxZ = zHeight
 
@@ -284,7 +284,7 @@ class RobotManager:
         projectionOntoS1 = np.dot(rectOriginToIntersection, s1) / np.linalg.norm(s1)
 
         if 0 <= np.linalg.norm(projectionOntoS0) <= np.linalg.norm(s0) and 0 <= np.linalg.norm(projectionOntoS1) <= np.linalg.norm(s1):
-            print(f'Intersection at {vectorInitial + a * d}')
+            # print(f'Intersection at {vectorInitial + a * d}')
             # Find Z height to move at
             zMovingHeight = rectangle[2][2] + constants.robotMovingPadding
             return True, zMovingHeight

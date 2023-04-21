@@ -103,12 +103,12 @@ class RobotArm:
             # But this also saves us from having to create a whole new state to rotate the block
             elif time.time() - self.start > 1 and self.rotationPositionFlg:
                 self.rotate()
-                print('rotated')
+                # print('rotated')
                 return None
 
             elif self.isAtLocation(self.target) and robotState == self.dpiRobot.STATE_STOPPED:
                 self.setState(self.STATE_PICKUP_BLOCK)
-                print('at location')
+                # print('at location')
                 return None
 
         elif self.state == self.STATE_PICKUP_BLOCK:
@@ -116,7 +116,7 @@ class RobotArm:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, True)
                 self.start = time.time()
                 self.newState = False
-                print('picking up block')
+                # print('picking up block')
                 return None
 
             elif time.time() - self.start > 0.5:
@@ -143,12 +143,12 @@ class RobotArm:
             # But this also saves us from having to create a whole new state to rotate the block
             elif time.time() - self.start > 1 and not self.rotationPositionFlg:
                 self.rotate()
-                print('rotated')
+                # print('rotated')
                 return None
 
             elif self.isAtLocation(self.target) and robotState == self.dpiRobot.STATE_STOPPED:
                 self.setState(self.STATE_PLACE_BLOCK)
-                print('at location')
+                # print('at location')
                 return None
 
         elif self.state == self.STATE_PLACE_BLOCK:
@@ -156,7 +156,7 @@ class RobotArm:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, False)
                 self.start = time.time()
                 self.newState = False
-                print('placing block')
+                # print('placing block')
                 return None
 
             elif time.time() - self.start > 0.5:
