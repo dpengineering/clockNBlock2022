@@ -28,7 +28,7 @@ class RobotManager:
     # How we choose the feeders and build sites will be based on the following:
     #    The feeder will be chosen randomly out of the ones that are ready.
     #        If no feeder is ready, the robot arm will home. Not go to a build site to pick up a block.
-    #    The build site will be chosen psudeo randomly based on the following:
+    #    The build site will be chosen pseudo randomly based on the following:
     #        We assign weights to each build site based on how far away the clock hand is
     #        And how many blocks need to be placed at said build site.
     #        Additionally, we add a default weight based on how many blocks the build site can hold
@@ -48,7 +48,6 @@ class RobotManager:
         self.offSetAngle = 20
 
         self.maximumMovingR = constants.maximumMovingRadius
-
 
     def moveToFeeder(self, robotPos):
         """Moves to a feeder
@@ -112,7 +111,6 @@ class RobotManager:
 
         return waypoints
 
-
     def moveToBuildSite(self, robotPos, clockPos):
         """Moves to a build site
         Args:
@@ -163,9 +161,7 @@ class RobotManager:
             waypoints, _checkUpUntilIndex = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
-
         return waypoints
-
 
     def chooseFeeder(self):
         """Chooses a feeder to move to based on the following
@@ -216,7 +212,7 @@ class RobotManager:
 
             # If the distance is less than 90 degrees, it is a priority to finish building
             # Add a 3% weight per block left to place. Max is 98%
-            if distance < 90:
+            if distance < 80:
                 blocksToPlace = len(buildSite.blockPlacements) - buildSite.currentBlock
                 weight = 0.03 * blocksToPlace
                 if weight > 0.98:
@@ -237,7 +233,6 @@ class RobotManager:
         weightsSum = sum(weights)
         if weightsSum != 1:
             weights = [weight / weightsSum for weight in weights]
-
 
         # Choose a random build site
         buildSite = np.random.choice(readyBuildSites, p=weights)
@@ -289,7 +284,6 @@ class RobotManager:
 
         return straightWaypoints
 
-
     def ensureStraightLinePolar(self, waypoints: list) -> list:
         """Ensures a straight line move in polar coordinates
         This will cause the robot to move in an arc and in a straight line on the polar plane
@@ -334,7 +328,6 @@ class RobotManager:
 
         return straightWaypoints
 
-
     def planStraightMove(self, currentPos, targetPos):
         """ Plans a path from the current position to the target position
         Args:
@@ -353,7 +346,6 @@ class RobotManager:
         else:
             travelHeight = currentZ + 20
 
-
         # The first move will always be moving up.
         waypoints.append((currentR, currentTheta, travelHeight))
 
@@ -361,7 +353,6 @@ class RobotManager:
         if currentR > self.maximumMovingR:
             # Move in towards the center
             waypoints.append((self.maximumMovingR, currentTheta, travelHeight))
-
 
         # Then, move next to and above the target location
         sign = 1 if currentTheta > targetTheta else -1
@@ -390,7 +381,8 @@ class RobotManager:
                 if intersection:
                     print("Found intersection")
                     # If it does, we need to dodge it
-                    dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point)
+                    direction = np.random.choice([0, 1])
+                    dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point, direction)
 
         for key in dodgeDict:
             waypoints = waypoints[:key] + dodgeDict[key] + waypoints[key + 1:]
@@ -405,6 +397,7 @@ class RobotManager:
         Returns:
             waypoints (list): List of waypoints to travel to
         """
+        sign = np.random.choice([-1, 1])
 
         zigZagThreshold = 50  # The threshold for when to zig-zag in mm
         zigZagAngleRange = (30, 60)  # The angle to zig-zag at
@@ -417,32 +410,28 @@ class RobotManager:
         checkWaypointsValue = waypoints[checkWaypointsUpUntil - 1]
 
         # Loop through the waypoints and alter the moves
-        for i in range(len(waypoints) - 1):
-            # Get the current and next waypoint in polar coordinates and cartesian
-            currentR, currentTheta, currentZ = waypoints[i]
+        for i in range(len(waypoints) - 1, 2):
+            # Get the current and next waypoint cartesian coordinates
             currentX, currentY, currentZ = constants.polarToCartesian(waypoints[i])
 
-            nextR, nextTheta, nextZ = waypoints[i + 1]
             nextX, nextY, nextZ = constants.polarToCartesian(waypoints[i + 1])
 
             # If the move is over the threshold in the XY plane, zig-zag
             distance = np.sqrt((nextX - currentX) ** 2 + (nextY - currentY) ** 2)
-            if distance > zigZagThreshold:
-                # Get the angle between the current and next waypoint
-                angle = np.rad2deg(np.arctan2(nextY - currentY, nextX - currentX))
+            # Get the angle between the current and next waypoint
+            angle = np.rad2deg(np.arctan2(nextY - currentY, nextX - currentX))
 
-                # Get the angle to zig-zag at
-                sign = np.random.choice([-1, 1])
-                angle += sign * zigZagAngle
+            # Get the angle to zig-zag at
+            sign = sign * -1
+            angle += sign * zigZagAngle
 
-                # Split the move into a triangle using two moves
-                #   First, move to the point where we will zig-zag
-                intermediatePoint = (currentX + (distance / 2) * np.cos(np.deg2rad(angle)),
-                                     currentY + (distance / 2) * np.sin(np.deg2rad(angle)),
-                                     currentZ)
-                intermediatePoint = constants.cartesianToPolar(intermediatePoint)
-                waypoints.insert(i + 1, intermediatePoint)
-
+            # Split the move into a triangle using two moves
+            #   First, move to the point where we will zig-zag
+            intermediatePoint = (currentX + (distance / 2) * np.cos(np.deg2rad(angle)),
+                                 currentY + (distance / 2) * np.sin(np.deg2rad(angle)),
+                                 currentZ)
+            intermediatePoint = constants.cartesianToPolar(intermediatePoint)
+            waypoints.insert(i + 1, intermediatePoint)
 
         checkWaypointsUpUntil = waypoints.index(checkWaypointsValue)
 
@@ -456,15 +445,13 @@ class RobotManager:
                 if intersection:
                     print("Found intersection")
                     # If it does, we need to dodge it
-                    dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point)
+                    direction = np.random.choice([0, 1])
+                    dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point, direction)
 
         for key in dodgeDict:
             waypoints = waypoints[:key] + dodgeDict[key] + waypoints[key + 1:]
 
         return waypoints, checkWaypointsUpUntil
-
-
-
 
     def checkIntersection(self, initialPoint, finalPoint, rectangle):
         """Checks if a line intersects a polygon
@@ -520,8 +507,7 @@ class RobotManager:
 
         return False, None
 
-
-    def dodgeObstacle(self, initialPoint, finalPoint, obstacle, intersectionPoint, direction=True):
+    def dodgeObstacle(self, initialPoint, finalPoint, obstacle, intersectionPoint, direction: bool = True):
         """Dodge over an obstacle represented by a polygon - does not append initial or final points
         Args:
             initialPoint (tuple): The starting point of the line in polar coordinates
@@ -561,7 +547,6 @@ class RobotManager:
 
         # Calculate the distance we need to shorten the vector by
         distanceToShortenFinal = constants.robotHeadRadius + constants.blockSize / 2 + constants.robotMovingPadding
-
 
         # Then, calculate the new vector
         if distanceToShorten > t or distanceToShortenFinal > tFinal:
@@ -606,16 +591,18 @@ class RobotManager:
             finalPoint = constants.cartesianToPolar(finalPoint)
 
             # Dodge around the obstacle by moving towards the center
-            waypoints.append((obstacle[0][0] + constants.robotMovingPadding, initialStoppingPoint[1], initialStoppingPoint[2]))
+            waypoints.append(
+                (obstacle[0][0] + constants.robotMovingPadding, initialStoppingPoint[1], initialStoppingPoint[2]))
 
             # Go over
-            waypoints.append((obstacle[0][0] + constants.robotMovingPadding, initialStoppingPoint[1] + constants.degreesPerBlock, initialStoppingPoint[2]))
+            waypoints.append((obstacle[0][0] + constants.robotMovingPadding,
+                              initialStoppingPoint[1] + constants.degreesPerBlock, initialStoppingPoint[2]))
 
             # Go back
-            waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1] + constants.degreesPerBlock, initialStoppingPoint[2]))
+            waypoints.append(
+                (initialStoppingPoint[0], initialStoppingPoint[1] + constants.degreesPerBlock, initialStoppingPoint[2]))
 
             # Go to final point
             waypoints.append(finalPoint)
-
 
         return waypoints

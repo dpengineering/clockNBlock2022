@@ -1,4 +1,3 @@
-import time
 from time import sleep, localtime
 from dpeaDPi.DPiStepper import DPiStepper
 
@@ -110,7 +109,10 @@ class Clock:
         # or something along those lines. However, this will be fixed fairly quickly because it will only speed up for around
         # 1 second and then slow down again. This needs to be tested though
 
+        self.refreshSteps()
+
         # If the clock is stopped, send it going for a revolution
+
         if self.dpiStepper.getStepperStatus(self.HOUR_HAND_PIN)[1]:
             self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, self.HOUR_HAND_STEPS_PER_REVOLUTION,
                                                           False)
