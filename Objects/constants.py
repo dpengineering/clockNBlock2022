@@ -9,14 +9,16 @@ blockPadding = 1  # in mm
 magnetSolenoid = 11
 rotationSolenoid = 10
 robotHeadRadius = 80  # Major radius of the robot end effector
-robotSpeed = 100
+robotSpeed = 120
 rotationHeight = -1430
 maximumMovingRadius = 400  # mm
 robotMovingPadding = 10  # Padding for robot arm to move around blocks
 degreesPerBlock = 360 / blockSize + blockPadding  # Degrees per block
+maximumSpiralingZHeight = -1250  # mm
 
 # Clock
 clockDeadZone = 45  # Degrees
+hourHandZHeight = -1416.5
 
 # Feeder solenoids in (side, up) order
 blockFeederSolenoids = [(6, 7),

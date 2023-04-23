@@ -62,12 +62,12 @@ class RobotManager:
         Nothing = 0
         PolarMove = 1
         ZigZag = 2
-        # Spiral = 3
+        Spiral = 3
         GetRandomBlock = False
 
         # Choose a fun thing to do
-        # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral])
-        funThingToDo = np.random.choice([Nothing, ZigZag, PolarMove])
+        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral])
+
         # Decide if we want to get a random block, this has a 5% chance of happening
         if np.random.random() < 0.05:
             GetRandomBlock = True
@@ -102,8 +102,12 @@ class RobotManager:
             print('Robot arm zig zag move to feeder')
             waypoints, _checkUpUntilIndex = self.planZigZagMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
-        # elif funThingToDo == Spiral:
-        #     waypoints = self.planSpiral(robotPos, finalLocation)
+
+        elif funThingToDo == Spiral:
+            print('Robot arm spiral move to feeder')
+            waypoints = self.planSpiral(robotPos, finalLocation)
+            waypoints = self.ensureStraightLineCartesian(waypoints)
+
         else:
             print('Robot arm straight move to feeder')
             waypoints, _checkUpUntilIndex = self.planStraightMove(robotPos, finalLocation)
@@ -123,12 +127,12 @@ class RobotManager:
         Nothing = 0
         PolarMove = 1
         ZigZag = 2
-        # Spiral = 3
+        Spiral = 3
         # FakePlacement = 4
 
         # Choose a fun thing to do
         # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral, FakePlacement])
-        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag])
+        funThingToDo = np.random.choice([Nothing, PolarMove, Spiral, ZigZag])
 
         # Get the buildSite to move to
         buildSite = self.chooseBuildSite(clockPos)
@@ -152,10 +156,16 @@ class RobotManager:
             waypoints, _checkUpUntilIndex = self.planZigZagMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
-        # elif funThingToDo == Spiral:
-        #     waypoints = self.planSpiral(robotPos, finalLocation)
+        elif funThingToDo == Spiral:
+            print('Robot arm spiral move to build site')
+            waypoints = self.planSpiral(robotPos, finalLocation)
+            waypoints = self.ensureStraightLineCartesian(waypoints)
+
         # elif funThingToDo == FakePlacement:
+        #     print('Robot arm fake placement move to build site')
         #     waypoints = self.planFakePlacement(robotPos, finalLocation)
+        #     waypoints = self.ensureStraightLineCartesian(waypoints)
+
         else:
             print('Robot arm straight move to build site')
             waypoints, _checkUpUntilIndex = self.planStraightMove(robotPos, finalLocation)
@@ -340,7 +350,6 @@ class RobotManager:
         currentR, currentTheta, currentZ = currentPos
         targetR, targetTheta, targetZ = targetPos
 
-        # Move to this location in our polar coordinate system
         if currentZ < -1400:
             travelHeight = currentZ + 100
         else:
@@ -452,6 +461,69 @@ class RobotManager:
             waypoints = waypoints[:key] + dodgeDict[key] + waypoints[key + 1:]
 
         return waypoints, checkWaypointsUpUntil
+
+    def planSpiral(self, currentPos, targetPos):
+        """ Plans a path including a spiral from the current position to the target position
+                Args:
+                    currentPos (tuple): Current position of the robot
+                    targetPos (tuple): Target position of the robot
+                Returns:
+                    waypoints (list): List of waypoints to travel to
+                """
+        waypoints = []
+        currentR, currentTheta, currentZ = currentPos
+
+        if currentZ < -1400:
+            travelHeight = currentZ + 100
+        else:
+            travelHeight = currentZ + 20
+
+        # The first move will always be moving up.
+        waypoints.append((currentR, currentTheta, travelHeight))
+
+        # Now we will move to the center of the clock and then downwards in a spiral.
+        waypoints.append((0, 0, travelHeight))
+
+        downDistance = travelHeight - constants.hourHandZHeight
+
+        # We will move down in a spiral, so we need to calculate the number of revolutions we need to do
+        # We will do 1 revolution for every 100mm we need to move down
+        revolutions = downDistance / 100
+
+        # Create the waypoints list to move down in a spiral
+        for i in range(0, int(revolutions * 360)):
+            # Calculate the radius of the spiral
+            radius = i / 360
+
+            # Calculate the angle of the spiral
+            theta = i
+
+            # Calculate the z height of the spiral
+            zHeight = constants.hourHandZHeight - i / 100
+
+            # Add the waypoint to the list
+            waypoints.append((radius, theta, zHeight))
+
+
+        # Now we spiral upwards, but we can go higher this time
+        revolutions = (constants.maximumSpiralingZHeight - constants.hourHandZHeight) / 100
+        for i in range(int(revolutions * 360), 0, -1):
+            # Calculate the radius of the spiral
+            radius = i / 360
+
+            # Calculate the angle of the spiral
+            theta = i
+
+            # Calculate the z height of the spiral
+            zHeight = constants.hourHandZHeight - i / 100
+
+            # Add the waypoint to the list
+            waypoints.append((radius, theta, zHeight))
+
+        # Now we move to the target position
+        waypoints.append((self.planStraightMove(waypoints[-1], targetPos)))
+
+        return waypoints
 
     def checkIntersection(self, initialPoint, finalPoint, rectangle):
         """Checks if a line intersects a polygon
