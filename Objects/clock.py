@@ -155,17 +155,15 @@ class Clock:
             self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_BASE_SPEED)
 
 
-
     #--------------------------------    Helper functions    --------------------------------#
 
 
-
-    def setSpeeds(self, hourHandSpeed, minuteHandSpeed):
+    def setSpeeds(self, hourHandSpeed: float, minuteHandSpeed: float) -> None:
         """Sets the speed of the hands"""
         self.dpiStepper.setSpeedInStepsPerSecond(self.HOUR_HAND_PIN, hourHandSpeed)
         self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, minuteHandSpeed)
 
-    def moveToPositionsRelative(self, hourHandPosition=None, minuteHandPosition=None, waitFlg=False):
+    def moveToPositionsRelative(self, hourHandPosition=None, minuteHandPosition=None, waitFlg=False) -> None:
         """Moves the hands to the given positions"""
         if hourHandPosition is not None:
             self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, hourHandPosition, False)
@@ -177,7 +175,7 @@ class Clock:
             while not self.dpiStepper.getAllMotorsStopped():
                 sleep(0.1)
 
-    def moveToPositionDegrees(self, hourDegrees=None, minuteDegrees=None, waitFlg=True):
+    def moveToPositionDegrees(self, hourDegrees=None, minuteDegrees=None, waitFlg=True) -> None:
         """Moves the hands to the given positions in degrees"""
         self.refreshSteps()
 
@@ -189,7 +187,7 @@ class Clock:
             minuteToSteps = self.degreesToSteps(minuteDegrees, self.MINUTE_HAND_PIN)
             self.dpiStepper.moveToAbsolutePositionInSteps(self.MINUTE_HAND_PIN, int(minuteToSteps), waitFlg)
 
-    def moveToTime(self, hour, minute, second=0, waitFlg=False):
+    def moveToTime(self, hour: int, minute: int, second=0, waitFlg=False) -> None:
         """Moves the hands to the given time"""
         hourToSteps, minuteToSteps = self.convertTimeToSteps(hour, minute, second)
 
@@ -202,7 +200,7 @@ class Clock:
 
         self.moveToPositionsRelative(hourDifference, minuteDifference, waitFlg)
 
-    def convertTimeToSteps(self, hour, minute, second=0):
+    def convertTimeToSteps(self, hour: int, minute: int, second=0) -> tuple:
         """Converts the given time to steps"""
         hourToSteps = hour * self.HOUR_HAND_STEPS_PER_REVOLUTION // 12 + minute * self.HOUR_HAND_STEPS_PER_REVOLUTION // (
                     12 * 60)
@@ -210,7 +208,7 @@ class Clock:
                     60 * 60)
         return hourToSteps, minuteToSteps
 
-    def degreesToSteps(self, degrees, hand):
+    def degreesToSteps(self, degrees: float, hand: int) -> float:
         """Converts degrees to steps"""
         if hand == self.HOUR_HAND_PIN:
             # Since degrees go counterclockwise and the clock goes clockwise, we need to subtract the degrees from 360
@@ -230,12 +228,12 @@ class Clock:
         # Subtracting 360 because degrees go the other way than the clock is moving
         return abs(hourDegrees - 360) % 360, abs((minuteDegrees % 360) - 360)
 
-    def emergencyStop(self):
+    def emergencyStop(self) -> None:
         """Stops both hands"""
         self.dpiStepper.emergencyStop(self.HOUR_HAND_PIN)
         self.dpiStepper.emergencyStop(self.MINUTE_HAND_PIN)
 
-    def refreshSteps(self):
+    def refreshSteps(self) -> None:
 
         hourDegrees, minuteDegrees = self.getPositionDegrees()
         hourSteps, minuteSteps = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)[0], \

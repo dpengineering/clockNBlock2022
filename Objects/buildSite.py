@@ -3,7 +3,7 @@ import Objects.constants as constants
 
 class BuildSite:
 
-    def __init__(self, index, location0, location1):
+    def __init__(self, index: int, location0: tuple, location1: tuple):
         # The need for two locations is just to calculate the "slope" of the build site
         # This is necessary since the build sites aren't flat which can cause the robot arm
         # to lose steps while placing a block down
@@ -28,7 +28,6 @@ class BuildSite:
         # Flags
         self.isReadyFlg = False
 
-
     def setup(self):
         # Our setup is fairly simple, we just need to find the block placement list we have
         # and reset our counter to 0
@@ -47,15 +46,13 @@ class BuildSite:
 
         return True
 
-
-    def process(self, minuteHandPosition):
+    def process(self, minuteHandPosition: float) -> None:
         # The state machine for this object is just checking if it is ready.
         self.updateReadyFlg(minuteHandPosition)
 
         self.updateIntersectionRectangle()
 
-
-    def calculateSlope(self, location0, location1):
+    def calculateSlope(self, location0: tuple, location1: tuple) -> float:
         # Take change in R and Z
         deltaR = location1[0] - location0[0]
         deltaZ = location1[2] - location0[2]
@@ -63,7 +60,7 @@ class BuildSite:
         # calculate and return slope
         return deltaZ / deltaR
 
-    def generatePlacementList(self, placementArray, startLocation, blockSpacing=1):
+    def generatePlacementList(self, placementArray: list, startLocation: tuple, blockSpacing: float = 1) -> list:
         """Creates a list of where to place blocks dependent on an array passed in.
             Each 1 in the array will denote where to place a block and the 0's are empty space
             Since we would like to have some rows "offset" from each other, the first column will be reserved
@@ -96,7 +93,7 @@ class BuildSite:
 
         return placements
 
-    def updateReadyFlg(self, minuteHandPosition: float):
+    def updateReadyFlg(self, minuteHandPosition: float) -> None:
 
         # If the minute hand is within 30 degrees of the build site, we are not ready
         if abs(self.location0[1] - minuteHandPosition) < constants.clockDeadZone:
@@ -113,8 +110,7 @@ class BuildSite:
             self.isReadyFlg = False
             return
 
-
-    def updateIntersectionRectangle(self):
+    def updateIntersectionRectangle(self) -> None:
         """Updates dimensions of the intersection rectangle
         Only moves the top of the rectangle up or down
         """
@@ -133,8 +129,7 @@ class BuildSite:
         self.intersectionRectangle[2] = (self.intersectionRectangle[2][0], self.intersectionRectangle[2][1], currentZHeight)
         self.intersectionRectangle[3] = (self.intersectionRectangle[3][0], self.intersectionRectangle[3][1], currentZHeight)
 
-
-    def placeNextBlock(self):
+    def placeNextBlock(self) -> tuple or None:
         """Places the next block in the list of placements"""
         if self.currentBlock < len(self.blockPlacements):
             # print(f'moving to {self.currentBlock} on build site {self.index}')

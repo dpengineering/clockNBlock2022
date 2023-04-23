@@ -115,10 +115,11 @@ class RobotManager:
 
         return waypoints
 
-    def moveToBuildSite(self, robotPos, clockPos):
+    def moveToBuildSite(self, robotPos: tuple, clockPos: float):
         """Moves to a build site
         Args:
             robotPos (tuple): (r, theta, z) position of the robot arm
+            clockPos (float): Position of the clock hand
         Returns:
             waypoints (list): List of waypoints for the robot arm to follow
         """
@@ -193,7 +194,7 @@ class RobotManager:
 
         return feeder
 
-    def chooseBuildSite(self, clockPos):
+    def chooseBuildSite(self, clockPos: float):
         """Chooses a build site to move to based on the following
             If a build site is ready, assign weights to each then choose a random one
             If no build site is ready, return None
@@ -249,96 +250,7 @@ class RobotManager:
 
         return buildSite
 
-    def ensureStraightLineCartesian(self, waypoints: list) -> list:
-        """Ensures that the robot arm moves in a straight line
-        This ensures that the robot will travel in a straight line as it does not do so with a long move.
-        Check DPi_Robot firmware to see why. Alternatively, google how linear delta arms work.
-        This makes the robot move in a straight line for cartesian coordinates. (As in no arcs)
-        Args:
-            waypoints (list): List of polar waypoints with possible long moves
-        Returns:
-            straightWaypoints (list): List of waypoints with long moves broken up in polar coordinates
-        """
-        # Create our list of waypoints to return
-        # Also, add our current position to the list
-        straightWaypoints = []
-
-        # Convert our list of waypoints in polar coordinates to a list in cartesian coordinates
-
-        # Note: this operation is fairly slow because of the nested for loops.
-        #   If this moves us in a straight line, it might be worth refactoring
-        #   The code to work in cartesian coordinates
-        for point in range(len(waypoints) - 1):
-            x1, y1, z1 = constants.polarToCartesian(waypoints[point])
-            x2, y2, z2 = constants.polarToCartesian(waypoints[point + 1])
-
-            # Calculating the distance between our last point and the next point we need to go to
-            distance = abs(math.dist((x1, y1, z1), (x2, y2, z2)))
-
-            # If the distance is greater than 20mm, split the move into many steps
-            if distance > 20:
-                numSteps = int(distance / 20)
-
-                # Split our move into a bunch of steps
-                xSteps = np.linspace(x1, x2, numSteps, False)
-                ySteps = np.linspace(y1, y2, numSteps, False)
-                zSteps = np.linspace(z1, z2, numSteps, False)
-
-                # Add these points to our list
-                [straightWaypoints.append(point) for point in zip(xSteps, ySteps, zSteps)]
-
-            straightWaypoints.append((x2, y2, z2))
-
-        # Convert our list of waypoints in cartesian coordinates to a list in polar coordinates
-        straightWaypoints = [constants.cartesianToPolar(waypoint) for waypoint in straightWaypoints]
-
-        return straightWaypoints
-
-    def ensureStraightLinePolar(self, waypoints: list) -> list:
-        """Ensures a straight line move in polar coordinates
-        This will cause the robot to move in an arc and in a straight line on the polar plane
-        Args:
-            waypoints (list): List of polar waypoints with possible long moves
-        Returns:
-            straightWaypoints (list): List of waypoints with long moves broken up in polar coordinates
-        """
-        straightWaypoints = []
-
-        # Loop through our list to find which moves are too far to be a straight line
-        #   We don't need to check how far the points are away in Z because the robot moves downwards in a straight line
-        for point in range(len(waypoints) - 1):
-            r1, theta1, z1 = waypoints[point]
-            r2, theta2, z2 = waypoints[point + 1]
-            theta1, theta2 = np.deg2rad(theta1), np.deg2rad(theta2)
-            distance = np.sqrt(r1 * r1 + r2 * r2 - 2 * r1 * r2 * np.cos(theta1 - theta2))
-            # If the distance is greater than 20mm, split our moves up into 20mm segments
-            if distance > 20:
-                # Number of steps to split our line into
-                numSteps = int(distance / 20)
-
-                # To generate the intermediary waypoints, np.linspace() is used on r, theta, and z values individually
-                #   We create the points by merging the same index of each array into a tuple, and add it to our list
-
-                # Convert theta back to degrees
-                theta1, theta2 = np.rad2deg(theta1), np.rad2deg(theta2)
-
-                rSteps = np.linspace(r1, r2, numSteps)
-                thetaSteps = np.linspace(theta1, theta2, numSteps)
-                zSteps = np.linspace(z1, z2, numSteps)
-
-                # Add our points to the list
-                #   Final point is omitted as it will  get added in the next iteration of the loop or at the very end
-                for i in range(len(rSteps) - 1):
-                    straightWaypoints.append((rSteps[i], thetaSteps[i], zSteps[i]))
-            else:
-                straightWaypoints.append(waypoints[point])
-
-        # Add final point to list
-        straightWaypoints.append(waypoints[-1])
-
-        return straightWaypoints
-
-    def planStraightMove(self, currentPos, targetPos):
+    def planStraightMove(self, currentPos: tuple, targetPos: tuple) -> tuple:
         """ Plans a path from the current position to the target position
         Args:
             currentPos (tuple): Current position of the robot
@@ -398,7 +310,7 @@ class RobotManager:
 
         return waypoints, checkWaypointsUpUntil
 
-    def planZigZagMove(self, currentPos, targetPos):
+    def planZigZagMove(self, currentPos: tuple, targetPos: tuple) -> tuple:
         """ Plans a zig-zagging path from the current position to the target position
         Args:
             currentPos (tuple): Current position of the robot
@@ -462,7 +374,7 @@ class RobotManager:
 
         return waypoints, checkWaypointsUpUntil
 
-    def planSpiral(self, currentPos, targetPos):
+    def planSpiral(self, currentPos: tuple, targetPos: tuple) -> list:
         """ Plans a path including a spiral from the current position to the target position
                 Args:
                     currentPos (tuple): Current position of the robot
@@ -488,12 +400,15 @@ class RobotManager:
 
         # We will move down in a spiral, so we need to calculate the number of revolutions we need to do
         # We will do 1 revolution for every 100mm we need to move down
-        revolutions = downDistance / 100
+        revolutions = downDistance // 100
 
         # Create the waypoints list to move down in a spiral
+        # Move to max radius
+        waypoints.append((250, 0, constants.hourHandZHeight))
+
         for i in range(0, int(revolutions * 360)):
             # Calculate the radius of the spiral
-            radius = i / 360
+            radius = 250 - i / 360
 
             # Calculate the angle of the spiral
             theta = i
@@ -506,10 +421,13 @@ class RobotManager:
 
 
         # Now we spiral upwards, but we can go higher this time
-        revolutions = (constants.maximumSpiralingZHeight - constants.hourHandZHeight) / 100
+        revolutions = (constants.maximumSpiralingZHeight - constants.hourHandZHeight) // 100
+
+        # Move to min radius
+        waypoints.append((0, 0, constants.maximumSpiralingZHeight))
         for i in range(int(revolutions * 360), 0, -1):
             # Calculate the radius of the spiral
-            radius = i / 360
+            radius = 250 - i / 360
 
             # Calculate the angle of the spiral
             theta = i
@@ -521,11 +439,104 @@ class RobotManager:
             waypoints.append((radius, theta, zHeight))
 
         # Now we move to the target position
-        waypoints.append((self.planStraightMove(waypoints[-1], targetPos)))
+        pathToTarget, _checkUpUntil = self.planStraightMove(waypoints[-1], targetPos)
+        waypoints.append(pathToTarget)
 
         return waypoints
 
-    def checkIntersection(self, initialPoint, finalPoint, rectangle):
+    @staticmethod
+    def ensureStraightLineCartesian(waypoints: list) -> list:
+        """Ensures that the robot arm moves in a straight line
+        This ensures that the robot will travel in a straight line as it does not do so with a long move.
+        Check DPi_Robot firmware to see why. Alternatively, google how linear delta arms work.
+        This makes the robot move in a straight line for cartesian coordinates. (As in no arcs)
+        Args:
+            waypoints (list): List of polar waypoints with possible long moves
+        Returns:
+            straightWaypoints (list): List of waypoints with long moves broken up in polar coordinates
+        """
+        # Create our list of waypoints to return
+        # Also, add our current position to the list
+        straightWaypoints = []
+
+        # Convert our list of waypoints in polar coordinates to a list in cartesian coordinates
+
+        # Note: this operation is fairly slow because of the nested for loops.
+        #   If this moves us in a straight line, it might be worth refactoring
+        #   The code to work in cartesian coordinates
+        for point in range(len(waypoints) - 1):
+            x1, y1, z1 = constants.polarToCartesian(waypoints[point])
+            x2, y2, z2 = constants.polarToCartesian(waypoints[point + 1])
+
+            # Calculating the distance between our last point and the next point we need to go to
+            distance = abs(math.dist((x1, y1, z1), (x2, y2, z2)))
+
+            # If the distance is greater than 20mm, split the move into many steps
+            if distance > 20:
+                numSteps = int(distance / 20)
+
+                # Split our move into a bunch of steps
+                xSteps = np.linspace(x1, x2, numSteps, False)
+                ySteps = np.linspace(y1, y2, numSteps, False)
+                zSteps = np.linspace(z1, z2, numSteps, False)
+
+                # Add these points to our list
+                [straightWaypoints.append(point) for point in zip(xSteps, ySteps, zSteps)]
+
+            straightWaypoints.append((x2, y2, z2))
+
+        # Convert our list of waypoints in cartesian coordinates to a list in polar coordinates
+        straightWaypoints = [constants.cartesianToPolar(waypoint) for waypoint in straightWaypoints]
+
+        return straightWaypoints
+
+    @staticmethod
+    def ensureStraightLinePolar(waypoints: list) -> list:
+        """Ensures a straight line move in polar coordinates
+        This will cause the robot to move in an arc and in a straight line on the polar plane
+        Args:
+            waypoints (list): List of polar waypoints with possible long moves
+        Returns:
+            straightWaypoints (list): List of waypoints with long moves broken up in polar coordinates
+        """
+        straightWaypoints = []
+
+        # Loop through our list to find which moves are too far to be a straight line
+        #   We don't need to check how far the points are away in Z because the robot moves downwards in a straight line
+        for point in range(len(waypoints) - 1):
+            r1, theta1, z1 = waypoints[point]
+            r2, theta2, z2 = waypoints[point + 1]
+            theta1, theta2 = np.deg2rad(theta1), np.deg2rad(theta2)
+            distance = np.sqrt(r1 * r1 + r2 * r2 - 2 * r1 * r2 * np.cos(theta1 - theta2))
+            # If the distance is greater than 20mm, split our moves up into 20mm segments
+            if distance > 20:
+                # Number of steps to split our line into
+                numSteps = int(distance / 20)
+
+                # To generate the intermediary waypoints, np.linspace() is used on r, theta, and z values individually
+                #   We create the points by merging the same index of each array into a tuple, and add it to our list
+
+                # Convert theta back to degrees
+                theta1, theta2 = np.rad2deg(theta1), np.rad2deg(theta2)
+
+                rSteps = np.linspace(r1, r2, numSteps)
+                thetaSteps = np.linspace(theta1, theta2, numSteps)
+                zSteps = np.linspace(z1, z2, numSteps)
+
+                # Add our points to the list
+                #   Final point is omitted as it will  get added in the next iteration of the loop or at the very end
+                for i in range(len(rSteps) - 1):
+                    straightWaypoints.append((rSteps[i], thetaSteps[i], zSteps[i]))
+            else:
+                straightWaypoints.append(waypoints[point])
+
+        # Add final point to list
+        straightWaypoints.append(waypoints[-1])
+
+        return straightWaypoints
+
+    @staticmethod
+    def checkIntersection(initialPoint: tuple, finalPoint: tuple, rectangle: list) -> tuple:
         """Checks if a line intersects a polygon
         Args:
             initialPoint (tuple): The starting point of the line in polar coordinates
@@ -579,7 +590,8 @@ class RobotManager:
 
         return False, None
 
-    def dodgeObstacle(self, initialPoint, finalPoint, obstacle, intersectionPoint, direction: bool = True):
+    @staticmethod
+    def dodgeObstacle(initialPoint: tuple, finalPoint: tuple, obstacle: list, intersectionPoint: tuple, direction: bool = True) -> list:
         """Dodge over an obstacle represented by a polygon - does not append initial or final points
         Args:
             initialPoint (tuple): The starting point of the line in polar coordinates

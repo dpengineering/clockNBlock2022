@@ -83,8 +83,7 @@ class BlockFeeder:
 
         return False
 
-
-    def process(self, minuteHandPosition=None):
+    def process(self, minuteHandPosition: float = None):
 
 
         self.dpiClockNBlock.toggleArrow(not self.dpiClockNBlock.readEntrance())
@@ -162,7 +161,6 @@ class BlockFeeder:
                 return
 
             return
-
 
     def setState(self, newState):
         self.state = newState

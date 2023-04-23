@@ -90,7 +90,7 @@ placement3 = [[- blockSize / 2, 0, 0, 1, 0, 0, 0],
 placementArrays = [placement0, placement1, placement2, placement3]
 
 
-def cartesianToPolar(position: tuple):
+def cartesianToPolar(position: tuple) -> tuple:
     """Helper function to change cartesian coordinates to polar
     Args:
         position (tuple): Current robot position in cartesian plane
@@ -109,7 +109,7 @@ def cartesianToPolar(position: tuple):
     return r, theta, z
 
 
-def polarToCartesian(position: tuple):
+def polarToCartesian(position: tuple) -> tuple:
     """Converts polar coordinates to cartesian coordinates"""
     r, theta, z = position
     theta = np.deg2rad(theta)

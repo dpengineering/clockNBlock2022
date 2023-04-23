@@ -77,7 +77,7 @@ def main():
             [blockFeeder.process(minutePos) for blockFeeder in blockFeeders]
             [buildSite.process(minutePos) for buildSite in buildSites]
 
-            robot.process()
+            robot.process(minutePos)
 
             if robot.state == robot.STATE_IDLE:
                 clock.robotIdleFlg = True

@@ -40,7 +40,7 @@ class RobotArm:
 
         self.initialize()
 
-    def initialize(self):
+    def initialize(self) -> None:
         """Set up the robot arm"""
         self.dpiRobot.setBoardNumber(0)
 
@@ -51,8 +51,7 @@ class RobotArm:
         self.dpiSolenoid.switchDriverOnOrOff(self.ROTATING_SOLENOID, True)
         self.dpiSolenoid.switchDriverOnOrOff(self.ROTATING_SOLENOID, False)
 
-
-    def setup(self):
+    def setup(self) -> bool:
         """Set up robot arm"""
 
         # Homes robot
@@ -74,8 +73,7 @@ class RobotArm:
 
         return True
 
-
-    def process(self):
+    def process(self, minuteHandPosition: float) -> None:
 
         _status, robotState = self.dpiRobot.getRobotStatus()
 
@@ -127,7 +125,7 @@ class RobotArm:
             if self.newState:
                 # Try placing a block 3 times.
                 for _ in range(3):
-                    waypoints = self.robotManager.moveToBuildSite(currentPosition)
+                    waypoints = self.robotManager.moveToBuildSite(currentPosition, clockPos=minuteHandPosition)
                     if waypoints is not None:
                         self.queueWaypoints(waypoints, robotState=robotState)
                         self.target = waypoints[-1]
@@ -177,33 +175,32 @@ class RobotArm:
                 self.setState(self.STATE_MOVE_TO_FEEDER)
                 return None
 
-
-    def rotate(self):
+    def rotate(self) -> None:
         self.rotationPositionFlg = not self.rotationPositionFlg
         self.dpiSolenoid.switchDriverOnOrOff(self.ROTATING_SOLENOID, self.rotationPositionFlg)
 
-    def moveCartesian(self, position, speed):
+    def moveCartesian(self, position: tuple, speed: float = constants.robotSpeed) -> None:
         """Moves the robot arm to a cartesian position"""
         x, y, z = position
         self.dpiRobot.addWaypoint(x, y, z, speed)
 
-    def movePolar(self, position, speed):
+    def movePolar(self, position: tuple, speed: float = constants.robotSpeed) -> None:
         """Moves the robot arm to a polar position"""
         x, y, z = constants.polarToCartesian(position)
         self.moveCartesian((x, y, z), speed)
 
-    def getPositionCartesian(self):
+    def getPositionCartesian(self) -> tuple:
         """Returns the current position of the robot arm"""
         _success_flg, x, y, z = self.dpiRobot.getCurrentPosition()
         return x, y, z
 
-    def getPositionPolar(self):
+    def getPositionPolar(self) -> tuple:
         """Returns the current position of the robot arm in radians"""
         x, y, z = self.getPositionCartesian()
         r, theta, z = constants.cartesianToPolar((x, y, z))
         return r, theta, z
 
-    def isAtLocation(self, position, tolerance=2):
+    def isAtLocation(self, position: tuple, tolerance: float = 2) -> bool:
         """Returns true if the robot arm is within a tolerance of a position
         Args:
             position: tuple of (x, y, z) position in cartesian coordinates
@@ -217,13 +214,12 @@ class RobotArm:
 
         return abs(x - x1) < tolerance and abs(y - y1) < tolerance and abs(z - z1) < tolerance
 
-    def setState(self, state):
+    def setState(self, state: int) -> None:
         """Sets the state of the robot arm"""
         self.state = state
         self.newState = True
 
-
-    def queueWaypoints(self, waypoints: list, speed: int = constants.robotSpeed, robotState=-1):
+    def queueWaypoints(self, waypoints: list, speed: int = constants.robotSpeed, robotState=-1) -> bool:
         """Helper function to queue waypoints in a list.
         Args:
             waypoints (list): List of waypoints to queue all in polar coordinates
