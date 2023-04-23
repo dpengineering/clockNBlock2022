@@ -8,26 +8,28 @@ from Objects.robotManager import RobotManager
 class RobotArm:
 
     # States
-    _STATE_MOVE_TO_FEEDER     = 0
-    _STATE_PICKUP_BLOCK       = 1
-    _STATE_ROTATE_BLOCK       = 2
-    _STATE_MOVE_TO_BUILD_SITE = 3
-    _STATE_PLACE_BLOCK        = 4
-    _STATE_IDLE               = 5
+    STATE_MOVE_TO_FEEDER     = 0
+    STATE_PICKUP_BLOCK       = 1
+    STATE_ROTATE_BLOCK       = 2
+    STATE_MOVE_TO_BUILD_SITE = 3
+    STATE_PLACE_BLOCK        = 4
+    STATE_IDLE               = 5
 
-    def __init__(self, dpiSolenoid, magnetSolenoid, rotationSolenoid, buildSites, blockFeeders):
+    def __init__(self, dpiSolenoid, magnetSolenoid, rotationSolenoid, buildSites=None, blockFeeders=None):
 
         self.dpiSolenoid = dpiSolenoid
         self.MAGNET_SOLENOID = magnetSolenoid
         self.ROTATING_SOLENOID = rotationSolenoid
 
-        self.robotManager = RobotManager(buildSites, blockFeeders)
+        # For testing purposes
+        if buildSites is not None or blockFeeders is not None:
+            self.robotManager = RobotManager(buildSites, blockFeeders)
 
         # Create our dpiRobot object
         self.dpiRobot = DPiRobot()
 
         # State machine
-        self.state = self._STATE_IDLE
+        self.state = self.STATE_IDLE
         self.newState = False
         self.target = None
         self.start = None
@@ -68,12 +70,12 @@ class RobotArm:
         if not self.rotationPositionFlg:
             self.rotate()
 
-        self.setState(self._STATE_MOVE_TO_FEEDER)
+        self.setState(self.STATE_MOVE_TO_FEEDER)
 
         return True
 
 
-    def process(self, minuteHandPosition):
+    def process(self):
 
         _status, robotState = self.dpiRobot.getRobotStatus()
 
@@ -82,7 +84,7 @@ class RobotArm:
 
         currentPosition = self.getPositionPolar()
 
-        if self.state == self._STATE_MOVE_TO_FEEDER:
+        if self.state == self.STATE_MOVE_TO_FEEDER:
             if self.newState:
                 # Try getting a block 3 times.
                 for _ in range(3):
@@ -92,78 +94,76 @@ class RobotArm:
                         self.target = waypoints[-1]
                         self.newState = False
                         self.start = time.time()
-                        return
-                self.setState(self._STATE_IDLE)
-                return
+                        return self.target[1]
+                self.setState(self.STATE_IDLE)
+                return None
 
             # In this state, we will need to rotate the block before we pick it up
             # This does break our method for having the states be do something -> wait -> next state
             # But this also saves us from having to create a whole new state to rotate the block
-            elif time.time() - self.start > 1 and not self.rotationPositionFlg:
+            elif time.time() - self.start > 1 and self.rotationPositionFlg:
                 self.rotate()
-                print('rotated')
-                return
+                # print('rotated')
+                return None
 
             elif self.isAtLocation(self.target) and robotState == self.dpiRobot.STATE_STOPPED:
-                self.setState(self._STATE_PICKUP_BLOCK)
-                print('at location')
-                return
+                self.setState(self.STATE_PICKUP_BLOCK)
+                # print('at location')
+                return None
 
-        elif self.state == self._STATE_PICKUP_BLOCK:
+        elif self.state == self.STATE_PICKUP_BLOCK:
             if self.newState:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, True)
                 self.start = time.time()
                 self.newState = False
-                print('picking up block')
-                return
+                # print('picking up block')
+                return None
 
             elif time.time() - self.start > 0.5:
-                self.setState(self._STATE_MOVE_TO_BUILD_SITE)
-                print('moving to build site')
-                return
+                self.setState(self.STATE_MOVE_TO_BUILD_SITE)
+                return None
 
-        elif self.state == self._STATE_MOVE_TO_BUILD_SITE:
+        elif self.state == self.STATE_MOVE_TO_BUILD_SITE:
             if self.newState:
                 # Try placing a block 3 times.
                 for _ in range(3):
-                    waypoints = self.robotManager.moveToBuildSite(currentPosition, minuteHandPosition)
+                    waypoints = self.robotManager.moveToBuildSite(currentPosition)
                     if waypoints is not None:
                         self.queueWaypoints(waypoints, robotState=robotState)
                         self.target = waypoints[-1]
                         self.newState = False
                         self.start = time.time()
-                        return
+                        return self.target[1]
 
-                self.setState(self._STATE_IDLE)
-                return
+                self.setState(self.STATE_IDLE)
+                return None
 
             # In this state, we will need to rotate the block after it clear the hole
             # This does break our method for having the states be do something -> wait -> next state
             # But this also saves us from having to create a whole new state to rotate the block
-            elif time.time() - self.start > 1 and self.rotationPositionFlg:
+            elif time.time() - self.start > 1 and not self.rotationPositionFlg:
                 self.rotate()
-                print('rotated')
-                return
+                # print('rotated')
+                return None
 
             elif self.isAtLocation(self.target) and robotState == self.dpiRobot.STATE_STOPPED:
-                self.setState(self._STATE_PLACE_BLOCK)
-                print('at location')
-                return
+                self.setState(self.STATE_PLACE_BLOCK)
+                # print('at location')
+                return None
 
-        elif self.state == self._STATE_PLACE_BLOCK:
+        elif self.state == self.STATE_PLACE_BLOCK:
             if self.newState:
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, False)
                 self.start = time.time()
                 self.newState = False
-                print('placing block')
-                return
+                # print('placing block')
+                return None
 
             elif time.time() - self.start > 0.5:
-                self.setState(self._STATE_MOVE_TO_FEEDER)
-                print('moving to feeder')
-                return
+                self.setState(self.STATE_MOVE_TO_FEEDER)
+                return None
 
-        elif self.state == self._STATE_IDLE:
+        elif self.state == self.STATE_IDLE:
             if self.newState:
                 self.dpiRobot.homeRobot(True)
                 if self.rotationPositionFlg:
@@ -171,11 +171,11 @@ class RobotArm:
 
                 self.dpiSolenoid.switchDriverOnOrOff(constants.magnetSolenoid, False)
                 self.newState = False
-                return
+                return None
 
             elif self.robotManager.moveToFeeder(currentPosition) is not None:
-                self.setState(self._STATE_MOVE_TO_FEEDER)
-                return
+                self.setState(self.STATE_MOVE_TO_FEEDER)
+                return None
 
 
     def rotate(self):
@@ -233,12 +233,9 @@ class RobotArm:
             none
         """
         if robotState == self.dpiRobot.STATE_STOPPED:
-            print('queueing movements')
-            print(f'waypoints before queue {waypoints}')
             self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
             [self.movePolar(waypoint, speed) for waypoint in waypoints]
             self.dpiRobot.bufferWaypointsBeforeStartingToMove(False)
-            print(f'waypoints after queue {waypoints}')
             return True
         else:
             print('Robot is not stopped')

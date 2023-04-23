@@ -1,6 +1,7 @@
 import time
 from time import sleep
 from DPi_ClockNBlock_Python.DPiClockNBlock import DPiClockNBlock
+import Objects.constants as constants
 
 
 class BlockFeeder:
@@ -13,7 +14,8 @@ class BlockFeeder:
     _STATE_IDLE          = 4
 
     def __init__(self, feederLocation, solenoidNumbers, dpiClockNBlockNumber, dpiSolenoid):
-        self.feederLocation = feederLocation
+        self.feederNumber = dpiClockNBlockNumber
+        self.location = feederLocation
         self.sidePiston = solenoidNumbers[0]
         self.upPiston = solenoidNumbers[1]
         self.dpiClockNBlock = DPiClockNBlock()
@@ -168,9 +170,9 @@ class BlockFeeder:
 
     def updateReadyFlg(self, minuteHandPosition: float):
 
-        feederTheta = self.feederLocation[1]
+        feederTheta = self.location[1]
 
-        if abs(minuteHandPosition - feederTheta) < 30:
+        if abs(minuteHandPosition - feederTheta) < constants.clockDeadZone:
             self.isReadyFlg = False
             return
 
@@ -181,10 +183,4 @@ class BlockFeeder:
         else:
             self.isReadyFlg = False
             return
-
-
-
-
-
-
 

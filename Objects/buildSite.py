@@ -9,7 +9,7 @@ class BuildSite:
         # to lose steps while placing a block down
         # Since we are in 3D, we don't have a traditional slope, but our slope can just be the distance
         # in Z over the distance in X and Y.
-        self.index = index
+        self.buildSiteNumber = index
         self.location0 = location0
         self.location1 = location1
 
@@ -32,8 +32,8 @@ class BuildSite:
     def setup(self):
         # Our setup is fairly simple, we just need to find the block placement list we have
         # and reset our counter to 0
-        self.blockPlacements = self.generatePlacementList(constants.placementArrays[self.index], self.location0)
-        print(f'Placement List: {self.blockPlacements}, buildSite: {self.index}')
+        self.blockPlacements = self.generatePlacementList(constants.placementArrays[self.buildSiteNumber], self.location0)
+        # print(f'Placement List: {self.blockPlacements}, buildSite: {self.index}')
         self.currentBlock = 0
         self.isReadyFlg = True
 
@@ -90,7 +90,7 @@ class BuildSite:
                     # Calculate the position we need to place our block
                     currentRow = numRows - (rowIdx + 1)
                     currentCol = colIdx - 1
-                    zPos = currentRow * blockSizeWithSpacing + currentOrigin[2] + currentCol * self.slope
+                    zPos = currentRow * constants.blockSize + currentOrigin[2] + currentCol * self.slope + 1
                     rPos = currentOrigin[0] + currentCol * blockSizeWithSpacing
                     placements.insert(0, (rPos, currentOrigin[1], zPos))
 
@@ -99,7 +99,7 @@ class BuildSite:
     def updateReadyFlg(self, minuteHandPosition: float):
 
         # If the minute hand is within 30 degrees of the build site, we are not ready
-        if abs(self.location0[1] - minuteHandPosition) < 30:
+        if abs(self.location0[1] - minuteHandPosition) < constants.clockDeadZone:
             self.isReadyFlg = False
             self.currentBlock = 0
             return
@@ -118,8 +118,11 @@ class BuildSite:
         """Updates dimensions of the intersection rectangle
         Only moves the top of the rectangle up or down
         """
+        try:
+            currentZHeight = self.blockPlacements[self.currentBlock][2] + 10
+        except IndexError:
+            currentZHeight = self.intersectionRectangle[2][2]
 
-        currentZHeight = self.blockPlacements[self.currentBlock][2] + 10
         previousZHeight = self.intersectionRectangle[2][2]
 
         # If the heights are less than 10mm apart, we don't need to update
@@ -134,7 +137,10 @@ class BuildSite:
     def placeNextBlock(self):
         """Places the next block in the list of placements"""
         if self.currentBlock < len(self.blockPlacements):
+            # print(f'moving to {self.currentBlock} on build site {self.index}')
             self.currentBlock += 1
-            return self.blockPlacements[self.currentBlock - 1]
+            location = self.blockPlacements[self.currentBlock - 1]
+            # print(f'Location of build site is {location}')
+            return location
         else:
             return None

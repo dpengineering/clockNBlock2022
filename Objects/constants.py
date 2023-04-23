@@ -15,6 +15,9 @@ maximumMovingRadius = 400  # mm
 robotMovingPadding = 10  # Padding for robot arm to move around blocks
 degreesPerBlock = 360 / blockSize + blockPadding  # Degrees per block
 
+# Clock
+clockDeadZone = 45  # Degrees
+
 # Feeder solenoids in (side, up) order
 blockFeederSolenoids = [(6, 7),
                         (4, 3),
@@ -26,8 +29,8 @@ blockFeederSolenoids = [(6, 7),
 
 # Build Sites
 #   Replace second value with the location of the ends of the build sites.
-buildLocations = [[(303.6, 350.570, -1442.8), (480.3, 351.789, -1444.3)],
-                  [(295.8, 263.268, -1442.8), (543.6, 262.883, -1442.8)],
+buildLocations = [[(303.6, 351.870, -1442.8), (478.3, 351.789, -1444.3)],
+                  [(295.8, 263.268, -1443.8), (543.6, 262.883, -1443.8)],
                   [(288.8, 172.206, -1444.3), (524.9, 172.340, -1447.4)],
                   [(290.1, 82.162, -1447.4), (414.2, 82.032, -1449.0)]]
 
@@ -48,12 +51,12 @@ clockMinuteHandZHeight = -1416.5
 # The first column in each array will be reserved for the amount of offset the next row should have from the first
 
 # Build 0 has room for 5 blocks on the base.
-placement0 = [ [0, 0, 0, 0, 0, 0, 0],
-               [0, 0, 1, 0, 0, 0, 0],
-               [0, 0, 1, 1, 0, 0, 0],
-               [0, 0, 1, 1, 1, 0, 0],
-               [0, 0, 1, 1, 1, 1, 0],
-               [0, 0, 1, 1, 1, 1, 1]]
+placement0 = [ [0, 1, 0, 0, 0, 0, 0],
+               [0, 1, 1, 0, 0, 0, 0],
+               [0, 1, 1, 1, 0, 0, 0],
+               [0, 1, 1, 1, 1, 0, 0],
+               [0, 1, 1, 1, 1, 1, 0],
+               [0, 1, 1, 1, 1, 1, 1]]
 
 # Build 1 has room for 8 blocks on the base.
 placement1 = [[- blockSize / 2, 0, 0, 0, 0, 1, 0, 0, 0],
@@ -75,12 +78,12 @@ placement2 = [[0              , 0, 0, 0, 1, 0, 0, 0],
               [0              , 1, 1, 1, 1, 1, 1, 1]]
 
 # Build 3 has room for 3 blocks on the base (only using 2 for now).
-placement3 = [[- blockSize / 2, 0, 1, 0, 0, 0, 0],
-              [0              , 1, 1, 0, 0, 0, 0],
-              [0              , 1, 1, 0, 0, 0, 0],
-              [0              , 1, 1, 0, 0, 0, 0],
-              [0              , 1, 1, 0, 0, 0, 0],
-              [0              , 1, 1, 0, 0, 0, 0]]
+placement3 = [[- blockSize / 2, 0, 0, 1, 0, 0, 0],
+              [0              , 0, 1, 1, 0, 0, 0],
+              [0              , 0, 1, 1, 0, 0, 0],
+              [0              , 0, 1, 1, 0, 0, 0],
+              [0              , 0, 1, 1, 0, 0, 0],
+              [0              , 0, 1, 1, 0, 0, 0]]
 
 placementArrays = [placement0, placement1, placement2, placement3]
 
@@ -98,6 +101,7 @@ def cartesianToPolar(position: tuple):
     theta = np.arctan2(y, x)
     theta = np.rad2deg(theta)
 
+    # Make sure theta is between 0 and 360
     theta = (theta + 360) % 360
 
     return r, theta, z

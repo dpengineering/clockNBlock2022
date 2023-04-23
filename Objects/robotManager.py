@@ -62,13 +62,13 @@ class RobotManager:
         # TODO: Change these to stuff with more personality - organic movements
         Nothing = 0
         PolarMove = 1
-        # ZigZag = 2
+        ZigZag = 2
         # Spiral = 3
         GetRandomBlock = False
 
         # Choose a fun thing to do
         # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral])
-        funThingToDo = np.random.choice([Nothing, PolarMove])
+        funThingToDo = np.random.choice([Nothing, ZigZag, PolarMove])
         # Decide if we want to get a random block, this has a 5% chance of happening
         if np.random.random() < 0.05:
             GetRandomBlock = True
@@ -83,27 +83,31 @@ class RobotManager:
 
             buildSite = np.random.choice(buildSitesWithBlocks)
             buildSite.currentBlock -= 1
-            finalLocation = buildSite.blockPlacements[buildSite.currentBlock - 1]
+            finalLocation = buildSite.blockPlacements[buildSite.currentBlock]
+            print(f'Robot arm getting random block from build site {buildSite.buildSiteNumber}')
         else:
             # Find a feeder with blocks
             feeder = self.chooseFeeder()
             if feeder is None:
                 return None
             finalLocation = feeder.feederLocation
+            print(f'Robot arm moving to feeder {feeder.feederNumber}')
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
             print('Robot arm polar move to feeder')
-            waypoints = self.planStraightMove(robotPos, finalLocation)
+            waypoints, _checkUpUntilIndex = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
 
-        # elif funThingToDo == ZigZag:
-        #     waypoints = self.planZigZagMove(robotPos, finalLocation)
+        elif funThingToDo == ZigZag:
+            print('Robot arm zig zag move to feeder')
+            waypoints, _checkUpUntilIndex = self.planZigZagMove(robotPos, finalLocation)
+            waypoints = self.ensureStraightLineCartesian(waypoints)
         # elif funThingToDo == Spiral:
         #     waypoints = self.planSpiral(robotPos, finalLocation)
         else:
             print('Robot arm straight move to feeder')
-            waypoints = self.planStraightMove(robotPos, finalLocation)
+            waypoints, _checkUpUntilIndex = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
         return waypoints
@@ -120,13 +124,13 @@ class RobotManager:
         # Different fun things we can do:
         Nothing = 0
         PolarMove = 1
-        # ZigZag = 2
+        ZigZag = 2
         # Spiral = 3
         # FakePlacement = 4
 
         # Choose a fun thing to do
         # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral, FakePlacement])
-        funThingToDo = np.random.choice([Nothing, PolarMove])
+        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag])
 
         # Get the buildSite to move to
         buildSite = self.chooseBuildSite(clockPos)
@@ -142,20 +146,21 @@ class RobotManager:
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
             print('Robot arm polar move to build site')
-            waypoints = self.planStraightMove(robotPos, finalLocation)
-            print(waypoints)
+            waypoints, _checkUpUntilIndex = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
 
-        # elif funThingToDo == ZigZag:
-        #     waypoints = self.planZigZagMove(robotPos, finalLocation)
+        elif funThingToDo == ZigZag:
+            print('Robot arm zig zag move to build site')
+            waypoints, _checkUpUntilIndex = self.planZigZagMove(robotPos, finalLocation)
+            waypoints = self.ensureStraightLineCartesian(waypoints)
+
         # elif funThingToDo == Spiral:
         #     waypoints = self.planSpiral(robotPos, finalLocation)
         # elif funThingToDo == FakePlacement:
         #     waypoints = self.planFakePlacement(robotPos, finalLocation)
         else:
             print('Robot arm straight move to build site')
-            waypoints = self.planStraightMove(robotPos, finalLocation)
-            print(waypoints)
+            waypoints, _checkUpUntilIndex = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
 
@@ -207,7 +212,7 @@ class RobotManager:
 
             # We only want the distance from one side of the clock hand to the build site.
             # The clock hand's degree value should be GREATER THAN the build site's degree value
-            distance = clockPos - buildSiteTheta
+            distance = (clockPos - buildSiteTheta) % 360
 
             # If the distance is less than 90 degrees, it is a priority to finish building
             # Add a 3% weight per block left to place. Max is 98%
@@ -275,8 +280,7 @@ class RobotManager:
                 zSteps = np.linspace(z1, z2, numSteps, False)
 
                 # Add these points to our list
-                for i in range(len(xSteps)):
-                    straightWaypoints.append((xSteps[i], ySteps[i], zSteps[i]))
+                [straightWaypoints.append(point) for point in zip(xSteps, ySteps, zSteps)]
 
             straightWaypoints.append((x2, y2, z2))
 
@@ -340,12 +344,15 @@ class RobotManager:
             waypoints (list): List of waypoints to travel to
         """
         waypoints = []
-        checkWaypointsUpUntil = 0
         currentR, currentTheta, currentZ = currentPos
         targetR, targetTheta, targetZ = targetPos
 
         # Move to this location in our polar coordinate system
-        travelHeight = currentZ + 30
+        if currentZ < -1400:
+            travelHeight = currentZ + 100
+        else:
+            travelHeight = currentZ + 20
+
 
         # The first move will always be moving up.
         waypoints.append((currentR, currentTheta, travelHeight))
@@ -357,11 +364,12 @@ class RobotManager:
 
 
         # Then, move next to and above the target location
-        sign = np.random.choice([-1, 1])
+        sign = 1 if currentTheta > targetTheta else -1
+
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, travelHeight))
 
         # So we don't check waypoints that will place a block.
-        checkWaypointsUpUntil = len(waypoints) - 1
+        checkWaypointsUpUntil = len(waypoints)
 
         # Go down to 5mm above the target location
         waypoints.append((targetR, targetTheta + sign * self.offSetAngle, targetZ + 5))
@@ -387,7 +395,7 @@ class RobotManager:
         for key in dodgeDict:
             waypoints = waypoints[:key] + dodgeDict[key] + waypoints[key + 1:]
 
-        return waypoints
+        return waypoints, checkWaypointsUpUntil
 
     def planZigZagMove(self, currentPos, targetPos):
         """ Plans a zig-zagging path from the current position to the target position
@@ -398,13 +406,15 @@ class RobotManager:
             waypoints (list): List of waypoints to travel to
         """
 
-        zigZagThreshold = 50  # The threshold for when to zig-zag
+        zigZagThreshold = 50  # The threshold for when to zig-zag in mm
         zigZagAngleRange = (30, 60)  # The angle to zig-zag at
         zigZagAngle = np.random.randint(zigZagAngleRange[0], zigZagAngleRange[1])  # The angle to zig-zag at
 
         # As this is a zig-zag, we just need to alter all the straight moves
         # Get the waypoints for a straight move
-        waypoints = self.planStraightMove(currentPos, targetPos)
+        waypoints, checkWaypointsUpUntil = self.planStraightMove(currentPos, targetPos)
+
+        checkWaypointsValue = waypoints[checkWaypointsUpUntil - 1]
 
         # Loop through the waypoints and alter the moves
         for i in range(len(waypoints) - 1):
@@ -416,7 +426,8 @@ class RobotManager:
             nextX, nextY, nextZ = constants.polarToCartesian(waypoints[i + 1])
 
             # If the move is over the threshold in the XY plane, zig-zag
-            if np.sqrt((nextX - currentX) ** 2 + (nextY - currentY) ** 2) > zigZagThreshold:
+            distance = np.sqrt((nextX - currentX) ** 2 + (nextY - currentY) ** 2)
+            if distance > zigZagThreshold:
                 # Get the angle between the current and next waypoint
                 angle = np.rad2deg(np.arctan2(nextY - currentY, nextX - currentX))
 
@@ -424,21 +435,48 @@ class RobotManager:
                 sign = np.random.choice([-1, 1])
                 angle += sign * zigZagAngle
 
+                # Split the move into a triangle using two moves
+                #   First, move to the point where we will zig-zag
+                intermediatePoint = (currentX + (distance / 2) * np.cos(np.deg2rad(angle)),
+                                     currentY + (distance / 2) * np.sin(np.deg2rad(angle)),
+                                     currentZ)
+                intermediatePoint = constants.cartesianToPolar(intermediatePoint)
+                waypoints.insert(i + 1, intermediatePoint)
 
 
+        checkWaypointsUpUntil = waypoints.index(checkWaypointsValue)
+
+        # Check if we are intersecting any obstacles
+        dodgeDict = {}
+        for building in self.buildSites:
+            obstacle = building.intersectionRectangle
+            for i in range(checkWaypointsUpUntil - 1):
+                # Check if the line intersects the obstacle
+                intersection, point = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
+                if intersection:
+                    print("Found intersection")
+                    # If it does, we need to dodge it
+                    dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point)
+
+        for key in dodgeDict:
+            waypoints = waypoints[:key] + dodgeDict[key] + waypoints[key + 1:]
+
+        return waypoints, checkWaypointsUpUntil
 
 
 
 
     def checkIntersection(self, initialPoint, finalPoint, rectangle):
-        """Checks if a line intersects a polygon, read docs for detailed explanation
+        """Checks if a line intersects a polygon
         Args:
             initialPoint (tuple): The starting point of the line in polar coordinates
             finalPoint (tuple): The ending point of the line in polar coordinates
             rectangle(list): The rectangle to check for intersection, in the form [point0, point1, point2, point3], All in polar coordinates
         Returns:
             intersection (bool): True if the line intersects the polygon, False otherwise
+            zHeight (float): The height of the intersection, if there is one
         """
+        # Implements answer from https://stackoverflow.com/questions/8812073/ray-and-square-rectangle-intersection-in-3d/8862483#8862483
 
         # First, we need to convert our points to cartesian coordinates
         initialPoint = constants.polarToCartesian(initialPoint)
@@ -474,9 +512,11 @@ class RobotManager:
         projectionOntoS0 = np.dot(rectOriginToIntersection, s0) / np.linalg.norm(s0)
         projectionOntoS1 = np.dot(rectOriginToIntersection, s1) / np.linalg.norm(s1)
 
-        if 0 <= np.linalg.norm(projectionOntoS0) <= np.linalg.norm(s0) and 0 <= np.linalg.norm(projectionOntoS1) <= np.linalg.norm(s1):
+        if 0 <= np.linalg.norm(projectionOntoS0) <= np.linalg.norm(s0) and 0 <= np.linalg.norm(
+                projectionOntoS1) <= np.linalg.norm(s1):
             print(f'Intersection at {vectorInitial + a * d}')
-            return True, (vectorInitial + a * d)
+
+            return True, vectorInitial + a * d
 
         return False, None
 
