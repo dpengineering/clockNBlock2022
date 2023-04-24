@@ -13,7 +13,7 @@ A guide on how to setup, train, and get the machine started by configuring all t
 [Software](software/software.md):  
 A overview of the code and how each piece works and interacts with the rest of the systems.  
   
-Hardware:  
+[Hardware](hardware/hardware.md):  
 This section will be split up into the mechanical and electrical sections.  
 We had a lot of issues with the mechanical side of the project, so this section will be a bit more in depth.  
   

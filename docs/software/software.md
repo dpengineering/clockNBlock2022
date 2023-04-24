@@ -1,4 +1,4 @@
-# Software OUTDATED
+# Software
 
 The software has been written in an object-oriented style because I am a Java guy
 and this is how I code. Feel free to change this though.  
@@ -22,19 +22,22 @@ we are in a new state.
 There are four main objects that talk to each other.
 
 ## Robot Arm
-This holds all the objects because it has to talk to everything.  
-This controls the robot arm and holds the states for it. Essentially, the robot arm is continuously asking the block manager what it should be doing
-and goes to pick up and place blocks. When it has nothing to do, it will just home itself and wait.  
-  
+Controls the robot arm and holds the state machine for the robot.
+Also has helper methods as a layer of abstraction above the DPi_Robot
 
-## Block Manager
-The block manager isn't actually a physical part, it is just there to tell the robot what it should be doing.  
-It holds the positions of the blocks to be placed in a list and the count of which block the robot is on.  
-This means that there are no sensors to check if the robot has actually stacked the block or if someone has messed with the stack.
+## Robot Manager
+The robot manager isn't actually a physical part, it is just there to tell the robot what it should be doing.  
+This is the most complicated part of the project and is the overarching controller of the robot.
 
 ## Clock
-The clock either runs as a regular clock or the minute hand moves fairly quickly and the hour hand points to where the robot is going next.
-The real time mode currently doesn't really make sense as the project doesn't have a clock face. Also, it's way too slow.  
-  
-The clock's state machine is fairly simple. Either the clock just goes at real time or the minute hand goes at a set speed and the hour hand asks the robot where it should go
-(Actually, the robot arm just tells the hour hand where to go, but this is essentially the same thing)
+The clock is a simple class that keeps track of the clock hands. It basically just tells the clock to move at real time and
+corrects for any errors in time.
+
+## Block Feeder
+This holds the state machine for the block feeder, it constantly cycles blocks to the top of the feeder.
+
+## Build Site
+Holds all the information to build blocks such as placement, number of blocks, and a representation of the tower for the robot to dodge.
+
+## Constants
+All the constants are stored here. I tried to make it so there are no "magic numbers" but some still exist.
