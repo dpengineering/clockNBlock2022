@@ -15,7 +15,7 @@ rotationHeight = -1430
 maximumMovingRadius = 400  # mm
 robotMovingPadding = 10  # Padding for robot arm to move around blocks mm
 degreesPerBlock = 360 / blockSize + blockPadding  # Degrees per block
-maximumSpiralingZHeight = -1250  # mm
+maximumSpiralingZHeight = -1210  # mm
 
 # Clock
 clockDeadZone = 45  # Degrees

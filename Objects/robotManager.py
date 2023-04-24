@@ -66,7 +66,8 @@ class RobotManager:
         GetRandomBlock = False
 
         # Choose a fun thing to do
-        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral])
+        # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral])
+        funThingToDo = np.random.choice([Nothing, PolarMove, Spiral])
 
         # Decide if we want to get a random block, this has a 5% chance of happening
         if np.random.random() < 0.05:
@@ -89,8 +90,8 @@ class RobotManager:
             feeder = self.chooseFeeder()
             if feeder is None:
                 return None
-            finalLocation = feeder.feederLocation
-            print(f'Robot arm moving to feeder {feeder.feederNumber}')
+            finalLocation = feeder.location
+            print(f'Robot arm moving to feeder {feeder.index}')
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
@@ -132,7 +133,8 @@ class RobotManager:
         FakePlacement = 4
 
         # Choose a fun thing to do
-        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral, FakePlacement])
+        # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral, FakePlacement])
+        funThingToDo = np.random.choice([Nothing, PolarMove, Spiral, FakePlacement])
 
         # Get the buildSite to move to
         buildSite = self.chooseBuildSite(clockPos)
@@ -175,10 +177,13 @@ class RobotManager:
             if len(readyBuildSites) > 1:
                 numBuildSites = np.random.choice([1, 2])
                 randomBuildSites = np.random.choice(readyBuildSites, numBuildSites, replace=True)
+                randomBuildSites = [buildSite.blockPlacements[buildSite.currentBlock] for buildSite in randomBuildSites]
             else:
                 randomBuildSites = readyBuildSites
+                randomBuildSites = [buildSite.blockPlacements[buildSite.currentBlock] for buildSite in randomBuildSites]
 
             # Add the final location to the list
+            randomBuildSites = list(randomBuildSites)
             randomBuildSites.append(finalLocation)
 
             waypoints = self.planFakePlacement(robotPos, randomBuildSites)
@@ -441,7 +446,7 @@ class RobotManager:
         # Now we will move to the center of the clock and then downwards in a spiral.
         waypoints.append((0, 0, travelHeight))
 
-        downDistance = travelHeight - constants.hourHandZHeight
+        downDistance = travelHeight - (constants.hourHandZHeight + constants.blockSize)
 
         # We will move down in a spiral, so we need to calculate the number of revolutions we need to do
         # We will do 1 revolution for every 100mm we need to move down
@@ -449,53 +454,60 @@ class RobotManager:
 
         # Create the waypoints list to move down in a spiral
         # Move to max radius
-        waypoints.append((250, 0, constants.hourHandZHeight))
-
+        waypoints.append((250, 0, travelHeight))
+        zHeight = travelHeight
+        dZ = downDistance / (revolutions * 360) if revolutions != 0 else 0
         for i in range(0, int(revolutions * 360)):
             # Calculate the radius of the spiral
-            radius = 250 - i / 360
+            radius = 250
 
             # Calculate the angle of the spiral
             theta = i
 
             # Calculate the z height of the spiral
-            zHeight = constants.hourHandZHeight - i / 100
+            zHeight -= dZ
 
             # Add the waypoint to the list
             waypoints.append((radius, theta, zHeight))
 
 
         # Now we spiral upwards, but we can go higher this time
-        revolutions = (constants.maximumSpiralingZHeight - constants.hourHandZHeight) // 100
+        revolutions = (constants.maximumSpiralingZHeight - (constants.hourHandZHeight + constants.blockSize)) // 100
 
         # Move to min radius
-        waypoints.append((0, 0, constants.maximumSpiralingZHeight))
+        zHeight = constants.hourHandZHeight + constants.blockSize
+        dZ = downDistance / (revolutions * 360) if revolutions != 0 else 0
+        waypoints.append((250, 0, constants.hourHandZHeight))
         for i in range(int(revolutions * 360), 0, -1):
             # Calculate the radius of the spiral
-            radius = 250 - i / 360
+            radius = 250
 
             # Calculate the angle of the spiral
             theta = i
 
             # Calculate the z height of the spiral
-            zHeight = constants.hourHandZHeight - i / 100
+            zHeight += dZ
 
             # Add the waypoint to the list
             waypoints.append((radius, theta, zHeight))
 
         # Now we move to the target position
         pathToTarget, _checkUpUntil = self.planStraightMove(waypoints[-1], targetPos)
-        waypoints.append(pathToTarget)
+
+        waypoints += pathToTarget
 
         return waypoints
 
     def planFakePlacement(self, currentPos, targetPositions: list[tuple]) -> list:
         # This one is just a string of straight moves.
         waypoints = []
+        print(f'Target positions: {targetPositions}')
         for targetPos in targetPositions:
-            waypoints.append(self.planStraightMove(currentPos, targetPos))
+            path, _extra = self.planStraightMove(currentPos, targetPos)
+            waypoints += path
             currentPos = targetPos
 
+        print(waypoints)
         return waypoints
 
     @staticmethod
@@ -543,6 +555,7 @@ class RobotManager:
         straightWaypoints = [constants.cartesianToPolar(waypoint) for waypoint in straightWaypoints]
 
         return straightWaypoints
+
 
     @staticmethod
     def ensureStraightLinePolar(waypoints: list) -> list:
@@ -724,6 +737,7 @@ class RobotManager:
 
         if direction:
             zHeight = obstacle[2][2] + 10
+            print(f'Z height: {zHeight}')
 
             # Go up
             waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], zHeight))

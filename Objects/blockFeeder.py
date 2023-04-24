@@ -16,6 +16,7 @@ class BlockFeeder:
     def __init__(self, feederLocation, solenoidNumbers, dpiClockNBlockNumber, dpiSolenoid):
         self.feederNumber = dpiClockNBlockNumber
         self.location = feederLocation
+        self.index = dpiClockNBlockNumber
         self.sidePiston = solenoidNumbers[0]
         self.upPiston = solenoidNumbers[1]
         self.dpiClockNBlock = DPiClockNBlock()

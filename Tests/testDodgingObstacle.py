@@ -23,11 +23,6 @@ dpiSolenoid.setBoardNumber(0)
 if not dpiSolenoid.initialize():
     raise Exception("Solenoid initialization failed")
 
-robot = RobotArm(dpiSolenoid, magnetSolenoid=constants.magnetSolenoid, rotationSolenoid=constants.rotationSolenoid)
-
-if not robot.setup():
-    raise Exception("Robot setup failed")
-
 # 1st build site, there is the most amount of space to build
 buildSite = BuildSite(0, constants.buildLocations[1][0], constants.buildLocations[1][1])
 
@@ -44,21 +39,24 @@ for num, blockFeederInfo in enumerate(zip(constants.blockFeederLocations, consta
 # Create the robot manager
 robotManager = RobotManager([buildSite], blockFeeders)
 
+robot = RobotArm(dpiSolenoid, magnetSolenoid=constants.magnetSolenoid, rotationSolenoid=constants.rotationSolenoid, blockFeeders=blockFeeders, buildSites=[buildSite])
+
+if not robot.setup():
+    raise Exception("Robot setup failed")
+
 
 def main():
     # Stack the bottom layer of the build site to know where the blocks go
-    while buildSite.currentBlock < 6:
-        robot.process(minuteHandPosition=0)
-        [blockFeeder.process() for blockFeeder in blockFeeders]
-        # Don't proces the build sites
+    # while buildSite.currentBlock < 6:
+    #     robot.process(minuteHandPosition=0)
+    #     [blockFeeder.process() for blockFeeder in blockFeeders]
+    #     # Don't proces the build sites
 
-    # Move the robot to home
-    robot.dpiRobot.homeRobot(True)
 
     # Now that we have stacked the bottom layer, we have 2 minutes to build up to the top
-    for i in range(2 * 120):
-        print(f'{i} seconds elapsed')
-        sleep(1)
+    # for i in range(2 * 120):
+    #     print(f'{i} seconds elapsed')
+    #     sleep(1)
 
     # Start testing the dodging obstacle.
     rMovement = np.average([buildSite.location0[0], buildSite.location1[0]])
@@ -73,12 +71,17 @@ def main():
     robot.movePolar((rMovement, initialTheta, zHeight))
 
     # Update the buildSite intersection rectangle to reflect the tower we are building
-    buildSite.intersectionRectangle[2] = (buildSite.intersectionRectangle[2][0], buildSite.intersectionRectangle[2][1], constants.blockSize * 5)
-    buildSite.intersectionRectangle[3] = (buildSite.intersectionRectangle[3][0], buildSite.intersectionRectangle[3][1], constants.blockSize * 5)
+    buildSite.intersectionRectangle[2] = (buildSite.intersectionRectangle[2][0],
+                                          buildSite.intersectionRectangle[2][1],
+                                          buildSite.intersectionRectangle[2][2] + constants.blockSize * 5)
+
+    buildSite.intersectionRectangle[3] = (buildSite.intersectionRectangle[3][0],
+                                          buildSite.intersectionRectangle[3][1],
+                                          buildSite.intersectionRectangle[3][2] + constants.blockSize * 5)
 
 
     # Check the intersection
-    intersection, intersectionPoint = robotManager.checkIntersection(initialPoint, finalPoint)
+    intersection, intersectionPoint = robotManager.checkIntersection(initialPoint, finalPoint, buildSite.intersectionRectangle)
     print(f'Intersection: {intersection}')
 
     if not intersection:
@@ -91,8 +94,11 @@ def main():
                                       intersectionPoint=intersectionPoint,
                                       direction=True)
 
+    robot.dpiRobot.waitWhileRobotIsMoving()
+    print(path)
+
     # Move along the path
-    robot.queueWaypoints(path)
+    robot.queueWaypoints(path, robotState=robot.dpiRobot.getRobotStatus()[1])
 
 
 if __name__ == '__main__':
