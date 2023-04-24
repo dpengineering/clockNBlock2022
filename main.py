@@ -67,7 +67,7 @@ def setup():
 
 
 def main():
-    hourHandPosition = None
+
     while True:
         # Process all  the loops
         if robot.isHomedFlg:

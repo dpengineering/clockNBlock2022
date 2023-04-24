@@ -52,14 +52,6 @@ class BuildSite:
 
         self.updateIntersectionRectangle()
 
-    def calculateSlope(self, location0: tuple, location1: tuple) -> float:
-        # Take change in R and Z
-        deltaR = location1[0] - location0[0]
-        deltaZ = location1[2] - location0[2]
-
-        # calculate and return slope
-        return deltaZ / deltaR
-
     def generatePlacementList(self, placementArray: list, startLocation: tuple, blockSpacing: float = 1) -> list:
         """Creates a list of where to place blocks dependent on an array passed in.
             Each 1 in the array will denote where to place a block and the 0's are empty space
@@ -139,3 +131,12 @@ class BuildSite:
             return location
         else:
             return None
+
+    @staticmethod
+    def calculateSlope(location0: tuple, location1: tuple) -> float:
+        # Take change in R and Z
+        deltaR = location1[0] - location0[0]
+        deltaZ = location1[2] - location0[2]
+
+        # calculate and return slope
+        return deltaZ / deltaR

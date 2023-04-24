@@ -8,11 +8,12 @@ blockPadding = 1  # in mm
 # Robot Arm
 magnetSolenoid = 11
 rotationSolenoid = 10
-robotHeadRadius = 80  # Major radius of the robot end effector
+robotHeadRadius = 80  # Major radius of the robot end effector mm
+robotHeadRadiusDegrees = 360 / robotHeadRadius
 robotSpeed = 120
 rotationHeight = -1430
 maximumMovingRadius = 400  # mm
-robotMovingPadding = 10  # Padding for robot arm to move around blocks
+robotMovingPadding = 10  # Padding for robot arm to move around blocks mm
 degreesPerBlock = 360 / blockSize + blockPadding  # Degrees per block
 maximumSpiralingZHeight = -1250  # mm
 

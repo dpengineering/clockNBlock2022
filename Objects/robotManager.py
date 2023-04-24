@@ -129,11 +129,10 @@ class RobotManager:
         PolarMove = 1
         ZigZag = 2
         Spiral = 3
-        # FakePlacement = 4
+        FakePlacement = 4
 
         # Choose a fun thing to do
-        # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral, FakePlacement])
-        funThingToDo = np.random.choice([Nothing, PolarMove, Spiral, ZigZag])
+        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral, FakePlacement])
 
         # Get the buildSite to move to
         buildSite = self.chooseBuildSite(clockPos)
@@ -162,10 +161,28 @@ class RobotManager:
             waypoints = self.planSpiral(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
-        # elif funThingToDo == FakePlacement:
-        #     print('Robot arm fake placement move to build site')
-        #     waypoints = self.planFakePlacement(robotPos, finalLocation)
-        #     waypoints = self.ensureStraightLineCartesian(waypoints)
+        elif funThingToDo == FakePlacement:
+            print('Robot arm fake placement move to build site')
+            # Create our list of locations. We know our final location, so we just choose other build open build sites
+
+            # Get a list of all ready build sites
+            readyBuildSites = [buildSite for buildSite in self.buildSites if buildSite.isReadyFlg]
+
+            # remove the build site we are going to
+            readyBuildSites.remove(buildSite)
+
+            # Choose 1-2 random build sites if we have more than 1
+            if len(readyBuildSites) > 1:
+                numBuildSites = np.random.choice([1, 2])
+                randomBuildSites = np.random.choice(readyBuildSites, numBuildSites, replace=True)
+            else:
+                randomBuildSites = readyBuildSites
+
+            # Add the final location to the list
+            randomBuildSites.append(finalLocation)
+
+            waypoints = self.planFakePlacement(robotPos, randomBuildSites)
+            waypoints = self.ensureStraightLineCartesian(waypoints)
 
         else:
             print('Robot arm straight move to build site')
@@ -320,7 +337,7 @@ class RobotManager:
         """
         sign = np.random.choice([-1, 1])
 
-        zigZagThreshold = 50  # The threshold for when to zig-zag in mm
+        zigZagDistance = 50  # The threshold for when to zig-zag in mm
         zigZagAngleRange = (30, 60)  # The angle to zig-zag at
         zigZagAngle = np.random.randint(zigZagAngleRange[0], zigZagAngleRange[1])  # The angle to zig-zag at
 
@@ -341,18 +358,46 @@ class RobotManager:
             distance = np.sqrt((nextX - currentX) ** 2 + (nextY - currentY) ** 2)
             # Get the angle between the current and next waypoint
             angle = np.rad2deg(np.arctan2(nextY - currentY, nextX - currentX))
+            rawAngle = angle
 
             # Get the angle to zig-zag at
             sign = sign * -1
             angle += sign * zigZagAngle
 
-            # Split the move into a triangle using two moves
-            #   First, move to the point where we will zig-zag
-            intermediatePoint = (currentX + (distance / 2) * np.cos(np.deg2rad(angle)),
-                                 currentY + (distance / 2) * np.sin(np.deg2rad(angle)),
-                                 currentZ)
-            intermediatePoint = constants.cartesianToPolar(intermediatePoint)
-            waypoints.insert(i + 1, intermediatePoint)
+            # Split the move up into segments of length zigZagDistance
+            # If the move is less than zigZagDistance, do a small zig-zag
+            if distance < zigZagDistance:
+                intermediateX = currentX + distance / 2 * np.cos(np.deg2rad(angle))
+                intermediateY = currentY + distance / 2 * np.sin(np.deg2rad(angle))
+                intermediateZ = currentZ
+                intermediatePoint = constants.cartesianToPolar((intermediateX, intermediateY, intermediateZ))
+                waypoints.insert(i + 1, intermediatePoint)
+
+            else:
+                numSegments = int(distance / zigZagDistance)
+                intermediateWaypoints = []
+
+                for j in range(numSegments):
+                    intermediateX = currentX + zigZagDistance * (j + 1) * np.cos(np.deg2rad(angle))
+                    intermediateY = currentY + zigZagDistance * (j + 1) * np.sin(np.deg2rad(angle))
+                    intermediateZ = currentZ
+
+                    nextX = currentX + zigZagDistance * (j + 2) * np.cos(np.deg2rad(rawAngle))
+                    nextY = currentY + zigZagDistance * (j + 2) * np.sin(np.deg2rad(rawAngle))
+                    nextZ = currentZ
+
+                    nextPoint = constants.cartesianToPolar((nextX, nextY, nextZ))
+
+                    currentX = intermediateX
+                    currentY = intermediateY
+
+                    sign = sign * -1
+                    angle += sign * zigZagAngle
+                    intermediatePoint = constants.cartesianToPolar((intermediateX, intermediateY, intermediateZ))
+                    intermediateWaypoints.append(intermediatePoint)
+                    intermediateWaypoints.append(nextPoint)
+
+                waypoints = waypoints[:i + 1] + intermediateWaypoints + waypoints[i + 2:]
 
         checkWaypointsUpUntil = waypoints.index(checkWaypointsValue)
 
@@ -370,7 +415,7 @@ class RobotManager:
                     dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point, direction)
 
         for key in dodgeDict:
-            waypoints = waypoints[:key] + dodgeDict[key] + waypoints[key + 1:]
+            waypoints = waypoints[:key] + dodgeDict[key] + waypoints[key + 2:]
 
         return waypoints, checkWaypointsUpUntil
 
@@ -441,6 +486,15 @@ class RobotManager:
         # Now we move to the target position
         pathToTarget, _checkUpUntil = self.planStraightMove(waypoints[-1], targetPos)
         waypoints.append(pathToTarget)
+
+        return waypoints
+
+    def planFakePlacement(self, currentPos, targetPositions: list[tuple]) -> list:
+        # This one is just a string of straight moves.
+        waypoints = []
+        for targetPos in targetPositions:
+            waypoints.append(self.planStraightMove(currentPos, targetPos))
+            currentPos = targetPos
 
         return waypoints
 
@@ -633,7 +687,7 @@ class RobotManager:
         distanceToShortenFinal = constants.robotHeadRadius + constants.blockSize / 2 + constants.robotMovingPadding
 
         # Then, calculate the new vector
-        if distanceToShorten > t or distanceToShortenFinal > tFinal:
+        if distanceToShorten > t:
             # If the distance is greater than the length of the vector, we can't dodge the obstacle
             # So, we will just go straight up and around it.
             # This case should never actually happen, but it's here just in case
@@ -645,6 +699,21 @@ class RobotManager:
             # Then go down to the final point
             waypoints.append(finalPoint)
             return waypoints
+
+        elif distanceToShortenFinal > tFinal:
+            # If the distance is greater than the length of the vector, we can't dodge the obstacle
+            # So, we will just go straight up and around it.
+            # This case should never actually happen, but it's here just in case
+            zHeight = obstacle[2][2] + 10
+
+            waypoints.append((initialPoint[0], initialPoint[1], zHeight))
+            # Then just go over and above the final point
+            waypoints.append((finalPoint[0], finalPoint[1], zHeight))
+
+            # Don't go down, this will crash the robot
+
+            return waypoints
+
 
         # Calculate the new vector
         initialStoppingPoint = vectorInitial + (t - distanceToShorten) * d
