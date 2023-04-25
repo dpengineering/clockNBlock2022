@@ -138,16 +138,22 @@ class Clock:
         minuteToSteps = minute * self.MINUTE_HAND_STEPS_PER_REVOLUTION // 60 + second * self.MINUTE_HAND_STEPS_PER_REVOLUTION // (60 * 60)
         return hourToSteps, minuteToSteps
 
-    def getPositionDegrees(self) -> tuple:
+    def getPositionDegrees(self) -> tuple[float, float]:
         """Gets the position of the hands in degrees"""
         _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
         _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
-        
-        hourDegrees = hourPosition / self.HOUR_HAND_STEPS_PER_REVOLUTION * 360
-        minuteDegrees = minutePosition / self.MINUTE_HAND_STEPS_PER_REVOLUTION * 360
+
+        hourPosition = hourPosition % self.HOUR_HAND_STEPS_PER_REVOLUTION
+        minutePosition = minutePosition % self.MINUTE_HAND_STEPS_PER_REVOLUTION
+
+        hourDegrees = (hourPosition / self.HOUR_HAND_STEPS_PER_REVOLUTION) * 360
+        minuteDegrees = (minutePosition / self.MINUTE_HAND_STEPS_PER_REVOLUTION) * 360
 
         # Subtracting 360 because degrees go the other way than the clock is moving
-        return abs(hourDegrees - 360) % 360, abs((minuteDegrees % 360) - 360)
+        hourDegrees = 360 - hourDegrees
+        minuteDegrees = 360 - minuteDegrees
+
+        return hourDegrees, minuteDegrees
 
     def degreesToSteps(self, degrees, hand):
         """Converts degrees to steps"""
