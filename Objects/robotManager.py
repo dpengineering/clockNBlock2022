@@ -15,7 +15,7 @@ class RobotManager:
     #     Move in a zigzag to the location
     #     Move in a straight line to the location
     #     Move in a straight polar move to the location.
-    #     Randomly do a spiral
+    #     Randomly do a few circles
     #
     # There will also be a few specific things that the robot arm will do based on its move
     # To pick up a block, we can choose some random block to pick up. i.e. pick up a block from a tower
@@ -58,16 +58,15 @@ class RobotManager:
         """
 
         # Different fun things we can do:
-        # TODO: Change these to stuff with more personality - organic movements
         Nothing = 0
         PolarMove = 1
         ZigZag = 2
-        Spiral = 3
+        Circle = 3
         GetRandomBlock = False
 
         # Choose a fun thing to do
         # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral])
-        funThingToDo = np.random.choice([Nothing, PolarMove, Spiral])
+        funThingToDo = np.random.choice([Nothing, PolarMove, Circle])
 
         # Decide if we want to get a random block, this has a 5% chance of happening
         if np.random.random() < 0.05:
@@ -104,9 +103,9 @@ class RobotManager:
             waypoints, _checkUpUntilIndex = self.planZigZagMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
-        elif funThingToDo == Spiral:
-            print('Robot arm spiral move to feeder')
-            waypoints = self.planSpiral(robotPos, finalLocation)
+        elif funThingToDo == Circle:
+            print('Robot arm circle move to feeder')
+            waypoints = self.planCircle(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
         else:
@@ -129,12 +128,12 @@ class RobotManager:
         Nothing = 0
         PolarMove = 1
         ZigZag = 2
-        Spiral = 3
+        Circle = 3
         FakePlacement = 4
 
         # Choose a fun thing to do
         # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral, FakePlacement])
-        funThingToDo = np.random.choice([Nothing, PolarMove, Spiral, FakePlacement])
+        funThingToDo = np.random.choice([Nothing, PolarMove, Circle, FakePlacement])
 
         # Get the buildSite to move to
         buildSite = self.chooseBuildSite(clockPos)
@@ -158,9 +157,9 @@ class RobotManager:
             waypoints, _checkUpUntilIndex = self.planZigZagMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
-        elif funThingToDo == Spiral:
-            print('Robot arm spiral move to build site')
-            waypoints = self.planSpiral(robotPos, finalLocation)
+        elif funThingToDo == Circle:
+            print('Robot arm circle move to build site')
+            waypoints = self.planCircle(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
         elif funThingToDo == FakePlacement:
@@ -276,7 +275,7 @@ class RobotManager:
 
         return buildSite
 
-    def planStraightMove(self, currentPos: tuple, targetPos: tuple) -> tuple:
+    def planStraightMove(self, currentPos: tuple, targetPos: tuple) -> tuple[list, int]:
         """ Plans a path from the current position to the target position
         Args:
             currentPos (tuple): Current position of the robot
@@ -336,7 +335,7 @@ class RobotManager:
 
         return waypoints, checkWaypointsUpUntil
 
-    def planZigZagMove(self, currentPos: tuple, targetPos: tuple) -> tuple:
+    def planZigZagMove(self, currentPos: tuple, targetPos: tuple) -> tuple[list, int]:
         """ Plans a zig-zagging path from the current position to the target position
         Args:
             currentPos (tuple): Current position of the robot
@@ -356,8 +355,9 @@ class RobotManager:
 
         checkWaypointsValue = waypoints[checkWaypointsUpUntil - 1]
 
+        zigZagDict = {}
         # Loop through the waypoints and alter the moves
-        for i in range(len(waypoints) - 1, 2):
+        for i in range(len(waypoints) - 1):
             # Get the current and next waypoint cartesian coordinates
             currentX, currentY, currentZ = constants.polarToCartesian(waypoints[i])
 
@@ -365,48 +365,61 @@ class RobotManager:
 
             # If the move is over the threshold in the XY plane, zig-zag
             distance = np.sqrt((nextX - currentX) ** 2 + (nextY - currentY) ** 2)
+            if distance == 0:
+                continue
+
             # Get the angle between the current and next waypoint
-            angle = np.rad2deg(np.arctan2(nextY - currentY, nextX - currentX))
-            rawAngle = angle
+            angleRadians = np.arctan2(nextY - currentY, nextX - currentX)
+            rawAngle = angleRadians
 
             # Get the angle to zig-zag at
             sign = sign * -1
-            angle += sign * zigZagAngle
+            angleRadians += sign * zigZagAngle
 
             # Split the move up into segments of length zigZagDistance
             # If the move is less than zigZagDistance, do a small zig-zag
             if distance < zigZagDistance:
-                intermediateX = currentX + distance / 2 * np.cos(np.deg2rad(angle))
-                intermediateY = currentY + distance / 2 * np.sin(np.deg2rad(angle))
+                intermediateX = currentX + distance / 2 * np.cos(angleRadians)
+                intermediateY = currentY + distance / 2 * np.sin(angleRadians)
                 intermediateZ = currentZ
                 intermediatePoint = constants.cartesianToPolar((intermediateX, intermediateY, intermediateZ))
-                waypoints.insert(i + 1, intermediatePoint)
+                zigZagDict[i] = intermediatePoint
 
             else:
                 numSegments = int(distance / zigZagDistance)
-                intermediateWaypoints = []
+                intermediateStoppingPoints = []
 
+                # Get the points for the "ends" of the zig-zag
+                for j in range(numSegments - 1):
+                    stoppingX = currentX + zigZagDistance * (j + 1) * np.cos(rawAngle)
+                    stoppingY = currentY + zigZagDistance * (j + 1) * np.sin(rawAngle)
+                    stoppingZ = currentZ
+
+                    intermediateStoppingPoints.append((stoppingX, stoppingY, stoppingZ))
+
+                intermediateStoppingPoints.append((nextX, nextY, nextZ))
+
+
+                # Create a list for this zig-zag
+                zigZagManyList = []
                 for j in range(numSegments):
-                    intermediateX = currentX + zigZagDistance * (j + 1) * np.cos(np.deg2rad(angle))
-                    intermediateY = currentY + zigZagDistance * (j + 1) * np.sin(np.deg2rad(angle))
+                    intermediateX = currentX + zigZagDistance * (j + 1) / 2 * np.cos(angleRadians)
+                    intermediateY = currentY + zigZagDistance * (j + 1) / 2 * np.sin(angleRadians)
                     intermediateZ = currentZ
 
-                    nextX = currentX + zigZagDistance * (j + 2) * np.cos(np.deg2rad(rawAngle))
-                    nextY = currentY + zigZagDistance * (j + 2) * np.sin(np.deg2rad(rawAngle))
-                    nextZ = currentZ
 
-                    nextPoint = constants.cartesianToPolar((nextX, nextY, nextZ))
-
-                    currentX = intermediateX
-                    currentY = intermediateY
+                    currentX, currentY, currentZ = intermediateStoppingPoints[j]
 
                     sign = sign * -1
-                    angle += sign * zigZagAngle
+                    angleRadians = rawAngle + sign * zigZagAngle
                     intermediatePoint = constants.cartesianToPolar((intermediateX, intermediateY, intermediateZ))
-                    intermediateWaypoints.append(intermediatePoint)
-                    intermediateWaypoints.append(nextPoint)
+                    zigZagManyList.append(intermediatePoint)
+                    zigZagManyList.append(constants.cartesianToPolar((currentX, currentY, currentZ)))
 
-                waypoints = waypoints[:i + 1] + intermediateWaypoints + waypoints[i + 2:]
+                zigZagDict[i] = zigZagManyList
+
+        for key in zigZagDict:
+            waypoints = waypoints[:key] + zigZagDict[key] + waypoints[key + 1:]
 
         checkWaypointsUpUntil = waypoints.index(checkWaypointsValue)
 
@@ -428,8 +441,8 @@ class RobotManager:
 
         return waypoints, checkWaypointsUpUntil
 
-    def planSpiral(self, currentPos: tuple, targetPos: tuple) -> list:
-        """ Plans a path including a spiral from the current position to the target position
+    def planCircle(self, currentPos: tuple, targetPos: tuple) -> list:
+        """ Plans a path including a circle from the current position to the target position
                 Args:
                     currentPos (tuple): Current position of the robot
                     targetPos (tuple): Target position of the robot
@@ -438,6 +451,9 @@ class RobotManager:
                 """
         waypoints = []
         currentR, currentTheta, currentZ = currentPos
+        targetR, targetTheta, targetZ = targetPos
+
+        circleRadius = 200
 
         if currentZ < -1400:
             travelHeight = currentZ + 100
@@ -447,53 +463,23 @@ class RobotManager:
         # The first move will always be moving up.
         waypoints.append((currentR, currentTheta, travelHeight))
 
-        # Now we will move to the center of the clock and then downwards in a spiral.
-        waypoints.append((0, 0, travelHeight))
+        # Now move inwards on the edge of the circle
+        waypoints.append((circleRadius, currentTheta, travelHeight))
 
-        downDistance = travelHeight - (constants.hourHandZHeight + constants.blockSize)
+        # Decide how many rotations to do
+        numRotations = np.random.randint(1, 3)
 
-        # We will move down in a spiral, so we need to calculate the number of revolutions we need to do
-        # We will do 1 revolution for every 100mm we need to move down
-        revolutions = downDistance // 100
+        # Now we move around the circle
+        for i in range(numRotations):
+            for j in range(360):
+                currentTheta += 1
+                waypoints.append((circleRadius, currentTheta, travelHeight))
+            currentTheta = currentTheta % 360
 
-        # Create the waypoints list to move down in a spiral
-        # Move to max radius
-        waypoints.append((250, 0, travelHeight))
-        zHeight = travelHeight
-        dZ = downDistance / (revolutions * 360) if revolutions != 0 else 0
-        for i in range(0, int(revolutions * 360)):
-            # Calculate the radius of the spiral
-            radius = 250
+        # Move along the circle to the target theta
+        for i in range(currentTheta, targetTheta):
+            waypoints.append((circleRadius, i, travelHeight))
 
-            # Calculate the angle of the spiral
-            theta = i
-
-            # Calculate the z height of the spiral
-            zHeight -= dZ
-
-            # Add the waypoint to the list
-            waypoints.append((radius, theta, zHeight))
-
-
-        # Now we spiral upwards, but we can go higher this time
-        revolutions = (constants.maximumSpiralingZHeight - (constants.hourHandZHeight + constants.blockSize)) // 100
-
-        # Move to min radius
-        zHeight = constants.hourHandZHeight + constants.blockSize
-        dZ = downDistance / (revolutions * 360) if revolutions != 0 else 0
-        waypoints.append((250, 0, constants.hourHandZHeight))
-        for i in range(int(revolutions * 360), 0, -1):
-            # Calculate the radius of the spiral
-            radius = 250
-
-            # Calculate the angle of the spiral
-            theta = i
-
-            # Calculate the z height of the spiral
-            zHeight += dZ
-
-            # Add the waypoint to the list
-            waypoints.append((radius, theta, zHeight))
 
         # Now we move to the target position
         pathToTarget, _checkUpUntil = self.planStraightMove(waypoints[-1], targetPos)
@@ -559,7 +545,6 @@ class RobotManager:
         straightWaypoints = [constants.cartesianToPolar(waypoint) for waypoint in straightWaypoints]
 
         return straightWaypoints
-
 
     @staticmethod
     def ensureStraightLinePolar(waypoints: list) -> list:

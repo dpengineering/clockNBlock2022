@@ -14,7 +14,7 @@ class Clock:
     # I am not sure why there is 300 extra steps for a full rotation.
     HOUR_HAND_STEPS_PER_REVOLUTION = 200 * MICROSTEPPING * HOUR_HAND_GEAR_REDUCTION + 290  # 8300
     # Hour hand base speed, 1 revolution in 12 hours, about 0.19 steps per second
-    # TODO: Ask Stan/Harlow if you can go < 1 step per second
+    # TODO: Ask Stan if you can go < 1 step per second
     #  Or a fractional amount of a step per second
     HOUR_HAND_BASE_SPEED = HOUR_HAND_STEPS_PER_REVOLUTION / (12 * 60 * 60)
     # Hour hand max speed. I don't feel comfortable sending it more than 0.5 rev / sec - 4150 steps/sec
@@ -114,31 +114,26 @@ class Clock:
         # or something along those lines. However, this will be fixed fairly quickly because it will only speed up for around
         # 1 second and then slow down again. This needs to be tested though
 
-        # If the clock is stopped, send it going for a revolution
-
-        if self.dpiStepper.getStepperStatus(self.HOUR_HAND_PIN)[1]:
-            self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, self.HOUR_HAND_STEPS_PER_REVOLUTION,
-                                                          False)
-            # print('Hour hand stopped, sending it around')
+        # If the minute hand is stopped, send it going for a revolution
 
         if self.dpiStepper.getStepperStatus(self.MINUTE_HAND_PIN)[1]:
             self.dpiStepper.moveToRelativePositionInSteps(self.MINUTE_HAND_PIN, self.MINUTE_HAND_STEPS_PER_REVOLUTION,
                                                           False)
 
         # Get current time
-        # t = localtime()
-        # hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
-        # # print(f'Hour: {t.tm_hour}, Minute: {t.tm_min}, Second: {t.tm_sec}')
-        #
-        # # Get current positions
-        # _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
-        # hourPosition = hourPosition % self.HOUR_HAND_STEPS_PER_REVOLUTION
-        # _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
-        # minutePosition = minutePosition % self.MINUTE_HAND_STEPS_PER_REVOLUTION
+        t = localtime()
+        hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
+        # print(f'Hour: {t.tm_hour}, Minute: {t.tm_min}, Second: {t.tm_sec}')
+
+        # Get current positions
+        _successFlg, hourPosition = self.dpiStepper.getCurrentPositionInSteps(self.HOUR_HAND_PIN)
+        hourPosition = hourPosition % self.HOUR_HAND_STEPS_PER_REVOLUTION
+        _successFlg, minutePosition = self.dpiStepper.getCurrentPositionInSteps(self.MINUTE_HAND_PIN)
+        minutePosition = minutePosition % self.MINUTE_HAND_STEPS_PER_REVOLUTION
 
         # Calculate the difference between the desired position and the current position
-        # hourDifference = hourToSteps - hourPosition
-        # minuteDifference = minuteToSteps - minutePosition
+        hourDifference = hourToSteps - hourPosition
+        minuteDifference = minuteToSteps - minutePosition
 
         # print(f'Hour difference: {hourDifference}')
         # print(f'HourToSteps: {hourToSteps}, HourPosition: {hourPosition}')
@@ -146,22 +141,20 @@ class Clock:
         # print(f'Minute difference: {minuteDifference}')
         # print(f'MinuteToSteps: {minuteToSteps}, MinutePosition: {minutePosition}')
 
-        # # If the difference is greater than 5% of total steps, adjust the speed
-        # if abs(hourDifference) > self.HOUR_HAND_STEPS_PER_REVOLUTION * 0.05:
-        #     print(f'speeding up hour hand by {hourDifference * 0.01} steps')
-        #     self.dpiStepper.setSpeedInStepsPerSecond(self.HOUR_HAND_PIN,
-        #                                              self.HOUR_HAND_BASE_SPEED + hourDifference * 0.01)
-        # else:
-        #     print(f'setting hour hand speed to {self.HOUR_HAND_BASE_SPEED}')
-        #     self.dpiStepper.setSpeedInStepsPerSecond(self.HOUR_HAND_PIN, self.HOUR_HAND_BASE_SPEED)
-        #
-        # if abs(minuteDifference) > self.MINUTE_HAND_STEPS_PER_REVOLUTION * 0.1:
-        #     print(f'speeding up minute hand by {minuteDifference * 0.01} steps')
-        #     self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN,
-        #                                              self.MINUTE_HAND_BASE_SPEED + minuteDifference * 0.01)
-        # else:
-        #     print(f'setting minute hand speed to {self.MINUTE_HAND_BASE_SPEED}')
-        #     self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_BASE_SPEED)
+        # If there is a difference in the hour hand, send it to the desired position
+        if hourDifference != 0:
+            print(f'Hour hand is off by {hourDifference} steps')
+            self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, hourDifference, False)
+        else:
+            print(f'Hour hand is at the correct position')
+
+        if abs(minuteDifference) > self.MINUTE_HAND_STEPS_PER_REVOLUTION * 0.1:
+            print(f'speeding up minute hand by {minuteDifference * 0.01} steps')
+            self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN,
+                                                     self.MINUTE_HAND_BASE_SPEED + minuteDifference * 0.01)
+        else:
+            print(f'setting minute hand speed to {self.MINUTE_HAND_BASE_SPEED}')
+            self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_BASE_SPEED)
 
 
     #--------------------------------    Helper functions    --------------------------------#
