@@ -23,12 +23,13 @@ robotManager = RobotManager([], [])
 
 
 def main():
-    sleep(5)
+    # sleep(5)
     initialPoint = (500, 260, -1350)
     finalPoint = (500, 172, -1350)
 
     # Run this with debugger, adding print statements as necessary
     waypoints, _ = robotManager.planZigZagMove(initialPoint, finalPoint)
+    waypoints = robotManager.ensureStraightLineCartesian(waypoints)
 
     print(f'RobotState: {robot.dpiRobot.getRobotStatus()} \n Stopped State: {robot.dpiRobot.STATE_STOPPED}')
 

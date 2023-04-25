@@ -299,6 +299,7 @@ class RobotManager:
         if currentR > self.maximumMovingR:
             # Move in towards the center
             waypoints.append((self.maximumMovingR, currentTheta, travelHeight))
+            currentR = self.maximumMovingR
 
         # Then, move next to and above the target location
         sign = 1 if currentTheta > targetTheta else -1
@@ -369,7 +370,7 @@ class RobotManager:
                 continue
 
             # Get the angle between the current and next waypoint
-            angleRadians = np.arctan2(nextY - currentY, nextX - currentX)
+            angleRadians = np.rad2deg(np.arctan2(nextY - currentY, nextX - currentX))
             rawAngle = angleRadians
 
             # Get the angle to zig-zag at
@@ -379,32 +380,30 @@ class RobotManager:
             # Split the move up into segments of length zigZagDistance
             # If the move is less than zigZagDistance, do a small zig-zag
             if distance < zigZagDistance:
-                intermediateX = currentX + distance / 2 * np.cos(angleRadians)
-                intermediateY = currentY + distance / 2 * np.sin(angleRadians)
+                intermediateX = currentX + distance / 2 * np.cos(np.deg2rad(angleRadians))
+                intermediateY = currentY + distance / 2 * np.sin(np.deg2rad(angleRadians))
                 intermediateZ = currentZ
                 intermediatePoint = constants.cartesianToPolar((intermediateX, intermediateY, intermediateZ))
                 zigZagDict[i] = intermediatePoint
 
             else:
-                numSegments = int(distance / zigZagDistance)
+                numSegments = round(distance / zigZagDistance)
                 intermediateStoppingPoints = []
 
                 # Get the points for the "ends" of the zig-zag
-                for j in range(numSegments - 1):
-                    stoppingX = currentX + zigZagDistance * (j + 1) * np.cos(rawAngle)
-                    stoppingY = currentY + zigZagDistance * (j + 1) * np.sin(rawAngle)
+                for j in range(numSegments):
+                    stoppingX = currentX + zigZagDistance * (j + 1) * np.cos(np.deg2rad(rawAngle))
+                    stoppingY = currentY + zigZagDistance * (j + 1) * np.sin(np.deg2rad(rawAngle))
                     stoppingZ = currentZ
 
                     intermediateStoppingPoints.append((stoppingX, stoppingY, stoppingZ))
-
-                intermediateStoppingPoints.append((nextX, nextY, nextZ))
 
 
                 # Create a list for this zig-zag
                 zigZagManyList = []
                 for j in range(numSegments):
-                    intermediateX = currentX + zigZagDistance * (j + 1) / 2 * np.cos(angleRadians)
-                    intermediateY = currentY + zigZagDistance * (j + 1) / 2 * np.sin(angleRadians)
+                    intermediateX = currentX + zigZagDistance * (j + 1) / 2 * np.cos(np.deg2rad(angleRadians))
+                    intermediateY = currentY + zigZagDistance * (j + 1) / 2 * np.sin(np.deg2rad(angleRadians))
                     intermediateZ = currentZ
 
 
@@ -415,6 +414,8 @@ class RobotManager:
                     intermediatePoint = constants.cartesianToPolar((intermediateX, intermediateY, intermediateZ))
                     zigZagManyList.append(intermediatePoint)
                     zigZagManyList.append(constants.cartesianToPolar((currentX, currentY, currentZ)))
+
+
 
                 zigZagDict[i] = zigZagManyList
 
