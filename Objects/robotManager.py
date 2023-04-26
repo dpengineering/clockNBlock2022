@@ -95,7 +95,7 @@ class RobotManager:
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
             print('Robot arm polar move to feeder')
-            waypoints, _checkUpUntilIndex = self.planStraightMove(robotPos, finalLocation)
+            waypoints, _checkUpUntilIndex = self.planPolarMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
 
         elif funThingToDo == ZigZag:
@@ -149,7 +149,7 @@ class RobotManager:
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
             print('Robot arm polar move to build site')
-            waypoints, _checkUpUntilIndex = self.planStraightMove(robotPos, finalLocation)
+            waypoints, _checkUpUntilIndex = self.planPolarMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
 
         elif funThingToDo == ZigZag:
@@ -274,6 +274,28 @@ class RobotManager:
         buildSite = np.random.choice(readyBuildSites, p=weights)
 
         return buildSite
+
+    def planPolarMove(self, currentPos: tuple, targetPos: tuple) -> tuple:
+        waypoints = []
+        currentR, currentTheta, currentZ = currentPos
+        targetR, targetTheta, targetZ = targetPos
+        if currentZ < -1400:
+            travelHeight = currentZ + 100
+        else:
+            travelHeight = currentZ + 20
+
+        # The first move will always be moving up.
+        waypoints.append((currentR, currentTheta, travelHeight))
+
+        # Move inwards to 300mm if needed
+        if currentR > self.maximumMovingR - 100:
+            waypoints.append((self.maximumMovingR - 100, currentTheta, travelHeight))
+
+        # Get straight move
+        straightMove, _ = self.planStraightMove(waypoints[-1], targetPos)
+        waypoints.extend(straightMove)
+
+        return waypoints
 
     def planStraightMove(self, currentPos: tuple, targetPos: tuple) -> tuple[list, int]:
         """ Plans a path from the current position to the target position
