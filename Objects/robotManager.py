@@ -65,8 +65,8 @@ class RobotManager:
         GetRandomBlock = False
 
         # Choose a fun thing to do
-        # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral])
-        funThingToDo = np.random.choice([Nothing, PolarMove, Circle])
+        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Circle])
+        # funThingToDo = np.random.choice([Nothing, PolarMove, Circle])
 
         # Decide if we want to get a random block, this has a 5% chance of happening
         if np.random.random() < 0.05:
@@ -132,8 +132,8 @@ class RobotManager:
         FakePlacement = 4
 
         # Choose a fun thing to do
-        # funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Spiral, FakePlacement])
-        funThingToDo = np.random.choice([Nothing, PolarMove, Circle, FakePlacement])
+        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Circle, FakePlacement])
+        # funThingToDo = np.random.choice([Nothing, PolarMove, Circle, FakePlacement])
 
         # Get the buildSite to move to
         buildSite = self.chooseBuildSite(clockPos)
@@ -228,7 +228,7 @@ class RobotManager:
         # Get a list of all the build sites that are ready
         readyBuildSites = [buildSite for buildSite in self.buildSites if buildSite.isReadyFlg]
 
-        print(f'Ready build sites: {[buildSite.index for buildSite in readyBuildSites]}')
+        print(f'Ready build sites: {[buildSite.buildSiteNumber for buildSite in readyBuildSites]}')
 
         # If there are no ready build sites, return None
         if len(readyBuildSites) == 0:
@@ -348,37 +348,36 @@ class RobotManager:
         zigZagDistance = 200  # The threshold for when to zig-zag in mm
         zigZagAngleRange = (30, 60)  # The angle to zig-zag at
         zigZagAngle = np.random.randint(zigZagAngleRange[0], zigZagAngleRange[1])  # The angle to zig-zag at
-        print(f'Zig-zag angle: {zigZagAngle}')
+        # print(f'Zig-zag angle: {zigZagAngle}')
 
         # As this is a zig-zag, we just need to alter all the straight moves
         # Get the waypoints for a straight move
-        # waypoints, checkWaypointsUpUntil = self.planStraightMove(currentPos, targetPos)
+        waypoints, checkWaypointsUpUntil = self.planStraightMove(currentPos, targetPos)
 
-        waypoints = [currentPos, targetPos]
-        print(f'Waypoints: {waypoints}')
-        checkWaypointsValue = waypoints[1]
+        # print(f'Waypoints: {waypoints}')
+        checkWaypointsValue = waypoints[checkWaypointsUpUntil - 1]
 
         zigZagDict = {}
         # Loop through the waypoints and alter the moves
         for i in range(len(waypoints) - 1):
             # Get the current and next waypoint cartesian coordinates
             initialPoint = constants.polarToCartesian(waypoints[i])
-            print(f'Initial point: {initialPoint}')
+            # print(f'Initial point: {initialPoint}')
 
             finalPoint = constants.polarToCartesian(waypoints[i + 1])
-            print(f'Final point: {finalPoint}')
+            # print(f'Final point: {finalPoint}')
 
             # Represent our move as a vector in the form v0 + t * d
             # Where v0 is the starting point, d is the direction vector and t is a scalar corresponding to the distance
             v0 = np.array(initialPoint)
             d = (np.array(finalPoint) - v0) / np.linalg.norm(np.array(finalPoint) - v0)
-            print(f'Direction: {d}')
+            # print(f'Direction: {d}')
             t = np.linalg.norm(np.array(finalPoint) - v0)
-            print(f'Distance: {t}')
+            # print(f'Distance: {t}')
 
             # Get regular angle between the two start and end points
             angle = np.rad2deg(np.arctan2(finalPoint[1] - initialPoint[1], finalPoint[0] - initialPoint[0]))
-            print(f'Angle: {angle}')
+            # print(f'Angle: {angle}')
 
             # Get the two direction vectors for the zig-zag
             # The first one is at the zig-zag angle
@@ -387,9 +386,9 @@ class RobotManager:
             zigZagDirection0 = np.array([np.cos(np.deg2rad(angle + zigZagAngle)), np.sin(np.deg2rad(angle + zigZagAngle)), d[2]])
             zigZagDirection1 = np.array([np.cos(np.deg2rad(zigZagAngle - angle)), np.sin(np.deg2rad(zigZagAngle - angle)), d[2]])
 
-            print(f'zigZagDirection0: {zigZagDirection0}')
-            print(f'zigZagDirection1: {zigZagDirection1}')
-            print(f'direction: {d}')
+            # print(f'zigZagDirection0: {zigZagDirection0}')
+            # print(f'zigZagDirection1: {zigZagDirection1}')
+            # print(f'direction: {d}')
 
             # Split the move up into segments of length zigZagDistance
             # If the move is less than zigZagDistance, do a single zig-zag
@@ -432,17 +431,17 @@ class RobotManager:
 
 
                 # Verify this is our target point.
-                print(f'Zig zag final cartesian point: {intermediateStoppingPoints[-1]}')
+                # print(f'Zig zag final cartesian point: {intermediateStoppingPoints[-1]}')
                 intermediateStoppingPoints = [constants.cartesianToPolar(point) for point in intermediateStoppingPoints]
-                print(f'Final point: {waypoints[i + 1]}')
-                print(f'Zig zag final point: {intermediateStoppingPoints[-1]}')
+                # print(f'Final point: {waypoints[i + 1]}')
+                # print(f'Zig zag final point: {intermediateStoppingPoints[-1]}')
 
                 # assert np.allclose(intermediateStoppingPoints[-1], waypoints[i+1], atol=10)
                 zigZagDict[i] = intermediateStoppingPoints
 
 
         for key in zigZagDict:
-            waypoints = waypoints[:key] + zigZagDict[key] + waypoints[key + 1:]
+            waypoints = waypoints[:key + 1] + zigZagDict[key] + waypoints[key + 1:]
 
         checkWaypointsUpUntil = waypoints.index(checkWaypointsValue)
 

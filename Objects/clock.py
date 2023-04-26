@@ -143,17 +143,17 @@ class Clock:
 
         # If there is a difference in the hour hand, send it to the desired position
         if hourDifference != 0:
-            print(f'Hour hand is off by {hourDifference} steps')
+            # print(f'Hour hand is off by {hourDifference} steps')
             self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, hourDifference, False)
-        else:
-            print(f'Hour hand is at the correct position')
+        # else:
+            # print(f'Hour hand is at the correct position')
 
         if abs(minuteDifference) > self.MINUTE_HAND_STEPS_PER_REVOLUTION * 0.1:
-            print(f'speeding up minute hand by {minuteDifference * 0.01} steps')
+            # print(f'speeding up minute hand by {minuteDifference * 0.01} steps')
             self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN,
                                                      self.MINUTE_HAND_BASE_SPEED + minuteDifference * 0.01)
         else:
-            print(f'setting minute hand speed to {self.MINUTE_HAND_BASE_SPEED}')
+            # print(f'setting minute hand speed to {self.MINUTE_HAND_BASE_SPEED}')
             self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_BASE_SPEED)
 
 
