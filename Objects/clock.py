@@ -123,6 +123,9 @@ class Clock:
         # Get current time
         t = localtime()
         hourToSteps, minuteToSteps = self.convertTimeToSteps(t.tm_hour, t.tm_min, t.tm_sec)
+        hourToSteps = hourToSteps % self.HOUR_HAND_STEPS_PER_REVOLUTION
+        minuteToSteps = minuteToSteps % self.MINUTE_HAND_STEPS_PER_REVOLUTION
+
         # print(f'Hour: {t.tm_hour}, Minute: {t.tm_min}, Second: {t.tm_sec}')
 
         # Get current positions
