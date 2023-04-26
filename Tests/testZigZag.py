@@ -29,7 +29,9 @@ def main():
 
     # Run this with debugger, adding print statements as necessary
     waypoints, _ = robotManager.planZigZagMove(initialPoint, finalPoint)
+    print(f'Waypoints before straightening: {waypoints}')
     waypoints = robotManager.ensureStraightLineCartesian(waypoints)
+    print(f'Waypoints after straightening: {waypoints}')
 
     print(f'RobotState: {robot.dpiRobot.getRobotStatus()} \n Stopped State: {robot.dpiRobot.STATE_STOPPED}')
 

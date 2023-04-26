@@ -344,7 +344,6 @@ class RobotManager:
         Returns:
             waypoints (list): List of waypoints to travel to
         """
-        sign = np.random.choice([-1, 1])
 
         zigZagDistance = 100  # The threshold for when to zig-zag in mm
         zigZagAngleRange = (30, 60)  # The angle to zig-zag at
@@ -376,8 +375,8 @@ class RobotManager:
             rotationMatrix = np.array([[np.cos(np.deg2rad(zigZagAngle)), -np.sin(np.deg2rad(zigZagAngle))],
                                         [np.sin(np.deg2rad(zigZagAngle)), np.cos(np.deg2rad(zigZagAngle))]])
 
-            zigZagDirection0 = rotationMatrix @ d
-            zigZagDirection1 = -rotationMatrix @ d
+            zigZagDirection0 = rotationMatrix @ d[0:2]
+            zigZagDirection1 = -rotationMatrix @ d[0:2]
 
             # Split the move up into segments of length zigZagDistance
             # If the move is less than zigZagDistance, do a single zig-zag
@@ -393,8 +392,8 @@ class RobotManager:
 
                 # Get the first move
                 dist = stepDistance / 2
-                point = v0 + dist * zigZagDirection0
-                intermediateStoppingPoints.append(constants.cartesianToPolar(point))
+                point0 = v0 + dist * zigZagDirection0
+                intermediateStoppingPoints.append(constants.cartesianToPolar(point0))
 
                 for j in range(numSteps - 2):
                     # Every other move follows this scheme
