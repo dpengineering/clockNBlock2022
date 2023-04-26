@@ -99,7 +99,7 @@ class RobotArm:
             # In this state, we will need to rotate the block before we pick it up
             # This does break our method for having the states be do something -> wait -> next state
             # But this also saves us from having to create a whole new state to rotate the block
-            elif time.time() - self.start > 0.5 and self.rotationPositionFlg:
+            elif time.time() - self.start > 0.5 and self.rotationPositionFlg and self.robotManager.blockRotationFlg:
                 self.rotate()
                 # print('rotated')
                 return None
@@ -139,7 +139,7 @@ class RobotArm:
             # In this state, we will need to rotate the block after it clear the hole
             # This does break our method for having the states be do something -> wait -> next state
             # But this also saves us from having to create a whole new state to rotate the block
-            elif time.time() - self.start > 0.5 and not self.rotationPositionFlg:
+            elif time.time() - self.start > 0.5 and not self.rotationPositionFlg and self.robotManager.blockRotationFlg:
                 self.rotate()
                 # print('rotated')
                 return None

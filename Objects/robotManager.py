@@ -48,6 +48,7 @@ class RobotManager:
         self.offSetAngle = 20
 
         self.maximumMovingR = constants.maximumMovingRadius
+        self.blockRotationFlg = True
 
     def moveToFeeder(self, robotPos):
         """Moves to a feeder
@@ -83,6 +84,7 @@ class RobotManager:
             buildSite = np.random.choice(buildSitesWithBlocks)
             buildSite.currentBlock -= 1
             finalLocation = buildSite.blockPlacements[buildSite.currentBlock]
+            self.blockRotationFlg = False
             print(f'Robot arm getting random block from build site {buildSite.buildSiteNumber}')
         else:
             # Find a feeder with blocks
@@ -91,11 +93,12 @@ class RobotManager:
                 return None
             finalLocation = feeder.location
             print(f'Robot arm moving to feeder {feeder.index}')
+            self.blockRotationFlg = True
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
             print('Robot arm polar move to feeder')
-            waypoints, _checkUpUntilIndex = self.planPolarMove(robotPos, finalLocation)
+            waypoints = self.planPolarMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
 
         elif funThingToDo == ZigZag:
@@ -124,6 +127,7 @@ class RobotManager:
             waypoints (list): List of waypoints for the robot arm to follow
         """
 
+
         # Different fun things we can do:
         Nothing = 0
         PolarMove = 1
@@ -149,7 +153,7 @@ class RobotManager:
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
             print('Robot arm polar move to build site')
-            waypoints, _checkUpUntilIndex = self.planPolarMove(robotPos, finalLocation)
+            waypoints = self.planPolarMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
 
         elif funThingToDo == ZigZag:
@@ -275,7 +279,7 @@ class RobotManager:
 
         return buildSite
 
-    def planPolarMove(self, currentPos: tuple, targetPos: tuple) -> tuple:
+    def planPolarMove(self, currentPos: tuple, targetPos: tuple) -> list:
         waypoints = []
         currentR, currentTheta, currentZ = currentPos
         targetR, targetTheta, targetZ = targetPos
