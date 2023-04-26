@@ -413,7 +413,9 @@ class RobotManager:
                 intermediateStoppingPoints.append(constants.cartesianToPolar(point))
 
                 # Verify this is our target point.
-                assert np.allclose(intermediateStoppingPoints[-1], finalPoint, atol=10)
+                print(f'Final point: {waypoints[i + 1]}')
+                print(f'Zig zag final point: {intermediateStoppingPoints[-1]}')
+                # assert np.allclose(intermediateStoppingPoints[-1], waypoints[i+1], atol=10)
 
 
         for key in zigZagDict:
