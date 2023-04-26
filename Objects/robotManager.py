@@ -345,16 +345,16 @@ class RobotManager:
             waypoints (list): List of waypoints to travel to
         """
 
-        zigZagDistance = 200  # The threshold for when to zig-zag in mm
+        zigZagDistance = 300  # The threshold for when to zig-zag in mm
         zigZagAngleRange = (30, 60)  # The angle to zig-zag at
         zigZagAngle = np.random.randint(zigZagAngleRange[0], zigZagAngleRange[1])  # The angle to zig-zag at
-        # print(f'Zig-zag angle: {zigZagAngle}')
+        print(f'Zig-zag angle: {zigZagAngle}')
 
         # As this is a zig-zag, we just need to alter all the straight moves
         # Get the waypoints for a straight move
         waypoints, checkWaypointsUpUntil = self.planStraightMove(currentPos, targetPos)
 
-        # print(f'Waypoints: {waypoints}')
+        print(f'Waypoints: {waypoints}')
         checkWaypointsValue = waypoints[checkWaypointsUpUntil - 1]
 
         zigZagDict = {}
@@ -362,22 +362,23 @@ class RobotManager:
         for i in range(len(waypoints) - 1):
             # Get the current and next waypoint cartesian coordinates
             initialPoint = constants.polarToCartesian(waypoints[i])
-            # print(f'Initial point: {initialPoint}')
+            print(f'Initial point: {initialPoint}')
 
             finalPoint = constants.polarToCartesian(waypoints[i + 1])
-            # print(f'Final point: {finalPoint}')
+            print(f'Final point: {finalPoint}')
 
             # Represent our move as a vector in the form v0 + t * d
             # Where v0 is the starting point, d is the direction vector and t is a scalar corresponding to the distance
             v0 = np.array(initialPoint)
             d = (np.array(finalPoint) - v0) / np.linalg.norm(np.array(finalPoint) - v0)
-            # print(f'Direction: {d}')
+            d[2] = 0
+            print(f'Direction: {d}')
             t = np.linalg.norm(np.array(finalPoint) - v0)
-            # print(f'Distance: {t}')
+            print(f'Distance: {t}')
 
             # Get regular angle between the two start and end points
             angle = np.rad2deg(np.arctan2(finalPoint[1] - initialPoint[1], finalPoint[0] - initialPoint[0]))
-            # print(f'Angle: {angle}')
+            print(f'Angle: {angle}')
 
             # Get the two direction vectors for the zig-zag
             # The first one is at the zig-zag angle
@@ -386,20 +387,18 @@ class RobotManager:
             zigZagDirection0 = np.array([np.cos(np.deg2rad(angle + zigZagAngle)), np.sin(np.deg2rad(angle + zigZagAngle)), d[2]])
             zigZagDirection1 = np.array([np.cos(np.deg2rad(zigZagAngle - angle)), np.sin(np.deg2rad(zigZagAngle - angle)), d[2]])
 
-            # print(f'zigZagDirection0: {zigZagDirection0}')
-            # print(f'zigZagDirection1: {zigZagDirection1}')
-            # print(f'direction: {d}')
+            print(f'zigZagDirection0: {zigZagDirection0}')
+            print(f'zigZagDirection1: {zigZagDirection1}')
+            print(f'direction: {d}')
 
             # Split the move up into segments of length zigZagDistance
             # If the move is less than zigZagDistance, do a single zig-zag
             if t < zigZagDistance:
-                dist = t / 2
-                length = dist / np.cos(np.deg2rad(zigZagAngle))
-                point = v0 + length * zigZagDirection0
-                zigZagDict[i] = [constants.cartesianToPolar(point)]
+                print(f'passing')
+                continue
 
             else:
-                numSteps = round(t / zigZagDistance)
+                numSteps = round(t / (zigZagDistance / 2))
                 stepDistance = t / numSteps
                 lineDistance = stepDistance / 2 / np.cos(np.deg2rad(zigZagAngle))
                 intermediateStoppingPoints = []
@@ -431,10 +430,10 @@ class RobotManager:
 
 
                 # Verify this is our target point.
-                # print(f'Zig zag final cartesian point: {intermediateStoppingPoints[-1]}')
+                print(f'Zig zag final cartesian point: {intermediateStoppingPoints[-1]}')
                 intermediateStoppingPoints = [constants.cartesianToPolar(point) for point in intermediateStoppingPoints]
-                # print(f'Final point: {waypoints[i + 1]}')
-                # print(f'Zig zag final point: {intermediateStoppingPoints[-1]}')
+                print(f'Final point: {waypoints[i + 1]}')
+                print(f'Zig zag final point: {intermediateStoppingPoints[-1]}')
 
                 # assert np.allclose(intermediateStoppingPoints[-1], waypoints[i+1], atol=10)
                 zigZagDict[i] = intermediateStoppingPoints
@@ -499,7 +498,7 @@ class RobotManager:
             currentTheta = currentTheta % 360
 
         # Move along the circle to the target theta
-        for i in range(currentTheta, targetTheta):
+        for i in range(int(currentTheta), int(targetTheta)):
             waypoints.append((circleRadius, i, travelHeight))
 
 
