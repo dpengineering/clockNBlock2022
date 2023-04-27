@@ -5,6 +5,8 @@ Please request access if you would like to change the doc or check things off.
 
 # ClockNBlock 2022 Version
 Written by `@ArnavVWadhwa` and `@bvesper15` this is the new version of the clockNBlock project with the "shiny new delta arm." The major changes this year was to the circuit boards used. We added `@Stan-Reifel's` new DPi Circuit boards and redid the wiring. 
+  
+The code is also completely brand new and this is the third version of the code I have written. I hope it holds up to a good standard.
 
 For any questions with the project feel free to reach out me.  
 Arnav Wadhwa:  
@@ -33,3 +35,5 @@ Now you come into the story, young squire. Your task is to tame the Arm of Delta
 
 Sincerely,
 James "Petey/Stagflation/jproney" Roney
+
+P.S. I did most (all) of these - Arnav

@@ -3,7 +3,7 @@
 The software has been written in an object-oriented style because I am a Java guy
 and this is how I code. Feel free to change this though.  
 
-## State Machine
+## Finite State Machine
 All the components have what are called state-machines. This eliminates the need for small loops and allows
 for constant checking of each object. Every state in the state machine has three components:  
 
