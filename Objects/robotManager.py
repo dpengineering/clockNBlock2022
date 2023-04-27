@@ -543,8 +543,11 @@ class RobotManager:
             path, _extra = self.planStraightMove(currentPos, targetPos)
             waypoints += path
             currentPos = targetPos
+            # For a bit of a delay (only a few microseconds are necessary)
+            for _ in range(5):
+                waypoints.append(targetPos)
 
-        print(waypoints)
+        # print(waypoints)
         return waypoints
 
     @staticmethod

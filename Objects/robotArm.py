@@ -195,7 +195,7 @@ class RobotArm:
         return x, y, z
 
     def getPositionPolar(self) -> tuple:
-        """Returns the current position of the robot arm in radians"""
+        """Returns the current position of the robot arm in polar coordinates"""
         x, y, z = self.getPositionCartesian()
         r, theta, z = constants.cartesianToPolar((x, y, z))
         return r, theta, z
@@ -226,7 +226,7 @@ class RobotArm:
             speed (int): How fast to move robot
             robotState (int): Robot state given by DPiRobot board
         Returns:
-            none
+            True if waypoints were queued successfully
         """
         if robotState == self.dpiRobot.STATE_STOPPED:
             self.dpiRobot.bufferWaypointsBeforeStartingToMove(True)
