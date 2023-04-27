@@ -462,6 +462,14 @@ class RobotManager:
                 # print(f'Zig zag final point: {intermediateStoppingPoints[-1]}')
 
                 # assert np.allclose(intermediateStoppingPoints[-1], waypoints[i+1], atol=10)
+
+                # Avoid hitting the poles
+                for k, point in enumerate(intermediateStoppingPoints):
+                    R, Theta, Z = point
+
+                    if R > constants.maximumMovingRadius:
+                        intermediateStoppingPoints[k] = (constants.maximumMovingRadius, Theta, Z)
+
                 zigZagDict[i] = intermediateStoppingPoints
 
 
@@ -485,6 +493,7 @@ class RobotManager:
 
         for key in dodgeDict:
             waypoints = waypoints[:key] + dodgeDict[key] + waypoints[key + 2:]
+
 
         return waypoints, checkWaypointsUpUntil
 
