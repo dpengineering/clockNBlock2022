@@ -330,7 +330,8 @@ class RobotManager:
                     dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point, direction)
 
         for key in dodgeDict:
-            waypoints = waypoints[:key] + dodgeDict[key] + waypoints[key + 1:]
+            print('Dodge')
+            waypoints = waypoints[:key + 1] + dodgeDict[key] + waypoints[key + 1:]
 
         return waypoints, checkWaypointsUpUntil
 
@@ -464,7 +465,8 @@ class RobotManager:
                     dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point, direction)
 
         for key in dodgeDict:
-            waypoints = waypoints[:key] + dodgeDict[key] + waypoints[key + 2:]
+            print('dodging')
+            waypoints = waypoints[:key + 1] + dodgeDict[key] + waypoints[key + 1:]
 
 
         return waypoints, checkWaypointsUpUntil
