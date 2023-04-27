@@ -133,10 +133,9 @@ class RobotManager:
         PolarMove = 1
         ZigZag = 2
         Circle = 3
-        FakePlacement = 4
 
         # Choose a fun thing to do
-        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Circle, FakePlacement])
+        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Circle])
         # funThingToDo = np.random.choice([Nothing, PolarMove, Circle, FakePlacement])
 
         # Get the buildSite to move to
@@ -164,32 +163,6 @@ class RobotManager:
         elif funThingToDo == Circle:
             print('Robot arm circle move to build site')
             waypoints = self.planCircle(robotPos, finalLocation)
-            waypoints = self.ensureStraightLineCartesian(waypoints)
-
-        elif funThingToDo == FakePlacement:
-            print('Robot arm fake placement move to build site')
-            # Create our list of locations. We know our final location, so we just choose other build open build sites
-
-            # Get a list of all ready build sites
-            readyBuildSites = [buildSite for buildSite in self.buildSites if buildSite.isReadyFlg]
-
-            # remove the build site we are going to
-            readyBuildSites.remove(buildSite)
-
-            # Choose 1-2 random build sites if we have more than 1
-            if len(readyBuildSites) > 1:
-                numBuildSites = np.random.choice([1, 2])
-                randomBuildSites = np.random.choice(readyBuildSites, numBuildSites, replace=True)
-                randomBuildSites = [buildSite.blockPlacements[buildSite.currentBlock] for buildSite in randomBuildSites]
-            else:
-                randomBuildSites = readyBuildSites
-                randomBuildSites = [buildSite.blockPlacements[buildSite.currentBlock] for buildSite in randomBuildSites]
-
-            # Add the final location to the list
-            randomBuildSites = list(randomBuildSites)
-            randomBuildSites.append(finalLocation)
-
-            waypoints = self.planFakePlacement(robotPos, randomBuildSites)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
         else:
@@ -282,7 +255,6 @@ class RobotManager:
     def planPolarMove(self, currentPos: tuple, targetPos: tuple) -> list:
         waypoints = []
         currentR, currentTheta, currentZ = currentPos
-        targetR, targetTheta, targetZ = targetPos
         if currentZ < -1400:
             travelHeight = currentZ + 100
         else:
@@ -325,7 +297,7 @@ class RobotManager:
         if currentR > self.maximumMovingR:
             # Move in towards the center
             waypoints.append((self.maximumMovingR, currentTheta, travelHeight))
-            currentR = self.maximumMovingR
+
 
         # Then, move next to and above the target location
         sign = 1 if currentTheta > targetTheta else -1
@@ -542,21 +514,6 @@ class RobotManager:
 
         waypoints += pathToTarget
 
-        return waypoints
-
-    def planFakePlacement(self, currentPos, targetPositions: list[tuple]) -> list:
-        # This one is just a string of straight moves.
-        waypoints = []
-        # print(f'Target positions: {targetPositions}')
-        for targetPos in targetPositions:
-            path, _extra = self.planStraightMove(currentPos, targetPos)
-            waypoints += path
-            currentPos = targetPos
-            # For a bit of a delay (only a few microseconds are necessary)
-            for _ in range(5):
-                waypoints.append(targetPos)
-
-        # print(waypoints)
         return waypoints
 
     @staticmethod

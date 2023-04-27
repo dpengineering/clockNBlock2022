@@ -28,7 +28,7 @@ class Clock:
     MINUTE_HAND_GEAR_REDUCTION = 204  # Gear reduction is 204:1
     MINUTE_HAND_STEPS_PER_REVOLUTION = int(200 * MICROSTEPPING * MINUTE_HAND_GEAR_REDUCTION * 1.002)  # 326400
     # Base minute hand speed, 1 revolution per hour, about 90.6 steps per second
-    MINUTE_HAND_BASE_SPEED = MINUTE_HAND_STEPS_PER_REVOLUTION // (60 * 60)
+    MINUTE_HAND_BASE_SPEED = MINUTE_HAND_STEPS_PER_REVOLUTION / (60 * 60 * 2)
     MINUTE_HAND_MAX_SPEED = 20000
     MINUTE_HAND_ACCELERATION = MINUTE_HAND_MAX_SPEED // 4
 
@@ -136,7 +136,7 @@ class Clock:
 
         # Calculate the difference between the desired position and the current position
         hourDifference = hourToSteps - hourPosition
-        minuteDifference = minuteToSteps - minutePosition
+        # minuteDifference = minuteToSteps - minutePosition
 
         # print(f'Hour difference: {hourDifference}')
         # print(f'HourToSteps: {hourToSteps}, HourPosition: {hourPosition}')
@@ -151,13 +151,13 @@ class Clock:
         # else:
             # print(f'Hour hand is at the correct position')
 
-        if abs(minuteDifference) > self.MINUTE_HAND_STEPS_PER_REVOLUTION * 0.1:
-            # print(f'speeding up minute hand by {minuteDifference * 0.01} steps')
-            self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN,
-                                                     self.MINUTE_HAND_BASE_SPEED + minuteDifference * 0.01)
-        else:
-            # print(f'setting minute hand speed to {self.MINUTE_HAND_BASE_SPEED}')
-            self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_BASE_SPEED)
+        # if abs(minuteDifference) > self.MINUTE_HAND_STEPS_PER_REVOLUTION * 0.1:
+        #     # print(f'speeding up minute hand by {minuteDifference * 0.01} steps')
+        #     self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN,
+        #                                              self.MINUTE_HAND_BASE_SPEED + minuteDifference * 0.01)
+        # else:
+        #     # print(f'setting minute hand speed to {self.MINUTE_HAND_BASE_SPEED}')
+        #     self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, self.MINUTE_HAND_BASE_SPEED)
 
 
     #--------------------------------    Helper functions    --------------------------------#

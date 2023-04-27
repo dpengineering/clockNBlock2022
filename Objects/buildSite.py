@@ -87,8 +87,8 @@ class BuildSite:
 
     def updateReadyFlg(self, minuteHandPosition: float) -> None:
 
-        # If the minute hand is within 30 degrees of the build site, we are not ready
-        if abs(self.location0[1] - minuteHandPosition) < constants.clockDeadZone:
+        # If the minute hand is within x degrees of the build site, we are not ready
+        if abs(self.location0[1] - minuteHandPosition) < constants.clockDeadZone or abs(self.location1[1] - minuteHandPosition) > 360 - constants.clockDeadZone:
             self.isReadyFlg = False
             self.currentBlock = 0
             return
