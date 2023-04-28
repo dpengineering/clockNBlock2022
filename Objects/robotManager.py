@@ -467,6 +467,7 @@ class RobotManager:
         for key in dodgeDict:
             print('dodging')
             waypoints = waypoints[:key + 1] + dodgeDict[key] + waypoints[key + 1:]
+            print(f'Waypoints: {waypoints}')
 
 
         return waypoints, checkWaypointsUpUntil

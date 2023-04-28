@@ -151,9 +151,9 @@ class Clock:
             # print(f'Hour hand is off by {hourDifference} steps')
             self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, hourDifference, False)
 
-        print(f'Minute hand speed: {self.dpiStepper.getCurrentVelocityInStepsPerSecond(self.MINUTE_HAND_PIN)}')
-        print(f'Minute Hand is off by {minutePosition - minuteToSteps} steps')
-        print(f'Minute Hand Position: {minutePosition}, Minute To Steps: {minuteToSteps}')
+        # print(f'Minute hand speed: {self.dpiStepper.getCurrentVelocityInStepsPerSecond(self.MINUTE_HAND_PIN)}')
+        # print(f'Minute Hand is off by {minutePosition - minuteToSteps} steps')
+        # print(f'Minute Hand Position: {minutePosition}, Minute To Steps: {minuteToSteps}')
 
         # else:
             # print(f'Hour hand is at the correct position')
@@ -174,7 +174,7 @@ class Clock:
         """Sets the speed of the hands"""
         hourHand = self.dpiStepper.setSpeedInStepsPerSecond(self.HOUR_HAND_PIN, hourHandSpeed)
         minuteHand = self.dpiStepper.setSpeedInStepsPerSecond(self.MINUTE_HAND_PIN, minuteHandSpeed)
-        return hourHand and minuteHand
+        assert hourHand and minuteHand, 'Failed to set speeds'
 
     def moveToPositionsRelative(self, hourHandPosition=None, minuteHandPosition=None, waitFlg=False) -> None:
         """Moves the hands to the given positions"""
