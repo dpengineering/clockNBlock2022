@@ -133,13 +133,14 @@ class RobotManager:
         PolarMove = 1
         ZigZag = 2
         Circle = 3
+        FakePlacement = False
 
         # Choose a fun thing to do
-        funThingToDo = np.random.choice([Nothing, PolarMove, ZigZag, Circle])
-        # funThingToDo = np.random.choice([Nothing, PolarMove, Circle, FakePlacement])
+        funThingToDo = np.random.choice([Nothing, PolarMove, Circle])
 
         # Get the buildSite to move to
         buildSite = self.chooseBuildSite(clockPos)
+
 
         # If there are no build sites, return None
         if buildSite is None:
@@ -148,6 +149,37 @@ class RobotManager:
         finalLocation = buildSite.placeNextBlock()
         if finalLocation is None:
             return None
+
+        # Decide if we want to do a fake placement, this has a 5% chance of happening
+        if np.random.random() < 0.05:
+            FakePlacement = True
+
+        if FakePlacement:
+            print('Robot arm fake placement move to build site')
+            # Create our list of locations. We know our final location, so we just choose other build open build sites
+
+            # Get a list of all ready build sites
+            readyBuildSites = [buildSite for buildSite in self.buildSites if buildSite.isReadyFlg]
+
+            # remove the build site we are going to
+            readyBuildSites.remove(buildSite)
+
+            # Choose 1-2 random build sites if we have more than 1
+            if len(readyBuildSites) > 1:
+                numBuildSites = np.random.choice([1, 2])
+                randomBuildSites = np.random.choice(readyBuildSites, numBuildSites, replace=True)
+                randomBuildSites = [buildSite.blockPlacements[buildSite.currentBlock] for buildSite in randomBuildSites]
+            else:
+                randomBuildSites = readyBuildSites
+                randomBuildSites = [buildSite.blockPlacements[buildSite.currentBlock] for buildSite in randomBuildSites]
+
+            # Add the final location to the list
+            randomBuildSites = list(randomBuildSites)
+            randomBuildSites.append(finalLocation)
+
+            waypoints = self.planFakePlacement(robotPos, randomBuildSites)
+            waypoints = self.ensureStraightLineCartesian(waypoints)
+            return waypoints
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
@@ -317,21 +349,23 @@ class RobotManager:
         waypoints.append((targetR, targetTheta, targetZ))
 
         # Check if we are intersecting any obstacles
-        dodgeDict = {}
-        for building in self.buildSites:
-            obstacle = building.intersectionRectangle
-            for i in range(checkWaypointsUpUntil - 1):
-                # Check if the line intersects the obstacle
-                intersection, point = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
-                if intersection:
-                    print("Found intersection")
-                    # If it does, we need to dodge it
-                    direction = np.random.choice([0, 1])
-                    dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point, direction)
+        if self.buildSites is not None:
+            maxZ = -np.inf
+            for building in self.buildSites:
+                obstacle = building.intersectionRectangle
+                for i in range(checkWaypointsUpUntil - 1):
+                    # Check if the line intersects the obstacle
+                    intersection, zHeight = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
+                    if intersection:
+                        # print("Found intersection")
+                        if zHeight > maxZ:
+                            maxZ = zHeight
 
-        for key in dodgeDict:
-            print('Dodge')
-            waypoints = waypoints[:key + 1] + dodgeDict[key] + waypoints[key + 1:]
+            # If we found an intersection, change all the waypoints that move at travelHeight to move at maxZ
+            if maxZ != -np.inf:
+                for i in range(len(waypoints)):
+                    if waypoints[i][2] == travelHeight:
+                        waypoints[i] = (waypoints[i][0], waypoints[i][1], maxZ)
 
         return waypoints, checkWaypointsUpUntil
 
@@ -352,6 +386,7 @@ class RobotManager:
         # As this is a zig-zag, we just need to alter all the straight moves
         # Get the waypoints for a straight move
         waypoints, checkWaypointsUpUntil = self.planStraightMove(currentPos, targetPos)
+        travelHeight = waypoints[checkWaypointsUpUntil - 1][2]
 
         # print(f'Waypoints: {waypoints}')
         checkWaypointsValue = waypoints[checkWaypointsUpUntil - 1]
@@ -452,22 +487,23 @@ class RobotManager:
         checkWaypointsUpUntil = waypoints.index(checkWaypointsValue)
 
         # Check if we are intersecting any obstacles
-        dodgeDict = {}
-        for building in self.buildSites:
-            obstacle = building.intersectionRectangle
-            for i in range(checkWaypointsUpUntil - 1):
-                # Check if the line intersects the obstacle
-                intersection, point = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
-                if intersection:
-                    print("Found intersection")
-                    # If it does, we need to dodge it
-                    direction = np.random.choice([0, 1])
-                    dodgeDict[i] = self.dodgeObstacle(waypoints[i], waypoints[i + 1], obstacle, point, direction)
+        if self.buildSites is not None:
+            maxZ = -np.inf
+            for building in self.buildSites:
+                obstacle = building.intersectionRectangle
+                for i in range(checkWaypointsUpUntil - 1):
+                    # Check if the line intersects the obstacle
+                    intersection, zHeight = self.checkIntersection(waypoints[i], waypoints[i + 1], obstacle)
+                    if intersection:
+                        # print("Found intersection")
+                        if zHeight > maxZ:
+                            maxZ = zHeight
 
-        for key in dodgeDict:
-            print('dodging')
-            waypoints = waypoints[:key + 1] + dodgeDict[key] + waypoints[key + 1:]
-            print(f'Waypoints: {waypoints}')
+            # If we found an intersection, change all the waypoints that move at travelHeight to move at maxZ
+            if maxZ != -np.inf:
+                for i in range(len(waypoints)):
+                    if waypoints[i][2] == travelHeight:
+                        waypoints[i] = (waypoints[i][0], waypoints[i][1], maxZ)
 
 
         return waypoints, checkWaypointsUpUntil
@@ -517,6 +553,18 @@ class RobotManager:
 
         waypoints += pathToTarget
 
+        return waypoints
+
+    def planFakePlacement(self, currentPos, targetPositions: list[tuple]) -> list:
+        # This one is just a string of straight moves.
+        waypoints = []
+        # print(f'Target positions: {targetPositions}')
+        for targetPos in targetPositions:
+            path, _extra = self.planStraightMove(currentPos, targetPos)
+            waypoints += path
+            currentPos = targetPos
+
+        # print(waypoints)
         return waypoints
 
     @staticmethod
@@ -659,125 +707,133 @@ class RobotManager:
 
         if 0 <= np.linalg.norm(projectionOntoS0) <= np.linalg.norm(s0) and 0 <= np.linalg.norm(
                 projectionOntoS1) <= np.linalg.norm(s1):
-            print(f'Intersection at {vectorInitial + a * d}')
-
-            return True, vectorInitial + a * d
+            # print(f'Intersection at {vectorInitial + a * d}')
+            # Find Z height to move at
+            zMovingHeight = rectangle[2][2] + constants.robotMovingPadding
+            return True, zMovingHeight
 
         return False, None
 
-    @staticmethod
-    def dodgeObstacle(initialPoint: tuple, finalPoint: tuple, obstacle: list, intersectionPoint: tuple, direction: bool = True) -> list:
-        """Dodge over an obstacle represented by a polygon - does not append initial or final points
-        Args:
-            initialPoint (tuple): The starting point of the line in polar coordinates
-            finalPoint (tuple): The ending point of the line in polar coordinates
-            obstacle (list): The obstacle to dodge around, in the form [point0, point1, point2, point3]. All points are in polar coordinates
-            intersectionPoint (tuple): The point where the line intersects the obstacle
-            direction (bool): The direction we are dodging the obstacle: True -> up, False -> around
-        Returns:
-            waypoints (list): List of waypoints to dodge around the polygon in polar coordinates
-        """
 
-        waypoints = []
+    # This was a good idea in theory, however in practice it is hard to do.
+    # If you would like to debug this please do.
+    # A few notes:
+    #     - This works - check the testDodgingObstacle test case
+    #     - Not sure why it doesn't work in the main program
 
-        # Convert the points to cartesian coordinates
-        initialPoint = constants.polarToCartesian(initialPoint)
-        finalPoint = constants.polarToCartesian(finalPoint)
-
-        # Calculate vector from initial point to intersection point
-        vectorInitial = np.array(initialPoint)
-
-        # Split this vector up into the form v0 + t * d
-        # Where v0 is the initial point, d is the direction vector, and t is the scalar that corresponds to the length of the vector
-        d = (np.array(intersectionPoint) - vectorInitial) / np.linalg.norm(np.array(intersectionPoint) - vectorInitial)
-        t = np.linalg.norm(np.array(intersectionPoint) - vectorInitial)
-
-        # Find the point where we want to stop the robot in order to dodge the obstacle
-        # To do this, we will shorten the distance, t by the robotHeadRadius + blockSize / 2 + robotMovingPadding
-        # The 10mm is just padding to make sure we don't hit the obstacle
-
-        # First, calculate the distance we need to shorten the vector by
-        distanceToShorten = constants.robotHeadRadius + constants.blockSize / 2 + constants.robotMovingPadding
-
-        # Do the same thing as above, but with the final point
-        vectorFinal = np.array(finalPoint)
-        dFinal = (np.array(intersectionPoint) - vectorFinal) / np.linalg.norm(np.array(intersectionPoint) - vectorFinal)
-        tFinal = np.linalg.norm(np.array(intersectionPoint) - vectorFinal)
-
-        # Calculate the distance we need to shorten the vector by
-        distanceToShortenFinal = constants.robotHeadRadius + constants.blockSize / 2 + constants.robotMovingPadding
-
-        # Then, calculate the new vector
-        if distanceToShorten > t:
-            # If the distance is greater than the length of the vector, we can't dodge the obstacle
-            # So, we will just go straight up and around it.
-            # This case should never actually happen, but it's here just in case
-            zHeight = obstacle[2][2] + 10
-
-            waypoints.append((initialPoint[0], initialPoint[1], zHeight))
-            # Then just go over and above the final point
-            waypoints.append((finalPoint[0], finalPoint[1], zHeight))
-            # Then go down to the final point
-            waypoints.append(finalPoint)
-            return waypoints
-
-        elif distanceToShortenFinal > tFinal:
-            # If the distance is greater than the length of the vector, we can't dodge the obstacle
-            # So, we will just go straight up and around it.
-            # This case should never actually happen, but it's here just in case
-            zHeight = obstacle[2][2] + 10
-
-            waypoints.append((initialPoint[0], initialPoint[1], zHeight))
-            # Then just go over and above the final point
-            waypoints.append((finalPoint[0], finalPoint[1], zHeight))
-
-            # Don't go down, this will crash the robot
-
-            return waypoints
-
-
-        # Calculate the new vector
-        initialStoppingPoint = vectorInitial + (t - distanceToShorten) * d
-        finalStoppingPoint = vectorFinal + (tFinal - distanceToShortenFinal) * dFinal
-
-        # Go to this point
-        waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], initialStoppingPoint[2]))
-
-        if direction:
-            zHeight = obstacle[2][2] + 10
-            print(f'Z height: {zHeight}')
-
-            # Go up
-            waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], zHeight))
-
-            # Go over and above the finalStoppingPoint
-            waypoints.append((finalStoppingPoint[0], finalStoppingPoint[1], zHeight))
-
-            # Go down to the finalStoppingPoint
-            waypoints.append((finalStoppingPoint[0], finalStoppingPoint[1], finalStoppingPoint[2]))
-
-            # Convert all the waypoints to polar coordinates
-            for i, waypoint in enumerate(waypoints):
-                waypoints[i] = constants.cartesianToPolar(waypoint)
-        else:
-
-            # Convert to polar coordinates
-            initialStoppingPoint = constants.cartesianToPolar(initialStoppingPoint)
-            finalPoint = constants.cartesianToPolar(finalPoint)
-
-            # Dodge around the obstacle by moving towards the center
-            waypoints.append(
-                (obstacle[0][0] + constants.robotMovingPadding, initialStoppingPoint[1], initialStoppingPoint[2]))
-
-            # Go over
-            waypoints.append((obstacle[0][0] + constants.robotMovingPadding,
-                              initialStoppingPoint[1] + constants.degreesPerBlock, initialStoppingPoint[2]))
-
-            # Go back
-            waypoints.append(
-                (initialStoppingPoint[0], initialStoppingPoint[1] + constants.degreesPerBlock, initialStoppingPoint[2]))
-
-            # Go to final point
-            waypoints.append(finalPoint)
-
-        return waypoints
+    # @staticmethod
+    # def dodgeObstacle(initialPoint: tuple, finalPoint: tuple, obstacle: list, intersectionPoint: tuple, direction: bool = True) -> list:
+    #     """Dodge over an obstacle represented by a polygon - does not append initial or final points
+    #     Args:
+    #         initialPoint (tuple): The starting point of the line in polar coordinates
+    #         finalPoint (tuple): The ending point of the line in polar coordinates
+    #         obstacle (list): The obstacle to dodge around, in the form [point0, point1, point2, point3]. All points are in polar coordinates
+    #         intersectionPoint (tuple): The point where the line intersects the obstacle
+    #         direction (bool): The direction we are dodging the obstacle: True -> up, False -> around
+    #     Returns:
+    #         waypoints (list): List of waypoints to dodge around the polygon in polar coordinates
+    #     """
+    #
+    #     waypoints = []
+    #
+    #     # Convert the points to cartesian coordinates
+    #     initialPoint = constants.polarToCartesian(initialPoint)
+    #     finalPoint = constants.polarToCartesian(finalPoint)
+    #
+    #     # Calculate vector from initial point to intersection point
+    #     vectorInitial = np.array(initialPoint)
+    #
+    #     # Split this vector up into the form v0 + t * d
+    #     # Where v0 is the initial point, d is the direction vector, and t is the scalar that corresponds to the length of the vector
+    #     d = (np.array(intersectionPoint) - vectorInitial) / np.linalg.norm(np.array(intersectionPoint) - vectorInitial)
+    #     t = np.linalg.norm(np.array(intersectionPoint) - vectorInitial)
+    #
+    #     # Find the point where we want to stop the robot in order to dodge the obstacle
+    #     # To do this, we will shorten the distance, t by the robotHeadRadius + blockSize / 2 + robotMovingPadding
+    #     # The 10mm is just padding to make sure we don't hit the obstacle
+    #
+    #     # First, calculate the distance we need to shorten the vector by
+    #     distanceToShorten = constants.robotHeadRadius + constants.blockSize / 2 + constants.robotMovingPadding
+    #
+    #     # Do the same thing as above, but with the final point
+    #     vectorFinal = np.array(finalPoint)
+    #     dFinal = (np.array(intersectionPoint) - vectorFinal) / np.linalg.norm(np.array(intersectionPoint) - vectorFinal)
+    #     tFinal = np.linalg.norm(np.array(intersectionPoint) - vectorFinal)
+    #
+    #     # Calculate the distance we need to shorten the vector by
+    #     distanceToShortenFinal = constants.robotHeadRadius + constants.blockSize / 2 + constants.robotMovingPadding
+    #
+    #     # Then, calculate the new vector
+    #     if distanceToShorten > t:
+    #         # If the distance is greater than the length of the vector, we can't dodge the obstacle
+    #         # So, we will just go straight up and around it.
+    #         # This case should never actually happen, but it's here just in case
+    #         zHeight = obstacle[2][2] + 10
+    #
+    #         waypoints.append((initialPoint[0], initialPoint[1], zHeight))
+    #         # Then just go over and above the final point
+    #         waypoints.append((finalPoint[0], finalPoint[1], zHeight))
+    #         # Then go down to the final point
+    #         waypoints.append(finalPoint)
+    #         return waypoints
+    #
+    #     elif distanceToShortenFinal > tFinal:
+    #         # If the distance is greater than the length of the vector, we can't dodge the obstacle
+    #         # So, we will just go straight up and around it.
+    #         # This case should never actually happen, but it's here just in case
+    #         zHeight = obstacle[2][2] + 10
+    #
+    #         waypoints.append((initialPoint[0], initialPoint[1], zHeight))
+    #         # Then just go over and above the final point
+    #         waypoints.append((finalPoint[0], finalPoint[1], zHeight))
+    #
+    #         # Don't go down, this will crash the robot
+    #
+    #         return waypoints
+    #
+    #
+    #     # Calculate the new vector
+    #     initialStoppingPoint = vectorInitial + (t - distanceToShorten) * d
+    #     finalStoppingPoint = vectorFinal + (tFinal - distanceToShortenFinal) * dFinal
+    #
+    #     # Go to this point
+    #     waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], initialStoppingPoint[2]))
+    #
+    #     if direction:
+    #         zHeight = obstacle[2][2] + 10
+    #         print(f'Z height: {zHeight}')
+    #
+    #         # Go up
+    #         waypoints.append((initialStoppingPoint[0], initialStoppingPoint[1], zHeight))
+    #
+    #         # Go over and above the finalStoppingPoint
+    #         waypoints.append((finalStoppingPoint[0], finalStoppingPoint[1], zHeight))
+    #
+    #         # Go down to the finalStoppingPoint
+    #         waypoints.append((finalStoppingPoint[0], finalStoppingPoint[1], finalStoppingPoint[2]))
+    #
+    #         # Convert all the waypoints to polar coordinates
+    #         for i, waypoint in enumerate(waypoints):
+    #             waypoints[i] = constants.cartesianToPolar(waypoint)
+    #     else:
+    #
+    #         # Convert to polar coordinates
+    #         initialStoppingPoint = constants.cartesianToPolar(initialStoppingPoint)
+    #         finalPoint = constants.cartesianToPolar(finalPoint)
+    #
+    #         # Dodge around the obstacle by moving towards the center
+    #         waypoints.append(
+    #             (obstacle[0][0] + constants.robotMovingPadding, initialStoppingPoint[1], initialStoppingPoint[2]))
+    #
+    #         # Go over
+    #         waypoints.append((obstacle[0][0] + constants.robotMovingPadding,
+    #                           initialStoppingPoint[1] + constants.degreesPerBlock, initialStoppingPoint[2]))
+    #
+    #         # Go back
+    #         waypoints.append(
+    #             (initialStoppingPoint[0], initialStoppingPoint[1] + constants.degreesPerBlock, initialStoppingPoint[2]))
+    #
+    #         # Go to final point
+    #         waypoints.append(finalPoint)
+    #
+    #     return waypoints
