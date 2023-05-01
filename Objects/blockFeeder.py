@@ -80,6 +80,9 @@ class BlockFeeder:
 
             # Set state machine to the ready state
             self.setState(self._STATE_READY)
+
+            self.dpiClockNBlock.blinkArrow(False)
+
             return True
 
         return False
