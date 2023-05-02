@@ -1,7 +1,7 @@
 """Constants for all of our objects"""
 import numpy as np
 
-blockSize = 31  # in mm
+blockSize = 30  # in mm
 blockPadding = 1  # in mm
 
 # Solenoid Values
@@ -32,10 +32,10 @@ blockFeederSolenoids = [(6, 7),
 
 # Build Sites
 #   Replace second value with the location of the ends of the build sites.
-buildLocations = [[(303.6, 351.870, -1442.8), (478.3, 351.789, -1444.3)],
-                  [(295.8, 263.268, -1443.8), (543.6, 262.883, -1443.8)],
-                  [(288.8, 172.206, -1444.3), (524.9, 172.340, -1447.4)],
-                  [(290.1, 82.162, -1447.4), (414.2, 82.032, -1449.0)]]
+buildLocations = [[(303.6, 351.870, -1443.8), (478.3, 351.789, -1445.3)],
+                  [(295.8, 263.268, -1444.8), (543.6, 262.883, -1444.8)],
+                  [(288.8, 172.206, -1445.3), (524.9, 172.340, -1448.4)],
+                  [(290.1, 82.162, -1448.4), (414.2, 82.032, -1450.0)]]
 
 # Block Feeders
 blockFeederLocations = [(343.0, 308.000, -1472.6),

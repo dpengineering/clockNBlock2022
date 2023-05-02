@@ -28,7 +28,7 @@ class Training:
     # manually write these locations down. Here we are creating a text file
     # and writing the time we are saving the locations.
     #
-    locationsFile = open("oneTimeSetup/locations", "a")
+    locationsFile = open("locations", "a")
     t = localtime()
     locationsFile.write(f'Locations saved at {t.tm_hour}:{t.tm_min} \n')
     locationsFile.close()
@@ -251,7 +251,7 @@ class Training:
                     r, theta, z = self.cartesianToPolar((x, y, z))
                     if status:
                         print("Write to file")
-                        locationsFile = open("oneTimeSetup/locations", "a")
+                        locationsFile = open("locations", "a")
                         name = input("What point is this? ")
                         locationsFile.write(f'{name}: ({r}, {theta}, {z} \n')
                         locationsFile.close()
