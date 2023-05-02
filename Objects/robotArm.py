@@ -80,6 +80,11 @@ class RobotArm:
         if robotState == self.dpiRobot.STATE_E_STOPPED_PRESSED or robotState == self.dpiRobot.STATE_NOT_HOMED:
             self.isHomedFlg = False
 
+        # Every 5 minutes, home the robot. Just incase we missed steps
+        if time.time() % 300 == 0:
+            self.dpiRobot.homeRobot(True)
+            return
+
         currentPosition = self.getPositionPolar()
 
         if self.state == self.STATE_MOVE_TO_FEEDER:
@@ -174,6 +179,7 @@ class RobotArm:
             elif self.robotManager.moveToFeeder(currentPosition) is not None:
                 self.setState(self.STATE_MOVE_TO_FEEDER)
                 return None
+
 
     def rotate(self) -> None:
         self.rotationPositionFlg = not self.rotationPositionFlg
