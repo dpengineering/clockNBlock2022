@@ -26,7 +26,8 @@ class Clock:
     MINUTE_HAND_GEAR_REDUCTION = 204  # Gear reduction is 204:1
     MINUTE_HAND_STEPS_PER_REVOLUTION = int(200 * MICROSTEPPING * MINUTE_HAND_GEAR_REDUCTION * 1.002)  # 326400
     # Base minute hand speed, 1 revolution per hour, about 90.6 steps per second
-    MINUTE_HAND_BASE_SPEED = MINUTE_HAND_STEPS_PER_REVOLUTION / (60 * 60)
+    # MINUTE_HAND_BASE_SPEED = MINUTE_HAND_STEPS_PER_REVOLUTION / (60 * 60)
+    MINUTE_HAND_BASE_SPEED = 100
     MINUTE_HAND_MAX_SPEED = 20000
     MINUTE_HAND_ACCELERATION = MINUTE_HAND_MAX_SPEED // 4
 
@@ -151,9 +152,9 @@ class Clock:
             # print(f'Hour hand is off by {hourDifference} steps')
             self.dpiStepper.moveToRelativePositionInSteps(self.HOUR_HAND_PIN, hourDifference, False)
 
-        # print(f'Minute hand speed: {self.dpiStepper.getCurrentVelocityInStepsPerSecond(self.MINUTE_HAND_PIN)}')
-        # print(f'Minute Hand is off by {minutePosition - minuteToSteps} steps')
-        # print(f'Minute Hand Position: {minutePosition}, Minute To Steps: {minuteToSteps}')
+        print(f'Minute hand speed: {self.dpiStepper.getCurrentVelocityInStepsPerSecond(self.MINUTE_HAND_PIN)}')
+        print(f'Minute Hand is off by {minutePosition - minuteToSteps} steps')
+        print(f'Minute Hand Position: {minutePosition}, Minute To Steps: {minuteToSteps}')
 
         # else:
             # print(f'Hour hand is at the correct position')
