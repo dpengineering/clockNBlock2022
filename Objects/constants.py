@@ -91,6 +91,29 @@ placement3 = [[- blockSize / 2, 0, 0, 1, 0, 0, 0],
 placementArrays = [placement0, placement1, placement2, placement3]
 
 
+# Exclusion Zones for poles
+poleLocations = [(398.3, 270.719, -1438.1),
+                 (425.9, 206.192, -1438.1),
+                 (429.2, 332.259, -1398.1)]
+
+poleZone0 = [(poleLocations[0][0], poleLocations[0][1] + robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[0][0], poleLocations[0][1] - robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[0][0], poleLocations[0][1] + robotHeadRadiusDegrees, np.inf),
+             (poleLocations[0][0], poleLocations[0][1] - robotHeadRadiusDegrees, np.inf)]
+
+poleZone1 = [(poleLocations[1][0], poleLocations[1][1] + robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[1][0], poleLocations[1][1] - robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[1][0], poleLocations[1][1] + robotHeadRadiusDegrees, np.inf),
+             (poleLocations[1][0], poleLocations[1][1] - robotHeadRadiusDegrees, np.inf)]
+
+poleZone2 = [(poleLocations[2][0], poleLocations[2][1] + robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[2][0], poleLocations[2][1] - robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[2][0], poleLocations[2][1] + robotHeadRadiusDegrees, np.inf),
+             (poleLocations[2][0], poleLocations[2][1] - robotHeadRadiusDegrees, np.inf)]
+
+poles = [poleZone0, poleZone1, poleZone2]
+
+
 def cartesianToPolar(position: tuple) -> tuple:
     """Helper function to change cartesian coordinates to polar
     Args:

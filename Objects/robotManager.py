@@ -367,6 +367,13 @@ class RobotManager:
                     if waypoints[i][2] == travelHeight:
                         waypoints[i] = (waypoints[i][0], waypoints[i][1], maxZ)
 
+        # Check if we are intersecting any poles, we will never intersect a pole more than twice
+        for i in range(len(waypoints) - 1):
+            path = self.avoidPoles(waypoints[i], waypoints[i + 1])
+            if path is not None:
+                waypoints = waypoints[:i] + path + waypoints[i + 1:]
+                break
+
         return waypoints, checkWaypointsUpUntil
 
     def planZigZagMove(self, currentPos: tuple, targetPos: tuple) -> tuple[list, int]:
@@ -466,17 +473,6 @@ class RobotManager:
                 # Verify this is our target point.
                 # print(f'Zig zag final cartesian point: {intermediateStoppingPoints[-1]}')
                 intermediateStoppingPoints = [constants.cartesianToPolar(point) for point in intermediateStoppingPoints]
-                # print(f'Final point: {waypoints[i + 1]}')
-                # print(f'Zig zag final point: {intermediateStoppingPoints[-1]}')
-
-                # assert np.allclose(intermediateStoppingPoints[-1], waypoints[i+1], atol=10)
-
-                # Avoid hitting the poles
-                for k, point in enumerate(intermediateStoppingPoints):
-                    R, Theta, Z = point
-
-                    if R > constants.maximumMovingRadius:
-                        intermediateStoppingPoints[k] = (constants.maximumMovingRadius, Theta, Z)
 
                 zigZagDict[i] = intermediateStoppingPoints
 
@@ -504,6 +500,14 @@ class RobotManager:
                 for i in range(len(waypoints)):
                     if waypoints[i][2] == travelHeight:
                         waypoints[i] = (waypoints[i][0], waypoints[i][1], maxZ)
+
+
+        # Check if we are intersecting any poles, we will never intersect a pole more than twice
+        for i in range(len(waypoints) - 1):
+            path = self.avoidPoles(waypoints[i], waypoints[i + 1])
+            if path is not None:
+                waypoints = waypoints[:i] + path + waypoints[i + 1:]
+                break
 
 
         return waypoints, checkWaypointsUpUntil
@@ -713,6 +717,30 @@ class RobotManager:
             return True, zMovingHeight
 
         return False, None
+
+
+    def avoidPoles(self, initialPoint: tuple, finalPoint: tuple) -> list or None:
+        poles = constants.poles
+
+        # Check intersection with each pole
+        for pole in poles:
+            if self.checkIntersection(initialPoint, finalPoint, pole):
+                # If we intersect with a pole, dodge it
+                return self.dodgePole(initialPoint, finalPoint)
+
+        # If we don't intersect with any poles, return None
+        return None
+
+
+    @staticmethod
+    def dodgePole(initialPoint, finalPoint):
+        # We don't actually need to do any math here, just move to max moving R and then move over
+        waypoints = []
+        waypoints.append(initialPoint)
+        waypoints.append((constants.maximumMovingRadius, initialPoint[1], initialPoint[2]))
+        waypoints.append((constants.maximumMovingRadius, finalPoint[1], finalPoint[2]))
+        waypoints.append(finalPoint)
+        return waypoints
 
 
     # This was a good idea in theory, however in practice it is hard to do.
