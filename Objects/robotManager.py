@@ -151,8 +151,9 @@ class RobotManager:
             return None
 
         # Decide if we want to do a fake placement, this has a 5% chance of happening
-        if np.random.random() < 0.05:
-            FakePlacement = True
+        # This caused the robot to lose steps a lot as it had to quickly reverse directions. Needs to be fixed
+        # if np.random.random() < 0.05:
+        #     FakePlacement = True
 
         if FakePlacement:
             print('Robot arm fake placement move to build site')
@@ -726,6 +727,7 @@ class RobotManager:
         for pole in poles:
             if self.checkIntersection(initialPoint, finalPoint, pole):
                 # If we intersect with a pole, dodge it
+                print('Dodging pole')
                 return self.dodgePole(initialPoint, finalPoint)
 
         # If we don't intersect with any poles, return None
