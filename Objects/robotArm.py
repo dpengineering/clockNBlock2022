@@ -40,6 +40,10 @@ class RobotArm:
 
         self.initialize()
 
+        # For homing
+        self.homingStartTime = None
+        self.homingTime = 5 * 60  # 5 minutes
+
     def initialize(self) -> None:
         """Set up the robot arm"""
         self.dpiRobot.setBoardNumber(0)
@@ -81,8 +85,9 @@ class RobotArm:
             self.isHomedFlg = False
 
         # Every 5 minutes, home the robot. Just incase we missed steps
-        if time.time() % 300 == 0:
+        if time.time() - self.homingStartTime > self.homingTime:
             self.dpiRobot.homeRobot(True)
+            self.homingStartTime = time.time()
             return
 
         currentPosition = self.getPositionPolar()
