@@ -14,8 +14,9 @@ class BlockFeeder:
     _STATE_IDLE          = 4
 
     def __init__(self, feederLocation, solenoidNumbers, dpiClockNBlockNumber, dpiSolenoid):
-        self.index = dpiClockNBlockNumber
+        self.feederNumber = dpiClockNBlockNumber
         self.location = feederLocation
+        self.index = dpiClockNBlockNumber
         self.sidePiston = solenoidNumbers[0]
         self.upPiston = solenoidNumbers[1]
         self.dpiClockNBlock = DPiClockNBlock()
@@ -79,12 +80,14 @@ class BlockFeeder:
 
             # Set state machine to the ready state
             self.setState(self._STATE_READY)
+
+            self.dpiClockNBlock.blinkArrow(False)
+
             return True
 
         return False
 
-
-    def process(self, minuteHandPosition=None):
+    def process(self, minuteHandPosition: float = None):
 
 
         self.dpiClockNBlock.toggleArrow(not self.dpiClockNBlock.readEntrance())
@@ -163,7 +166,6 @@ class BlockFeeder:
 
             return
 
-
     def setState(self, newState):
         self.state = newState
         self.newState = True
@@ -183,4 +185,3 @@ class BlockFeeder:
         else:
             self.isReadyFlg = False
             return
-

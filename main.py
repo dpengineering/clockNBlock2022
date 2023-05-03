@@ -67,24 +67,22 @@ def setup():
 
 
 def main():
-    hourHandPosition = None
+
     while True:
         # Process all  the loops
         if robot.isHomedFlg:
-            clock.process(hourHandPosition=hourHandPosition)
+            clock.process()
             hourPos, minutePos = clock.getPositionDegrees()
 
             [blockFeeder.process(minutePos) for blockFeeder in blockFeeders]
             [buildSite.process(minutePos) for buildSite in buildSites]
 
-            hourHandPosition = robot.process()
+            robot.process()
 
             if robot.state == robot.STATE_IDLE:
                 clock.robotIdleFlg = True
             else:
                 clock.robotIdleFlg = False
-
-
 
 
         # Read for when the E-Stop gets released
@@ -99,7 +97,6 @@ def main():
 
 if __name__ == '__main__':
     setup()
-
 
 
 

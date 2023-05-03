@@ -33,7 +33,7 @@ class RobotManager:
         self.maximumMovingR = constants.maximumMovingRadius
 
 
-    def moveToFeeder(self, robotPos):
+    def moveToFeeder(self, robotPos: tuple) -> list or None:
         """Moves to a feeder
         Args:
             robotPos (tuple): (r, theta, z) position of the robot arm
@@ -54,7 +54,7 @@ class RobotManager:
         return waypoints
 
 
-    def moveToBuildSite(self, robotPos):
+    def moveToBuildSite(self, robotPos: tuple) -> list or None:
         """Moves to a build site
         Args:
             robotPos (tuple): (r, theta, z) position of the robot arm
@@ -80,7 +80,7 @@ class RobotManager:
         return waypoints
 
 
-    def chooseFeeder(self):
+    def chooseFeeder(self) -> None or object:
         """Chooses a feeder to move to based on the following
             If a feeder is ready, choose a random one
             If no feeder is ready, return None
@@ -101,7 +101,7 @@ class RobotManager:
 
         return feeder
 
-    def chooseBuildSite(self):
+    def chooseBuildSite(self) -> None or object:
         """Chooses a build site to move to based on the following
             If a build site is ready, assign weights to each then choose a random one
             If no build site is ready, return None
@@ -168,7 +168,7 @@ class RobotManager:
         return straightWaypoints
 
 
-    def planMove(self, currentPos, targetPos):
+    def planMove(self, currentPos: tuple, targetPos: tuple) -> list:
         """ Plans a path from the current position to the target position
         Args:
             currentPos (tuple): Current position of the robot
@@ -237,7 +237,7 @@ class RobotManager:
         return waypoints
 
 
-    def checkIntersection(self, initialPoint, finalPoint, rectangle):
+    def checkIntersection(self, initialPoint: tuple, finalPoint: tuple, rectangle: list) -> tuple:
         """Checks if a line intersects a polygon
         Args:
             initialPoint (tuple): The starting point of the line in polar coordinates

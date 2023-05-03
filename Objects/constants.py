@@ -1,22 +1,25 @@
 """Constants for all of our objects"""
 import numpy as np
 
-blockSize = 31  # in mm
+blockSize = 30  # in mm
 blockPadding = 1  # in mm
 
 # Solenoid Values
 # Robot Arm
 magnetSolenoid = 11
 rotationSolenoid = 10
-robotHeadRadius = 80  # Major radius of the robot end effector
-robotSpeed = 100
+robotHeadRadius = 80  # Major radius of the robot end effector mm
+robotHeadRadiusDegrees = 360 / robotHeadRadius
+robotSpeed = 120
 rotationHeight = -1430
-maximumMovingRadius = 400  # mm
-robotMovingPadding = 10  # Padding for robot arm to move around blocks
+maximumMovingRadius = 350  # mm
+robotMovingPadding = 10  # Padding for robot arm to move around blocks mm
 degreesPerBlock = 360 / blockSize + blockPadding  # Degrees per block
+maximumSpiralingZHeight = -1210  # mm
 
 # Clock
 clockDeadZone = 45  # Degrees
+hourHandZHeight = -1416.5
 
 # Feeder solenoids in (side, up) order
 blockFeederSolenoids = [(6, 7),
@@ -29,10 +32,10 @@ blockFeederSolenoids = [(6, 7),
 
 # Build Sites
 #   Replace second value with the location of the ends of the build sites.
-buildLocations = [[(303.6, 351.870, -1442.8), (478.3, 351.789, -1444.3)],
-                  [(295.8, 263.268, -1443.8), (543.6, 262.883, -1443.8)],
-                  [(288.8, 172.206, -1444.3), (524.9, 172.340, -1447.4)],
-                  [(290.1, 82.162, -1447.4), (414.2, 82.032, -1449.0)]]
+buildLocations = [[(303.6, 351.870, -1443.8), (478.3, 351.789, -1445.3)],
+                  [(295.8, 263.268, -1444.8), (543.6, 262.883, -1444.8)],
+                  [(288.8, 172.206, -1445.3), (524.9, 172.340, -1448.4)],
+                  [(290.1, 82.162, -1448.4), (414.2, 82.032, -1450.0)]]
 
 # Block Feeders
 blockFeederLocations = [(343.0, 308.000, -1472.6),
@@ -88,7 +91,30 @@ placement3 = [[- blockSize / 2, 0, 0, 1, 0, 0, 0],
 placementArrays = [placement0, placement1, placement2, placement3]
 
 
-def cartesianToPolar(position: tuple):
+# Exclusion Zones for poles
+poleLocations = [(398.3, 270.719, -1438.1),
+                 (425.9, 206.192, -1438.1),
+                 (429.2, 332.259, -1398.1)]
+
+poleZone0 = [(poleLocations[0][0], poleLocations[0][1] + robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[0][0], poleLocations[0][1] - robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[0][0], poleLocations[0][1] + robotHeadRadiusDegrees, np.inf),
+             (poleLocations[0][0], poleLocations[0][1] - robotHeadRadiusDegrees, np.inf)]
+
+poleZone1 = [(poleLocations[1][0], poleLocations[1][1] + robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[1][0], poleLocations[1][1] - robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[1][0], poleLocations[1][1] + robotHeadRadiusDegrees, np.inf),
+             (poleLocations[1][0], poleLocations[1][1] - robotHeadRadiusDegrees, np.inf)]
+
+poleZone2 = [(poleLocations[2][0], poleLocations[2][1] + robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[2][0], poleLocations[2][1] - robotHeadRadiusDegrees, -np.inf),
+             (poleLocations[2][0], poleLocations[2][1] + robotHeadRadiusDegrees, np.inf),
+             (poleLocations[2][0], poleLocations[2][1] - robotHeadRadiusDegrees, np.inf)]
+
+poles = [poleZone0, poleZone1, poleZone2]
+
+
+def cartesianToPolar(position: tuple) -> tuple:
     """Helper function to change cartesian coordinates to polar
     Args:
         position (tuple): Current robot position in cartesian plane
@@ -107,7 +133,7 @@ def cartesianToPolar(position: tuple):
     return r, theta, z
 
 
-def polarToCartesian(position: tuple):
+def polarToCartesian(position: tuple) -> tuple:
     """Converts polar coordinates to cartesian coordinates"""
     r, theta, z = position
     theta = np.deg2rad(theta)
