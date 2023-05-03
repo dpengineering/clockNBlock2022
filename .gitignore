@@ -3,3 +3,6 @@ bin
 lib
 pyvenv.cfg
 /include/
+Objects/__pycache__/
+*/__pycache__/
+__pycache__/
