@@ -96,22 +96,24 @@ poleLocations = [(398.3, 270.719, -1438.1),
                  (425.9, 206.192, -1438.1),
                  (429.2, 332.259, -1398.1)]
 
-poleZone0 = [(poleLocations[0][0], poleLocations[0][1] + robotHeadRadiusDegrees, -np.inf),
-             (poleLocations[0][0], poleLocations[0][1] - robotHeadRadiusDegrees, -np.inf),
-             (poleLocations[0][0], poleLocations[0][1] + robotHeadRadiusDegrees, np.inf),
-             (poleLocations[0][0], poleLocations[0][1] - robotHeadRadiusDegrees, np.inf)]
+# 2D representation of the pole exclusion zones, 700 is an arbitrary number that is larger than the build area
+pole0 = [(poleLocations[0][0] - robotHeadRadius, poleLocations[0][1], -np.inf),
+         (700, poleLocations[0][1] + robotHeadRadiusDegrees, -np.inf),
+         (poleLocations[0][0] - robotHeadRadius, poleLocations[0][1], np.inf),
+         (700, poleLocations[0][1] + robotHeadRadiusDegrees, np.inf)]
 
-poleZone1 = [(poleLocations[1][0], poleLocations[1][1] + robotHeadRadiusDegrees, -np.inf),
-             (poleLocations[1][0], poleLocations[1][1] - robotHeadRadiusDegrees, -np.inf),
-             (poleLocations[1][0], poleLocations[1][1] + robotHeadRadiusDegrees, np.inf),
-             (poleLocations[1][0], poleLocations[1][1] - robotHeadRadiusDegrees, np.inf)]
+pole1 = [(poleLocations[1][0] - robotHeadRadius, poleLocations[1][1], -np.inf),
+         (700, poleLocations[1][1] + robotHeadRadiusDegrees, -np.inf),
+         (poleLocations[1][0] - robotHeadRadius, poleLocations[1][1], np.inf),
+         (700, poleLocations[1][1] + robotHeadRadiusDegrees, np.inf)]
 
-poleZone2 = [(poleLocations[2][0], poleLocations[2][1] + robotHeadRadiusDegrees, -np.inf),
-             (poleLocations[2][0], poleLocations[2][1] - robotHeadRadiusDegrees, -np.inf),
-             (poleLocations[2][0], poleLocations[2][1] + robotHeadRadiusDegrees, np.inf),
-             (poleLocations[2][0], poleLocations[2][1] - robotHeadRadiusDegrees, np.inf)]
+pole2 = [(poleLocations[2][0] - robotHeadRadius, poleLocations[2][1], -np.inf),
+         (700, poleLocations[2][1] + robotHeadRadiusDegrees, -np.inf),
+         (poleLocations[2][0] - robotHeadRadius, poleLocations[2][1], np.inf),
+         (700, poleLocations[2][1] + robotHeadRadiusDegrees, np.inf)]
 
-poles = [poleZone0, poleZone1, poleZone2]
+
+poles = [pole0, pole1, pole2]
 
 
 def cartesianToPolar(position: tuple) -> tuple:

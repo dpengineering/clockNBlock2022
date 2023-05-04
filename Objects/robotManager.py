@@ -301,8 +301,30 @@ class RobotManager:
             waypoints.append((self.maximumMovingR - 100, currentTheta, travelHeight))
 
         # Get straight move
-        straightMove, _ = self.planStraightMove(waypoints[-1], targetPos)
+        straightMove, checkUpUntil = self.planStraightMove(waypoints[-1], targetPos)
         waypoints.extend(straightMove)
+
+        # Our intersections will be different than the straight move's intersections as we are moving in an arc
+        # Find how long our original move is
+        polarWaypointsLength = len(waypoints) - len(straightMove)
+
+        for i in range(polarWaypointsLength, polarWaypointsLength + checkUpUntil - 1):
+            initialR, initialTheta, initialZ = waypoints[i]
+            finalR, finalTheta, finalZ = waypoints[i + 1]
+
+            # If there is a build site in the way, we need to move up
+            # First check for that build site
+            buildSiteThetas = [buildSite.location0[1] for buildSite in self.buildSites]
+            # Check if either radius is over 250mm (the ring of empty space around the center of the clock)
+            if initialR > 250 or finalR > 250:
+                # Now check if any build site is in the way
+                for idx, buildSiteTheta in enumerate(buildSiteThetas):
+                    if initialTheta < buildSiteTheta < finalTheta or initialTheta > buildSiteTheta > finalTheta:
+                        # If a build site is in the way, move up
+                        zHeight = self.buildSites[idx].intersectionRectangle[2][2] + 20
+                        waypoints[i] = (initialR, initialTheta, zHeight)
+                        waypoints[i + 1] = (finalR, finalTheta, zHeight)
+
 
         return waypoints
 
