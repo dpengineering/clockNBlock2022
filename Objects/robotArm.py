@@ -83,7 +83,7 @@ class RobotArm:
         return True
 
 
-    def process(self) -> None:
+    def process(self) -> None or float:
 
         _status, robotState = self.dpiRobot.getRobotStatus()
 
