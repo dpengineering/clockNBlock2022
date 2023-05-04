@@ -14,6 +14,7 @@ class RobotArm:
     STATE_MOVE_TO_BUILD_SITE = 3
     STATE_PLACE_BLOCK        = 4
     STATE_IDLE               = 5
+    STATE_HOME_ROBOT         = 6
 
     def __init__(self, dpiSolenoid, magnetSolenoid, rotationSolenoid, buildSites=None, blockFeeders=None):
 
@@ -43,6 +44,7 @@ class RobotArm:
         # For homing
         self.homingStartTime = None
         self.homingTime = 5 * 60  # 5 minutes
+        self.homeRobotFlg = False
 
     def initialize(self) -> None:
         """Set up the robot arm"""
@@ -76,6 +78,8 @@ class RobotArm:
 
         self.setState(self.STATE_MOVE_TO_FEEDER)
 
+        self.homingStartTime = time.time()
+
         return True
 
 
@@ -90,8 +94,9 @@ class RobotArm:
 
         # Every 5 minutes, home the robot. Just incase we missed steps
         if time.time() - self.homingStartTime > self.homingTime:
-            self.dpiRobot.homeRobot(True)
+            self.homeRobotFlg = True
             self.homingStartTime = time.time()
+            print('Setting home robot flag')
             return
 
         if self.state == self.STATE_MOVE_TO_FEEDER:
@@ -170,7 +175,10 @@ class RobotArm:
                 return None
 
             elif time.time() - self.start > 0.5:
-                self.setState(self.STATE_MOVE_TO_FEEDER)
+                if self.homeRobotFlg:
+                    self.setState(self.STATE_HOME_ROBOT)
+                else:
+                    self.setState(self.STATE_MOVE_TO_FEEDER)
                 return None
 
         elif self.state == self.STATE_IDLE:
@@ -186,6 +194,17 @@ class RobotArm:
             elif self.robotManager.moveToFeeder(currentPosition) is not None:
                 self.setState(self.STATE_MOVE_TO_FEEDER)
                 return None
+
+        elif self.state == self.STATE_HOME_ROBOT:
+            if self.newState:
+                print('Homing robot')
+                self.dpiRobot.homeRobot(True)
+                self.newState = False
+                self.homeRobotFlg = False
+                return None
+
+            self.setState(self.STATE_MOVE_TO_FEEDER)
+            return None
 
 
     def rotate(self) -> None:
