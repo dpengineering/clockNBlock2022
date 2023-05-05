@@ -60,8 +60,8 @@ def main():
 
     # Start testing the dodging obstacle.
     rMovement = np.average([buildSite.location0[0], buildSite.location1[0]])
-    initialTheta = buildSite.location0[1] + constants.robotHeadRadiusDegrees + 20
-    finalTheta = buildSite.location1[1] - constants.robotHeadRadiusDegrees - 20
+    initialTheta = buildSite.location0[1] + 20
+    finalTheta = buildSite.location1[1] - 20
     zHeight = -1375
 
     initialPoint = (rMovement, initialTheta, zHeight)

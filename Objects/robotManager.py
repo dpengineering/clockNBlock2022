@@ -97,7 +97,7 @@ class RobotManager:
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
-            print('Robot arm polar move to feeder')
+            # print('Robot arm polar move to feeder')
             waypoints = self.planPolarMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
 
@@ -107,12 +107,12 @@ class RobotManager:
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
         elif funThingToDo == Circle:
-            print('Robot arm circle move to feeder')
+            # print('Robot arm circle move to feeder')
             waypoints = self.planCircle(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
         else:
-            print('Robot arm straight move to feeder')
+            # print('Robot arm straight move to feeder')
             waypoints, _checkUpUntilIndex = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
@@ -156,7 +156,7 @@ class RobotManager:
         #     FakePlacement = True
 
         if FakePlacement:
-            print('Robot arm fake placement move to build site')
+            # print('Robot arm fake placement move to build site')
             # Create our list of locations. We know our final location, so we just choose other build open build sites
 
             # Get a list of all ready build sites
@@ -184,7 +184,7 @@ class RobotManager:
 
         # Now that we have our final locations, we plan our route there
         if funThingToDo == PolarMove:
-            print('Robot arm polar move to build site')
+            # print('Robot arm polar move to build site')
             waypoints = self.planPolarMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLinePolar(waypoints)
 
@@ -194,12 +194,12 @@ class RobotManager:
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
         elif funThingToDo == Circle:
-            print('Robot arm circle move to build site')
+            # print('Robot arm circle move to build site')
             waypoints = self.planCircle(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
         else:
-            print('Robot arm straight move to build site')
+            # print('Robot arm straight move to build site')
             waypoints, _checkUpUntilIndex = self.planStraightMove(robotPos, finalLocation)
             waypoints = self.ensureStraightLineCartesian(waypoints)
 
@@ -302,21 +302,25 @@ class RobotManager:
 
         # Get straight move
         straightMove, checkUpUntil = self.planStraightMove(waypoints[-1], targetPos)
+
+        # Remove the first two moves of the straight move as we already have those
+        straightMove = straightMove[2:]
+
         waypoints.extend(straightMove)
 
         # Our intersections will be different than the straight move's intersections as we are moving in an arc
         # Find how long our original move is
         polarWaypointsLength = len(waypoints) - len(straightMove)
 
-        for i in range(polarWaypointsLength, polarWaypointsLength + checkUpUntil - 1):
+        for i in range(polarWaypointsLength + checkUpUntil - 1):
             initialR, initialTheta, initialZ = waypoints[i]
             finalR, finalTheta, finalZ = waypoints[i + 1]
 
             # If there is a build site in the way, we need to move up
             # First check for that build site
             buildSiteThetas = [buildSite.location0[1] for buildSite in self.buildSites]
-            # Check if either radius is over 250mm (the ring of empty space around the center of the clock)
-            if initialR > 250 or finalR > 250:
+            # Check if either radius is over 300mm (the ring of empty space around the center of the clock)
+            if initialR > 300 or finalR > 300:
                 # Now check if any build site is in the way
                 for idx, buildSiteTheta in enumerate(buildSiteThetas):
                     if initialTheta < buildSiteTheta < finalTheta or initialTheta > buildSiteTheta > finalTheta:
@@ -324,7 +328,6 @@ class RobotManager:
                         zHeight = self.buildSites[idx].intersectionRectangle[2][2] + 20
                         waypoints[i] = (initialR, initialTheta, zHeight)
                         waypoints[i + 1] = (finalR, finalTheta, zHeight)
-
 
         return waypoints
 
@@ -352,7 +355,6 @@ class RobotManager:
         if currentR > self.maximumMovingR:
             # Move in towards the center
             waypoints.append((self.maximumMovingR, currentTheta, travelHeight))
-
 
         # Then, move next to and above the target location
         sign = 1 if currentTheta > targetTheta else -1
@@ -389,13 +391,6 @@ class RobotManager:
                 for i in range(len(waypoints)):
                     if waypoints[i][2] == travelHeight:
                         waypoints[i] = (waypoints[i][0], waypoints[i][1], maxZ)
-
-        # Check if we are intersecting any poles, we will never intersect a pole more than twice
-        for i in range(len(waypoints) - 1):
-            path = self.avoidPoles(waypoints[i], waypoints[i + 1])
-            if path is not None:
-                waypoints = waypoints[:i] + path + waypoints[i + 1:]
-                break
 
         return waypoints, checkWaypointsUpUntil
 
@@ -456,7 +451,7 @@ class RobotManager:
             # print(f'direction: {d}')
 
             # Split the move up into segments of length zigZagDistance
-            # If the move is less than zigZagDistance, do a single zig-zag
+            # If the move is less than zigZagDistance, don't zig-zag
             if t < zigZagDistance:
                 # print(f'passing')
                 continue
@@ -497,6 +492,15 @@ class RobotManager:
                 # print(f'Zig zag final cartesian point: {intermediateStoppingPoints[-1]}')
                 intermediateStoppingPoints = [constants.cartesianToPolar(point) for point in intermediateStoppingPoints]
 
+                # Check if we are intersecting any poles, we will never intersect a pole more than once
+                path = None
+                for k in range(len(waypoints) - 1):
+                    path = k, self.avoidPoles(waypoints[i], waypoints[k + 1])
+                    break
+
+                if path is not None:
+                    intermediateStoppingPoints = intermediateStoppingPoints[:path[0] + 1] + path[1] + intermediateStoppingPoints[path[0] + 1:]
+
                 zigZagDict[i] = intermediateStoppingPoints
 
 
@@ -524,13 +528,6 @@ class RobotManager:
                     if waypoints[i][2] == travelHeight:
                         waypoints[i] = (waypoints[i][0], waypoints[i][1], maxZ)
 
-
-        # Check if we are intersecting any poles, we will never intersect a pole more than twice
-        for i in range(len(waypoints) - 1):
-            path = self.avoidPoles(waypoints[i], waypoints[i + 1])
-            if path is not None:
-                waypoints = waypoints[:i] + path + waypoints[i + 1:]
-                break
 
 
         return waypoints, checkWaypointsUpUntil

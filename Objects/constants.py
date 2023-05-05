@@ -9,7 +9,6 @@ blockPadding = 1  # in mm
 magnetSolenoid = 11
 rotationSolenoid = 10
 robotHeadRadius = 80  # Major radius of the robot end effector mm
-robotHeadRadiusDegrees = 360 / robotHeadRadius
 robotSpeed = 120
 rotationHeight = -1430
 maximumMovingRadius = 350  # mm
@@ -54,12 +53,12 @@ clockMinuteHandZHeight = -1416.5
 # The first column in each array will be reserved for the amount of offset the next row should have from the first
 
 # Build 0 has room for 5 blocks on the base.
-placement0 = [ [0, 1, 0, 0, 0, 0, 0],
-               [0, 1, 1, 0, 0, 0, 0],
-               [0, 1, 1, 1, 0, 0, 0],
-               [0, 1, 1, 1, 1, 0, 0],
-               [0, 1, 1, 1, 1, 1, 0],
-               [0, 1, 1, 1, 1, 1, 1]]
+placement0 = [[0, 1, 0, 0, 0, 0, 0],
+              [0, 1, 1, 0, 0, 0, 0],
+              [0, 1, 1, 1, 0, 0, 0],
+              [0, 1, 1, 1, 1, 0, 0],
+              [0, 1, 1, 1, 1, 1, 0],
+              [0, 1, 1, 1, 1, 1, 1]]
 
 # Build 1 has room for 8 blocks on the base.
 placement1 = [[- blockSize / 2, 0, 0, 0, 0, 1, 0, 0, 0],
@@ -98,19 +97,19 @@ poleLocations = [(398.3, 270.719, -1438.1),
 
 # 2D representation of the pole exclusion zones, 700 is an arbitrary number that is larger than the build area
 pole0 = [(poleLocations[0][0] - robotHeadRadius, poleLocations[0][1], -np.inf),
-         (700, poleLocations[0][1] + robotHeadRadiusDegrees, -np.inf),
+         (700, poleLocations[0][1], -np.inf),
          (poleLocations[0][0] - robotHeadRadius, poleLocations[0][1], np.inf),
-         (700, poleLocations[0][1] + robotHeadRadiusDegrees, np.inf)]
+         (700, poleLocations[0][1], np.inf)]
 
 pole1 = [(poleLocations[1][0] - robotHeadRadius, poleLocations[1][1], -np.inf),
-         (700, poleLocations[1][1] + robotHeadRadiusDegrees, -np.inf),
+         (700, poleLocations[1][1], -np.inf),
          (poleLocations[1][0] - robotHeadRadius, poleLocations[1][1], np.inf),
-         (700, poleLocations[1][1] + robotHeadRadiusDegrees, np.inf)]
+         (700, poleLocations[1][1], np.inf)]
 
 pole2 = [(poleLocations[2][0] - robotHeadRadius, poleLocations[2][1], -np.inf),
-         (700, poleLocations[2][1] + robotHeadRadiusDegrees, -np.inf),
+         (700, poleLocations[2][1], -np.inf),
          (poleLocations[2][0] - robotHeadRadius, poleLocations[2][1], np.inf),
-         (700, poleLocations[2][1] + robotHeadRadiusDegrees, np.inf)]
+         (700, poleLocations[2][1], np.inf)]
 
 
 poles = [pole0, pole1, pole2]
