@@ -80,8 +80,8 @@ placement2 = [[0              , 0, 0, 0, 1, 0, 0, 0],
               [0              , 1, 1, 1, 1, 1, 1, 1]]
 
 # Build 3 has room for 3 blocks on the base (only using 2 for now).
-placement3 = [[- blockSize / 2, 0, 0, 1, 0, 0, 0],
-              [0              , 0, 1, 1, 0, 0, 0],
+placement3 = [[0,               0, 0, 0, 0, 0, 0],
+              [- blockSize / 2, 0, 0, 1, 0, 0, 0],
               [0              , 0, 1, 1, 0, 0, 0],
               [0              , 0, 1, 1, 0, 0, 0],
               [0              , 0, 1, 1, 0, 0, 0],
