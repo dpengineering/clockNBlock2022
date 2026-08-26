@@ -4,3 +4,8 @@ lib
 pyvenv.cfg
 /include/
 main/__pycache__/
+
+# uv / Python
+.venv/
+__pycache__/
+*.pyc

@@ -1,0 +1,12 @@
+[project]
+name = "clocknblock2022"
+version = "0.1.0"
+requires-python = ">=3.9"
+dependencies = [
+    "dpeaDPi",
+    "numpy",
+    "pygame",
+]
+
+[tool.uv]
+package = false
